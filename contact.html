@@ -1,55 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<meta charset="UTF-8">
+  <title>Contact | TechForesightLab</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Contact | TechForesightLab</title>
-
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="contact.css">
-
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="contact.css" />
 </head>
 
 <body>
 
-<header>
-...
-</header>
+  <header class="contact-header">
+    <nav class="contact-nav">
+      <div class="contact-logo">Ryan Nazari, PhD</div>
 
-<main>
+      <div class="contact-nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#research">Research</a>
+        <a href="index.html#publications">Publications</a>
+        <a href="index.html#teaching">Teaching</a>
+        <a href="contact.html" class="active">Contact</a>
+      </div>
+    </nav>
+  </header>
 
-<div class="contact-layout">
+  <main class="contact-page">
 
-    <!-- LEFT PANEL -->
+    <section class="contact-left">
 
-    <aside class="contact-info-box">
+      <h1>Let’s Connect</h1>
+      <div class="blue-line"></div>
 
-        ...
+      <p class="intro-text">
+        I welcome inquiries related to research collaboration, AI and analytics consulting,
+        technology foresight, business data projects, and speaking or teaching opportunities.
+      </p>
 
-    </aside>
+      <h3>Contact Information</h3>
 
-    <!-- RIGHT PANEL -->
+      <div class="contact-item">
+        <span class="icon">✉</span>
+        <a href="mailto:ryannazari@cunet.carleton.ca">ryannazari@cunet.carleton.ca</a>
+      </div>
 
-    <section class="contact-form-box">
+      <div class="contact-item">
+        <span class="icon">🏛</span>
+        <span>Carleton University<br>Ottawa, Ontario, Canada</span>
+      </div>
 
-        ... your form ...
+      <div class="contact-item">
+        <span class="icon">📍</span>
+        <span>Ottawa, Ontario, Canada</span>
+      </div>
+
+      <div class="contact-item">
+        <span class="icon">in</span>
+        <a href="#" target="_blank">Add your LinkedIn URL here</a>
+      </div>
+
+      <div class="contact-item">
+        <span class="icon">GH</span>
+        <a href="https://github.com/alinazari1" target="_blank">github.com/alinazari1</a>
+      </div>
+
+      <div class="contact-item">
+        <span class="icon">ID</span>
+        <a href="https://orcid.org/0000-0002-6734-3329" target="_blank">orcid.org/0000-0002-6734-3329</a>
+      </div>
+
+      <hr>
+
+      <h3>Available For</h3>
+
+      <ul class="available-list">
+        <li>Research Collaboration</li>
+        <li>AI and Analytics Consulting</li>
+        <li>Technology Foresight Projects</li>
+        <li>Business Data Projects</li>
+        <li>Speaking and Teaching Opportunities</li>
+      </ul>
+
+      <a class="cv-button" href="#" target="_blank">Download CV (PDF)</a>
 
     </section>
 
-</div>
+    <section class="contact-right">
 
-</main>
+      <h2>Send a Request</h2>
 
-<footer>
+      <p>
+        Please fill out the form below and I will get back to you as soon as possible.
+      </p>
 
-...
+      <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
 
-</footer>
+        <div class="form-group">
+          <label for="name">Full Name *</label>
+          <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="organization">Organization / University</label>
+          <input type="text" id="organization" name="organization" placeholder="Enter your organization or university">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+        </div>
+
+        <div class="form-group">
+          <label for="purpose">Purpose of Inquiry *</label>
+          <select id="purpose" name="purpose" required>
+            <option>Research Collaboration</option>
+            <option>AI & Business Analytics Consulting</option>
+            <option>Technology Intelligence Project</option>
+            <option>Business Data Analytics Project</option>
+            <option>Speaking Invitation</option>
+            <option>Teaching Opportunity</option>
+            <option>Graduate Student Inquiry</option>
+            <option>General Question</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" name="subject" placeholder="Enter the subject">
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message *</label>
+          <textarea id="message" name="message" rows="8" placeholder="Please provide details about your inquiry..." required></textarea>
+        </div>
+
+        <button class="submit-btn" type="submit">Send Message</button>
+
+        <p class="small-note">
+          Your information will only be used to respond to your inquiry.
+        </p>
+
+      </form>
+
+    </section>
+
+  </main>
 
 </body>
-
 </html>
