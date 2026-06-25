@@ -1,0 +1,149 @@
+/* Research Pages */
+
+.research-header {
+  background: #07182d;
+  color: white;
+}
+
+.research-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.research-logo {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.research-nav-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.research-nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.research-nav-links a:hover,
+.research-nav-links .active {
+  color: #60a5fa;
+}
+
+.research-hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 70px 28px 45px;
+}
+
+.research-hero h1 {
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  max-width: 920px;
+  line-height: 1.1;
+  margin: 0 0 18px;
+}
+
+.research-hero p {
+  max-width: 780px;
+  font-size: 1.15rem;
+  color: #dbeafe;
+  line-height: 1.7;
+}
+
+.research-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 55px 28px;
+}
+
+.research-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.research-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.research-card h2 {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+.research-card p {
+  color: #475569;
+  line-height: 1.7;
+}
+
+.research-card a {
+  display: inline-block;
+  margin-top: 12px;
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.research-card a:hover {
+  text-decoration: underline;
+}
+
+.subpage-section {
+  background: white;
+  border-radius: 18px;
+  padding: 36px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  margin-bottom: 28px;
+}
+
+.subpage-section h2 {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+.subpage-section p,
+.subpage-section li {
+  color: #475569;
+  line-height: 1.75;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.research-footer {
+  background: #07182d;
+  color: #cbd5e1;
+  text-align: center;
+  padding: 28px;
+  margin-top: 50px;
+}
+
+@media (max-width: 800px) {
+  .research-nav {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .research-grid {
+    grid-template-columns: 1fr;
+  }
+}
