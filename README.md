@@ -1,6 +1,6 @@
-# TechForesightLab Website
+# AIForesightLab Website
 
-Personal academic website and research lab website built for GitHub Pages.
+Academic and research lab website.
 
 ## Files
 - `index.html`: homepage
