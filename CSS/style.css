@@ -1,0 +1,168 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #162033;
+  background: #ffffff;
+  line-height: 1.6;
+}
+
+a {
+  color: #1f5fbf;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.site-header {
+  background: linear-gradient(135deg, #0f172a, #1d4ed8);
+  color: white;
+  padding-bottom: 80px;
+}
+
+.nav {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.nav-links a {
+  color: white;
+  margin-left: 22px;
+  font-weight: 500;
+}
+
+.hero {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 80px 24px 40px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  color: #bfdbfe;
+}
+
+.hero h1 {
+  max-width: 850px;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  line-height: 1.05;
+  margin: 18px 0;
+}
+
+.hero-text {
+  max-width: 720px;
+  font-size: 1.2rem;
+  color: #dbeafe;
+}
+
+.buttons {
+  margin-top: 32px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 999px;
+  margin-right: 12px;
+  font-weight: 700;
+}
+
+.primary {
+  background: white;
+  color: #1d4ed8;
+}
+
+.secondary {
+  border: 1px solid #bfdbfe;
+  color: white;
+}
+
+.section {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 70px 24px;
+}
+
+.section h2 {
+  font-size: 2rem;
+  margin-top: 0;
+}
+
+.light {
+  max-width: none;
+  background: #f8fafc;
+  padding-left: calc((100% - 1120px) / 2 + 24px);
+  padding-right: calc((100% - 1120px) / 2 + 24px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.pub-list {
+  padding-left: 20px;
+}
+
+.pub-list li {
+  margin-bottom: 18px;
+}
+
+.contact {
+  border-top: 1px solid #e5e7eb;
+}
+
+footer {
+  text-align: center;
+  padding: 30px 24px;
+  background: #0f172a;
+  color: #cbd5e1;
+}
+
+@media (max-width: 760px) {
+  .nav {
+    display: block;
+  }
+
+  .nav-links {
+    margin-top: 14px;
+  }
+
+  .nav-links a {
+    display: inline-block;
+    margin: 0 12px 8px 0;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
