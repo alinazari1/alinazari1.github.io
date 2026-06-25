@@ -60,7 +60,7 @@ a:hover {
 
 .hero h1 {
   max-width: 850px;
-  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  font-size: clamp(2rem, 4vw, 3.5rem);
   line-height: 1.05;
   margin: 18px 0;
 }
