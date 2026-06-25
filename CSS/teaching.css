@@ -1,0 +1,170 @@
+/* Teaching Pages */
+
+.teaching-header {
+  background: linear-gradient(135deg, #07182d, #1d4ed8);
+  color: white;
+}
+
+.teaching-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.teaching-logo { font-size: 24px; font-weight: 700; }
+
+.teaching-nav-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.teaching-nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.teaching-nav-links a:hover,
+.teaching-nav-links .active { color: #93c5fd; }
+
+.teaching-hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 75px 28px 55px;
+}
+
+.teaching-hero h1 {
+  font-size: clamp(2.3rem, 5vw, 4.2rem);
+  line-height: 1.1;
+  margin: 0 0 18px;
+}
+
+.teaching-hero p {
+  max-width: 850px;
+  font-size: 1.15rem;
+  color: #dbeafe;
+  line-height: 1.75;
+}
+
+.teaching-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 55px 28px;
+}
+
+.teaching-section { margin-bottom: 55px; }
+
+.teaching-section h2 {
+  font-size: 2rem;
+  color: #0f172a;
+  margin-bottom: 18px;
+}
+
+.teaching-section p { color: #475569; line-height: 1.75; }
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.course-card {
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.course-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 7px; height: 100%;
+}
+
+.course-card.analytics::before { background: #2563eb; }
+.course-card.entrepreneurship::before { background: #f97316; }
+.course-card.systems::before { background: #7c3aed; }
+.course-card.data::before { background: #16a34a; }
+.course-card.infrastructure::before { background: #0f766e; }
+
+.course-icon { font-size: 34px; margin-bottom: 14px; }
+
+.course-card h3 { margin: 0 0 10px; color: #0f172a; }
+.course-card p { color: #475569; line-height: 1.7; }
+
+.course-tag {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  color: #334155;
+  font-weight: 700;
+}
+
+.course-card a,
+.back-link {
+  display: inline-block;
+  margin-top: 16px;
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.course-card a:hover,
+.back-link:hover { text-decoration: underline; }
+
+.philosophy-box {
+  background: #f8fafc;
+  border-left: 5px solid #2563eb;
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.method-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.method-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.course-detail-card {
+  background: white;
+  border-radius: 18px;
+  padding: 36px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  margin-bottom: 28px;
+}
+
+.course-detail-card h2 { margin-top: 0; }
+.course-detail-card li { margin-bottom: 10px; color: #475569; line-height: 1.7; }
+
+.teaching-footer {
+  background: #07182d;
+  color: #cbd5e1;
+  text-align: center;
+  padding: 28px;
+  margin-top: 50px;
+}
+
+@media (max-width: 820px) {
+  .teaching-nav { flex-direction: column; gap: 16px; }
+  .course-grid, .method-list { grid-template-columns: 1fr; }
+}
