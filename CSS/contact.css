@@ -4,7 +4,19 @@ body {
   background: #f8fbff;
   color: #0f172a;
 }
+.site-title h1{
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
 
+.site-title p{
+    margin-top: 8px;
+    font-size: 1.1rem;
+    color: #d4dbe7;
+    font-weight: 400;
+}
 .contact-header {
   background: #07182d;
   color: white;
