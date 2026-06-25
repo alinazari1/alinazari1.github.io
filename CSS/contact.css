@@ -1,0 +1,371 @@
+/* ==========================================================
+   CONTACT PAGE
+   ========================================================== */
+
+body{
+    background:#f5f7fb;
+}
+
+/* ---------- Header ---------- */
+
+.simple-header{
+    background:#081526;
+    color:white;
+}
+
+.simple-header .nav{
+    max-width:1120px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 24px;
+}
+
+.simple-header .logo{
+    font-size:28px;
+    font-weight:700;
+}
+
+.simple-header .nav-links{
+    display:flex;
+    gap:28px;
+}
+
+.simple-header .nav-links a{
+    color:white;
+    text-decoration:none;
+    font-weight:500;
+}
+
+.simple-header .nav-links a:hover{
+    color:#60a5fa;
+}
+
+/* ---------- Page ---------- */
+
+.contact-page{
+
+    max-width:1200px;
+
+    margin:auto;
+
+    padding:70px 24px;
+
+}
+
+.contact-intro{
+
+    margin-bottom:40px;
+
+}
+
+.contact-intro h1{
+
+    font-size:48px;
+
+    margin-bottom:12px;
+
+    color:#0f172a;
+
+}
+
+.contact-intro p{
+
+    color:#475569;
+
+    max-width:700px;
+
+    line-height:1.7;
+
+}
+
+/* ---------- Two Columns ---------- */
+
+.contact-layout{
+
+    display:grid;
+
+    grid-template-columns:360px 1fr;
+
+    gap:40px;
+
+    align-items:start;
+
+}
+
+/* ---------- Left Panel ---------- */
+
+.contact-info-box{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:32px;
+
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+
+}
+
+.contact-info-box h2{
+
+    margin-top:0;
+
+    color:#0f172a;
+
+}
+
+.role{
+
+    color:#64748b;
+
+    margin-bottom:30px;
+
+}
+
+.info-item{
+
+    margin-bottom:22px;
+
+}
+
+.info-item strong{
+
+    display:block;
+
+    margin-bottom:6px;
+
+    color:#2563eb;
+
+}
+
+.info-item a{
+
+    color:#0f172a;
+
+    text-decoration:none;
+
+}
+
+.info-item a:hover{
+
+    color:#2563eb;
+
+}
+
+.info-item ul{
+
+    margin-top:10px;
+
+    padding-left:18px;
+
+}
+
+.info-item li{
+
+    margin-bottom:10px;
+
+}
+
+/* ---------- Form ---------- */
+
+.contact-form-box{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:40px;
+
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+
+}
+
+.contact-form-box h2{
+
+    margin-top:0;
+
+    color:#0f172a;
+
+    font-size:38px;
+
+}
+
+.contact-form-box p{
+
+    color:#64748b;
+
+    margin-bottom:30px;
+
+}
+
+/* ---------- Vertical Layout ---------- */
+
+.contact-form-box form{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:22px;
+
+}
+
+.form-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.form-group label{
+
+    font-weight:600;
+
+    margin-bottom:8px;
+
+    color:#0f172a;
+
+}
+
+.form-group input,
+
+.form-group select,
+
+.form-group textarea{
+
+    width:100%;
+
+    padding:15px 16px;
+
+    border:1px solid #d1d5db;
+
+    border-radius:10px;
+
+    font-size:16px;
+
+    background:white;
+
+    transition:.25s;
+
+    box-sizing:border-box;
+
+}
+
+.form-group input:focus,
+
+.form-group select:focus,
+
+.form-group textarea:focus{
+
+    outline:none;
+
+    border-color:#2563eb;
+
+    box-shadow:0 0 0 4px rgba(37,99,235,.12);
+
+}
+
+.form-group textarea{
+
+    resize:vertical;
+
+    min-height:180px;
+
+}
+
+/* ---------- Button ---------- */
+
+.submit-btn{
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:16px;
+
+    font-size:18px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.submit-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+/* ---------- Note ---------- */
+
+.small-note{
+
+    font-size:14px;
+
+    color:#64748b;
+
+}
+
+/* ---------- Footer ---------- */
+
+footer{
+
+    margin-top:60px;
+
+    text-align:center;
+
+    color:#64748b;
+
+    padding:30px;
+
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width:900px){
+
+.contact-layout{
+
+grid-template-columns:1fr;
+
+}
+
+.simple-header .nav{
+
+flex-direction:column;
+
+gap:18px;
+
+}
+
+.simple-header .nav-links{
+
+flex-wrap:wrap;
+
+justify-content:center;
+
+}
+
+.contact-form-box{
+
+padding:28px;
+
+}
+
+.contact-info-box{
+
+padding:28px;
+
+}
+
+}
