@@ -5,17 +5,15 @@ body {
   color: #0f172a;
 }
 .site-title h1{
-    font-size: 1.2rem;
-    font-weight: 450;
-    margin: 0;
+    font-size: 42px;
+    font-weight: 700;
     line-height: 1.2;
 }
 
 .site-title p{
+    font-size: 18px;
+    color: #d9e3f0;
     margin-top: 8px;
-    font-size: 1rem;
-    color: #d4dbe7;
-    font-weight: 300;
 }
 .contact-header {
   background: #07182d;
