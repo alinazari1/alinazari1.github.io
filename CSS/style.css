@@ -166,3 +166,22 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+/* ==========================================
+   ABOUT SECTION
+========================================== */
+
+.about-images{
+    display:flex;
+    gap:30px;
+    margin-top:30px;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+.about-images img{
+    width:320px;
+    height:220px;
+    object-fit:cover;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
