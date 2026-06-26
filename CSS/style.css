@@ -34,9 +34,22 @@ a:hover {
   align-items: center;
 }
 
-.logo {
-  font-weight: 700;
-  font-size: 1.25rem;
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:2rem;
+    font-weight:700;
+    color:#ffffff;
+    text-decoration:none;
+}
+
+.site-logo{
+    width:30px;
+    height:30px;
+    object-fit:contain;
+    background:none;
+    display:block;
 }
 
 .nav-links a {
