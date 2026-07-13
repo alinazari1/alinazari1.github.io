@@ -22,13 +22,13 @@ a:hover {
 .site-header {
   background: linear-gradient(135deg, #0f172a, #1d4ed8);
   color: white;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
 }
 
 .nav {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
