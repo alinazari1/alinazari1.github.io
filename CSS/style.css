@@ -52,7 +52,7 @@ a:hover {
 }
 
 .brand-name {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 700;
   color: #ffffff;
   line-height: 1;
@@ -60,7 +60,7 @@ a:hover {
 
 .brand-subtitle {
   margin-top: 3px;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 400;
   color: #dbeafe;
   line-height: 1.1;
