@@ -70,7 +70,7 @@ a:hover {
 
 .site-logo{
     width:210px;
-    height:130px;
+    height:auto;
     object-fit:contain;
     background:none;
     display:block;
