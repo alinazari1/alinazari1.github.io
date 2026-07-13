@@ -44,6 +44,24 @@ a:hover {
     text-decoration:none;
 }
 
+.logo-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1;
+}
+
+.brand{
+    font-size:3rem;      /* Keep your current size */
+    font-weight:700;
+}
+
+.subtitle{
+    font-size:0.95rem;   /* Smaller text */
+    font-weight:400;
+    color:#d8d8d8;
+    margin-top:4px;
+}
+
 .site-logo{
     width:30px;
     height:30px;
