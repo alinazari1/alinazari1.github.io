@@ -22,7 +22,7 @@ a:hover {
 .site-header {
   background: linear-gradient(135deg, #0f172a, #1d4ed8);
   color: white;
-  padding-bottom: 35px;
+  padding-bottom: 25px;
 }
 
 .nav {
@@ -85,7 +85,7 @@ a:hover {
 .hero {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 24px 40px;
+  padding: 30px 24px 40px;
 }
 
 .eyebrow {
