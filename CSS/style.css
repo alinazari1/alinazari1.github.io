@@ -53,17 +53,15 @@ a:hover {
 
 .brand-name {
   font-size: 2.2rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #ffffff;
-  line-height: 1;
 }
 
 .brand-subtitle {
-  margin-top: 3px;
+  margin-top: 2px;
   font-size: 0.8rem;
   font-weight: 400;
   color: #dbeafe;
-  line-height: 1.1;
 }
 
 .logo:hover {
