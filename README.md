@@ -1,4 +1,4 @@
-# AIForesightLab Website
+# AI Foresight and Venture Lab Website
 
 Academic and research lab website.
 
@@ -7,4 +7,4 @@ Academic and research lab website.
 - `style.css`: website styling
 
 Website URL:
-https://alinazari1.github.io
+https://forenture.com
