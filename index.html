@@ -366,6 +366,88 @@
           document.getElementById("footer").innerHTML = data;
       });
   </script>
-  <script src="JS/slider.js"></script>
+  
+  
+  
+  <!-- <script src="JS/slider.js"></script> -->
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const slider = document.querySelector(".hero-slider");
+    const slides = document.querySelectorAll(".hero-slide");
+    const dots = document.querySelectorAll(".slider-dot");
+    const previousButton = document.querySelector(".slider-arrow-left");
+    const nextButton = document.querySelector(".slider-arrow-right");
+  
+    if (!slider || slides.length === 0) {
+      console.error("Slider or slides were not found.");
+      return;
+    }
+  
+    let currentSlide = 0;
+    let sliderTimer;
+  
+    function showSlide(index) {
+      slides.forEach(function (slide, slideIndex) {
+        slide.classList.toggle("active", slideIndex === index);
+      });
+  
+      dots.forEach(function (dot, dotIndex) {
+        dot.classList.toggle("active", dotIndex === index);
+      });
+  
+      currentSlide = index;
+    }
+  
+    function nextSlide() {
+      const nextIndex = (currentSlide + 1) % slides.length;
+      showSlide(nextIndex);
+    }
+  
+    function previousSlide() {
+      const previousIndex =
+        (currentSlide - 1 + slides.length) % slides.length;
+  
+      showSlide(previousIndex);
+    }
+  
+    function startSlider() {
+      clearInterval(sliderTimer);
+  
+      sliderTimer = setInterval(function () {
+        nextSlide();
+      }, 3000);
+    }
+  
+    nextButton.addEventListener("click", function () {
+      nextSlide();
+      startSlider();
+    });
+  
+    previousButton.addEventListener("click", function () {
+      previousSlide();
+      startSlider();
+    });
+  
+    dots.forEach(function (dot, index) {
+      dot.addEventListener("click", function () {
+        showSlide(index);
+        startSlider();
+      });
+    });
+  
+    slider.addEventListener("mouseenter", function () {
+      clearInterval(sliderTimer);
+    });
+  
+    slider.addEventListener("mouseleave", function () {
+      startSlider();
+    });
+  
+    showSlide(0);
+    startSlider();
+  });
+  </script>
+
+  
 </body>
 </html>
