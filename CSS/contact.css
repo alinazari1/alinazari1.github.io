@@ -4,10 +4,12 @@ body {
   background: #f8fbff;
   color: #0f172a;
 }
-.site-title h1{
-    font-size: 42px;
+
+.site-title h1 {
+    font-size: 32px;
     font-weight: 700;
     line-height: 1.2;
+    margin: 0;
 }
 
 .site-title p{
