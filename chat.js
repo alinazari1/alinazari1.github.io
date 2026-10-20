@@ -8,7 +8,14 @@ const say=text=>{$('status').textContent=text;};
 const ready=!!(CONFIG.supabaseUrl&&CONFIG.supabasePublishableKey&&!CONFIG.supabasePublishableKey.includes('REPLACE_')&&!CONFIG.supabasePublishableKey.includes('PASTE_')&&CONFIG.studyReady);
 $('study').textContent=CONFIG.studyText;$('setup').hidden=ready;$('loginButton').disabled=true;
 let db=null,session=null,chats=[],turns=[],selected=null,busy=false,uncertain=null;
-function controls(){ $('auth').hidden=!!session; $('workspace').hidden=!session; $('loginButton').disabled=!db; $('send').disabled=busy||!session||!$('consent').checked||!!uncertain;for(const id of ['new','refresh','logout','json','csv'])$(id).disabled=busy;$('check').hidden=!uncertain;$('check').disabled=busy; }
+
+function controls(){ 
+  const studyPanel = document.getElementById('study-panel');
+
+if (studyPanel) {
+  studyPanel.hidden = Boolean(session);
+}
+  $('auth').hidden=!!session; $('workspace').hidden=!session; $('loginButton').disabled=!db; $('send').disabled=busy||!session||!$('consent').checked||!!uncertain;for(const id of ['new','refresh','logout','json','csv'])$(id).disabled=busy;$('check').hidden=!uncertain;$('check').disabled=busy; }
 function must(r){if(r.error)throw new Error(r.error.message);return r.data;}
 async function rows(table){let result=[];for(let start=0;;start+=500){const batch=must(await db.from(table).select('*').order('id').range(start,start+499));result.push(...batch);if(batch.length<500)return result;}}
 async function load(){const [c,t]=await Promise.all([rows('research_conversations'),rows('research_turns')]);chats=c.sort((a,b)=>b.created_at.localeCompare(a.created_at));turns=t;history();conversation();}
