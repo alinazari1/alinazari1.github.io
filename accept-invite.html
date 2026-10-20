@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>Accept Invitation | Forenture</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      min-height: 100vh;
+      background: #f4f7fa;
+      color: #173044;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    main {
+      max-width: 520px;
+      margin: 48px auto;
+      padding: 30px;
+      background: #ffffff;
+      border: 1px solid #dce3ec;
+      border-radius: 14px;
+    }
+
+    .brand {
+      color: #173044;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: 1.8rem;
+      line-height: 1.25;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #bdcad6;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    button,
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 6px;
+      background: #176c65;
+      color: #ffffff;
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .small {
+      color: #526577;
+      font-size: 0.9rem;
+    }
+
+    #status {
+      margin-top: 20px;
+      overflow-wrap: anywhere;
+    }
+
+    input:focus-visible,
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #80c8ca;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <a class="brand" href="/">FORENTURE</a>
+
+    <h1>Set up your account</h1>
+
+    <p id="intro">
+      Accept your invitation, then choose a password
+      for your Forenture account.
+    </p>
+
+    <button id="accept" type="button" disabled>
+      Accept invitation
+    </button>
+
+    <form id="passwordForm" hidden>
+      <p id="account" class="small"></p>
+
+      <label for="password">New password</label>
+
+      <input
+        id="password"
+        type="password"
+        autocomplete="new-password"
+        minlength="12"
+        required
+      >
+
+      <label for="confirmPassword">
+        Confirm new password
+      </label>
+
+      <input
+        id="confirmPassword"
+        type="password"
+        autocomplete="new-password"
+        minlength="12"
+        required
+      >
+
+      <p class="small">
+        Use at least 12 characters and a unique password.
+        Your project may require additional password rules.
+      </p>
+
+      <button id="savePassword" type="submit">
+        Save password
+      </button>
+    </form>
+
+    <p
+      id="status"
+      role="status"
+      aria-live="polite"
+    >
+      Loading account setup…
+    </p>
+
+    <a
+      id="continue"
+      class="button"
+      href="./ai-chat.html"
+      hidden
+    >
+      Continue to sign in
+    </a>
+
+    <noscript>
+      JavaScript must be enabled to accept your invitation.
+    </noscript>
+  </main>
+
+  <script type="module">
+    const $ = id => document.getElementById(id);
+
+    const say = message => {
+      $('status').textContent = message;
+    };
+
+    let db = null;
+    let tokenHash = null;
+    let verified = false;
+    let busy = false;
+
+    const params = new URLSearchParams(location.hash.slice(1));
+
+    tokenHash = params.get('token_hash');
+
+    // Remove the invitation token from the visible URL.
+    history.replaceState(null, '', location.pathname);
+
+    async function initialize() {
+      try {
+        if (!tokenHash) {
+          throw new Error(
+            'No invitation was found. Open the setup link ' +
+            'from your latest Forenture invitation email.'
+          );
+        }
+
+        const { CONFIG } = await import('./config.js');
+
+        const url = CONFIG.supabaseUrl;
+        const key = CONFIG.supabasePublishableKey;
+
+        if (
+          !url ||
+          !key ||
+          key.includes('REPLACE_') ||
+          key.includes('PASTE_')
+        ) {
+          throw new Error(
+            'Account setup is not configured. ' +
+            'Please contact the site administrator.'
+          );
+        }
+
+        const { createClient } = await import(
+          'https://esm.sh/@supabase/supabase-js@2.49.8'
+        );
+
+        db = createClient(url, key, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: true,
+            detectSessionInUrl: false
+          }
+        });
+
+        $('accept').disabled = false;
+
+        say(
+          'Select Accept invitation to verify your invitation.'
+        );
+      } catch (error) {
+        say(
+          error.message ||
+          'Unable to load account setup. Please try again.'
+        );
+      }
+    }
+
+    $('accept').onclick = async () => {
+      if (!db || !tokenHash || busy || verified) return;
+
+      busy = true;
+      $('accept').disabled = true;
+
+      say('Verifying your invitation…');
+
+      try {
+        const { data, error } = await db.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'invite'
+        });
+
+        if (error) throw error;
+
+        if (!data.session || !data.user) {
+          throw new Error(
+            'The invitation did not create a valid session.'
+          );
+        }
+
+        verified = true;
+        tokenHash = null;
+
+        $('accept').hidden = true;
+        $('intro').textContent =
+          'Your invitation is verified. Choose your password.';
+
+        $('account').textContent =
+          'Account: ' + (data.user.email || '');
+
+        $('passwordForm').hidden = false;
+
+        say(
+          'Keep this page open until your password is saved.'
+        );
+
+        $('password').focus();
+      } catch (error) {
+        say(
+          'Could not verify the invitation: ' +
+          (error.message || 'Unknown error') +
+          ' If the link has expired or was already used, ' +
+          'contact the administrator for a new setup link.'
+        );
+
+        $('accept').disabled = false;
+      } finally {
+        busy = false;
+      }
+    };
+
+    $('passwordForm').onsubmit = async event => {
+      event.preventDefault();
+
+      if (!db || !verified || busy) return;
+
+      const password = $('password').value;
+      const confirmation = $('confirmPassword').value;
+
+      if (password.length < 12) {
+        say('Use a password with at least 12 characters.');
+        return;
+      }
+
+      if (password !== confirmation) {
+        say('The passwords do not match. Please try again.');
+        return;
+      }
+
+      busy = true;
+      $('savePassword').disabled = true;
+
+      say('Saving your password…');
+
+      try {
+        const { error } = await db.auth.updateUser({
+          password
+        });
+
+        if (error) throw error;
+
+        $('password').value = '';
+        $('confirmPassword').value = '';
+
+        $('passwordForm').hidden = true;
+        $('intro').textContent = 'Your account is ready.';
+
+        // The chat page uses a separate, manual sign-in.
+        try {
+          await db.auth.signOut({ scope: 'local' });
+        } catch {
+          // This client's session is memory-only.
+        }
+
+        verified = false;
+
+        say(
+          'Password saved. Continue to the assistant, ' +
+          'read the privacy notice, and sign in with ' +
+          'your email and new password.'
+        );
+
+        $('continue').hidden = false;
+      } catch (error) {
+        say(
+          'Could not save your password: ' +
+          (error.message || 'Unknown error')
+        );
+
+        $('savePassword').disabled = false;
+      } finally {
+        busy = false;
+      }
+    };
+
+    initialize();
+  </script>
+</body>
+</html>
