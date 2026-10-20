@@ -13,7 +13,30 @@ function must(r){if(r.error)throw new Error(r.error.message);return r.data;}
 async function rows(table){let result=[];for(let start=0;;start+=500){const batch=must(await db.from(table).select('*').order('id').range(start,start+499));result.push(...batch);if(batch.length<500)return result;}}
 async function load(){const [c,t]=await Promise.all([rows('research_conversations'),rows('research_turns')]);chats=c.sort((a,b)=>b.created_at.localeCompare(a.created_at));turns=t;history();conversation();}
 function history(){const q=$('search').value.trim().toLowerCase();const matches=chats.filter(c=>!q||c.title.toLowerCase().includes(q)||turns.some(t=>t.conversation_id===c.id&&((t.prompt||'')+' '+(t.response||'')).toLowerCase().includes(q)));$('history').replaceChildren();$('count').textContent=matches.length+' conversation(s)';for(const c of matches){const b=document.createElement('button');b.type='button';b.className='history-item'+(selected===c.id?' active':'');b.textContent=c.title+' · '+new Date(c.created_at).toLocaleDateString();b.disabled=busy;b.onclick=()=>{selected=c.id;history();conversation();};$('history').append(b);}}
-function add(role,text,time,sources=[]){const box=document.createElement('article');box.className='msg '+role;const meta=document.createElement('div');meta.className='meta';meta.textContent=(role==='user'?'You':'AI assistant')+' · '+new Date(time).toLocaleString();const body=document.createElement('div');body.className='body';body.textContent=text;box.append(meta,body);if(Array.isArray(sources)){for(const s of sources){try{const u=new URL(s.url);if(!['https:','http:'].includes(u.protocol))continue;const p=document.createElement('p'),a=document.createElement('a');a.href=u.href;a.textContent=s.title||u.href;a.target='_blank';a.rel='noopener noreferrer';p.append(a);box.append(p);}catch{}}}$('messages').append(box);}
+function add(role,text,time,sources=[]){const box=document.createElement('article');box.className='msg '+role;const meta=document.createElement('div');meta.className='meta';meta.textContent=(role==='user'?'You':'AI assistant')+' · '+new Date(time).toLocaleString();const body=document.createElement('div');body.className='body';
+  if (role === 'assistant') {
+  const formatted = marked.parse(String(text), {
+    gfm: true,
+    breaks: true,
+    async: false
+  });
+
+  body.innerHTML = DOMPurify.sanitize(formatted, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'del',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'blockquote',
+      'pre', 'code', 'hr',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td'
+    ],
+    ALLOWED_ATTR: ['start']
+  });
+
+  body.classList.add('formatted');
+} else {
+  body.textContent = text;
+}
+                                        box.append(meta,body);if(Array.isArray(sources)){for(const s of sources){try{const u=new URL(s.url);if(!['https:','http:'].includes(u.protocol))continue;const p=document.createElement('p'),a=document.createElement('a');a.href=u.href;a.textContent=s.title||u.href;a.target='_blank';a.rel='noopener noreferrer';p.append(a);box.append(p);}catch{}}}$('messages').append(box);}
 function conversation(){$('title').textContent=chats.find(c=>c.id===selected)?.title||'New conversation';$('messages').replaceChildren();for(const t of turns.filter(t=>t.conversation_id===selected).sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id))){add('user',t.prompt,t.created_at);if(t.response)add('assistant',t.response,t.completed_at||t.created_at,t.sources);else{const p=document.createElement('p');p.className='small';p.textContent='Request status: '+t.status+' · ID: '+t.id;$('messages').append(p);}}$('messages').scrollTop=$('messages').scrollHeight;}
 $('consent').onchange=controls;$('search').oninput=history;
 if(ready){try{const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.49.8');db=createClient(CONFIG.supabaseUrl,CONFIG.supabasePublishableKey,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});db.auth.onAuthStateChange((_event,s)=>{session=s;if(!s){chats=[];turns=[];selected=null;uncertain=null;$('prompt').value='';history();conversation();}controls();});controls();}catch{say('Unable to load the sign-in service. Check config.js and your network.');}}
