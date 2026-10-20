@@ -9,7 +9,8 @@ const ready=!!(CONFIG.supabaseUrl&&CONFIG.supabasePublishableKey&&!CONFIG.supaba
 $('study').textContent=CONFIG.studyText;$('setup').hidden=ready;$('loginButton').disabled=true;
 let db=null,session=null,chats=[],turns=[],selected=null,busy=false,uncertain=null;
 
-function controls(){ 
+function controls(){
+   document.body.classList.toggle('signed-in', Boolean(session));
     const studyPanel = document.getElementById('study-panel');
 
   if (studyPanel) {
