@@ -2,266 +2,216 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Forenture AI Research Assistant">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="description"
+    content="Forenture AI Research Assistant"
+  >
+
+  <meta
+    name="referrer"
+    content="strict-origin-when-cross-origin"
+  >
+
   <title>AI Research Assistant | Forenture</title>
-  <style>
-    :root { --ink:#17243a; --muted:#5c687b; --line:#dce3ec; --blue:#234f91; --pale:#f4f7fb; --white:#fff; }
-    * { box-sizing:border-box; }
-    body { margin:0; font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--pale); }
-    header { background:var(--white); border-bottom:1px solid var(--line); }
-    .topbar { max-width:1000px; margin:auto; padding:18px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    .brand { font-weight:800; letter-spacing:.12em; font-size:1.05rem; }
-    a { color:var(--blue); }
-    main { max-width:900px; margin:36px auto; padding:0 18px 48px; }
-    h1 { margin:0 0 8px; font-size:clamp(1.8rem,4vw,2.5rem); line-height:1.15; }
-    .intro { color:var(--muted); margin:0 0 24px; }
-    .panel { background:var(--white); border:1px solid var(--line); border-radius:16px; padding:22px; margin:18px 0; box-shadow:0 4px 16px #17243a0a; }
-    h2 { font-size:1.1rem; margin:0 0 10px; }
-    .notice { color:var(--muted); font-size:.94rem; }
-    .consent { display:flex; gap:10px; align-items:flex-start; margin-top:16px; }
-    .consent input { margin-top:6px; }
-    label { font-weight:600; }
-    input, textarea, button { font:inherit; }
-    input[type=email], input[type=password], textarea { width:100%; padding:12px 13px; border:1px solid #bcc8d8; border-radius:10px; background:#fff; color:var(--ink); }
-    .auth-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .field label { display:block; margin:0 0 6px; }
-    button { border:0; border-radius:10px; padding:11px 16px; cursor:pointer; font-weight:650; }
-    button:disabled { opacity:.5; cursor:not-allowed; }
-    .primary { background:var(--blue); color:#fff; }
-    .secondary { background:#e8eef7; color:var(--ink); }
-    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-    .status { min-height:1.5em; color:var(--muted); font-size:.92rem; margin-top:10px; }
-    .chat-log { display:flex; flex-direction:column; gap:14px; min-height:150px; max-height:460px; overflow:auto; padding:4px 2px 14px; }
-    .bubble { padding:12px 15px; border-radius:13px; max-width:90%; white-space:pre-wrap; overflow-wrap:anywhere; }
-    .user { align-self:flex-end; background:#e7effc; }
-    .assistant { align-self:flex-start; background:#f0f3f7; }
-    .role { display:block; font-size:.78rem; font-weight:750; color:var(--muted); margin-bottom:4px; }
-    .composer { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; }
-    textarea { min-height:54px; max-height:180px; resize:vertical; }
-    .sources { font-size:.9rem; margin-top:8px; }
-    .sources a { overflow-wrap:anywhere; }
-    .small { font-size:.85rem; color:var(--muted); }
-    footer { text-align:center; color:var(--muted); font-size:.85rem; padding:24px; }
-    @media (max-width:620px) { .auth-grid { grid-template-columns:1fr; } .composer { grid-template-columns:1fr; } .composer button { justify-self:end; } .panel { padding:17px; } }
-  </style>
+
+  <link rel="stylesheet" href="./chat.css">
 </head>
+
 <body>
   <header>
-    <div class="topbar">
-      <div class="brand">FORENTURE</div>
-      <a href="/">Back to homepage</a>
-    </div>
+    <a href="/">FORENTURE</a>
+    <a href="/">Back to homepage</a>
   </header>
+
   <main>
     <h1>AI Research Assistant</h1>
-    <p class="intro">Explore entrepreneurship, business problems, and strategic decision-making with an AI research assistant.</p>
 
-    <section class="panel" aria-labelledby="study-heading">
-      <h2 id="study-heading">Study information and privacy</h2>
-      <p class="notice">This page is a research-chat interface prototype. When connected to the configured service, messages and AI responses may be stored for research analysis and sent to an external AI provider. Do not enter confidential, identifying, or sensitive information.</p>
-      <p class="notice"><strong>Before recruitment:</strong> replace this sample text with the approved participant-information and consent wording for your study. Do not collect research data until the required institutional approvals are in place.</p>
-      <label class="consent"><input id="consent" type="checkbox"> <span>I have read the study information and consent to participate under the approved study terms.</span></label>
-      <p id="consentStatus" class="status" role="status">Consent is required before sign-in or chat.</p>
+    <p>
+      Forenture · Entrepreneurship and business problem exploration
+    </p>
+
+    <p id="setup" class="notice" hidden>
+      Setup required: enter your real Supabase publishable key
+      in config.js. No AI requests can be made yet.
+    </p>
+
+    <section class="card">
+      <h2>Study information and privacy</h2>
+
+      <p id="study"></p>
+
+      <label class="check">
+        <input type="checkbox" id="consent">
+
+        <span>
+          I have read the notice and agree to recording
+          under these test terms.
+        </span>
+      </label>
     </section>
 
-    <section class="panel" aria-labelledby="signin-heading">
-      <h2 id="signin-heading">Participant sign-in</h2>
-      <p class="notice">Use the participant account provided by the study team. Public sign-up is intentionally not included.</p>
-      <div class="auth-grid">
-        <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="participant@example.com"></div>
-        <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Your password"></div>
-      </div>
-      <div class="actions">
-        <button class="primary" id="signIn" type="button">Sign in</button>
-        <button class="secondary" id="signOut" type="button" disabled>Sign out</button>
-      </div>
-      <p id="authStatus" class="status" role="status">Preview mode: configure Supabase to enable sign-in.</p>
-    </section>
+    <section id="auth" class="card">
+      <h2>Participant sign-in</h2>
 
-    <section class="panel" aria-labelledby="chat-heading">
-      <h2 id="chat-heading">Conversation</h2>
-      <div id="chatLog" class="chat-log" aria-live="polite">
-        <div class="bubble assistant"><span class="role">ASSISTANT · PREVIEW</span>Welcome. This is a preview of the Forenture AI Research Assistant. Connect the approved backend to send messages and save research records.</div>
-      </div>
-      <form id="chatForm">
-        <div class="composer">
-          <textarea id="message" placeholder="Sign in and enter your message…" aria-label="Your message" disabled required></textarea>
-          <button class="primary" id="send" type="submit" disabled>Send</button>
-        </div>
+      <p>
+        Use the email/password account created in this Supabase
+        project's Authentication → Users.
+        This is not your GitHub login.
+      </p>
+
+      <form id="login">
+        <label for="email">Email</label>
+
+        <input
+          id="email"
+          type="email"
+          autocomplete="username"
+          required
+        >
+
+        <label for="password">Password</label>
+
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button id="loginButton" type="submit">
+          Sign in
+        </button>
       </form>
-      <div class="actions">
-        <button class="secondary" id="newConversation" type="button" disabled>New conversation</button>
-      </div>
-      <p id="recordStatus" class="status" role="status">Recording status: not connected.</p>
-      <p class="small">Do not use this prototype to collect participant data until authentication, access controls, database storage, and the server-side AI connection have been tested.</p>
     </section>
+
+    <section
+      id="workspace"
+      class="workspace"
+      hidden
+    >
+      <aside class="card">
+        <div class="row">
+          <button id="new" type="button">
+            New chat
+          </button>
+
+          <button
+            id="refresh"
+            type="button"
+            class="secondary"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <label for="search">Search history</label>
+
+        <input
+          id="search"
+          type="search"
+          placeholder="Search titles, prompts, responses"
+        >
+
+        <p id="count" class="small"></p>
+
+        <div id="history"></div>
+
+        <hr>
+
+        <p>Export all your saved chats:</p>
+
+        <div class="row">
+          <button
+            id="json"
+            type="button"
+            class="secondary"
+          >
+            JSON
+          </button>
+
+          <button
+            id="csv"
+            type="button"
+            class="secondary"
+          >
+            CSV
+          </button>
+        </div>
+
+        <p class="small">
+          Exports include your records only.
+          Search does not restrict exports.
+        </p>
+
+        <button
+          id="logout"
+          type="button"
+          class="secondary"
+        >
+          Sign out
+        </button>
+      </aside>
+
+      <section class="card">
+        <h2 id="title">New conversation</h2>
+
+        <div
+          id="messages"
+          role="log"
+          aria-live="polite"
+        ></div>
+
+        <form id="composer">
+          <label for="prompt">Your message</label>
+
+          <textarea
+            id="prompt"
+            maxlength="6000"
+            placeholder="Enter a fictional test question…"
+            required
+          ></textarea>
+
+          <div class="row">
+            <button id="send" type="submit">
+              Send
+            </button>
+
+            <button
+              id="check"
+              type="button"
+              class="secondary"
+              hidden
+            >
+              Check uncertain request
+            </button>
+          </div>
+        </form>
+
+        <p class="small">
+          New chat and sign-out do not delete saved database
+          records. Verify important AI claims.
+          This configuration does not provide live web search.
+        </p>
+      </section>
+    </section>
+
+    <p
+      id="status"
+      role="status"
+      aria-live="polite"
+    ></p>
   </main>
-  <footer>Forenture · AI Research Assistant</footer>
 
-  <script type="module">
-    /*
-      SETUP REQUIRED:
-      1. Create a Supabase project.
-      2. Enable invite-only participant authentication.
-      3. Deploy an Edge Function named "research-chat".
-      4. Configure the function to validate consent and ownership, save messages,
-         call Perplexity server-side, and return { reply, sources, conversation_id }.
-      5. Add your Supabase project URL and browser-safe publishable key below.
-      Never put a Perplexity API key or Supabase service-role key in this file.
-    */
-    const SUPABASE_URL = ""; // e.g. https://YOUR_PROJECT.supabase.co
-    const SUPABASE_PUBLISHABLE_KEY = ""; // browser-safe publishable/anon key
-    const FUNCTION_NAME = "research-chat";
+  <footer>
+    Forenture · Technical test version
+  </footer>
 
-    const $ = (id) => document.getElementById(id);
-    const consent = $("consent");
-    const authStatus = $("authStatus");
-    const consentStatus = $("consentStatus");
-    const recordStatus = $("recordStatus");
-    const chatLog = $("chatLog");
-    let accessToken = null;
-    let conversationId = null;
-
-    function configured() {
-      return SUPABASE_URL.startsWith("https://") && SUPABASE_PUBLISHABLE_KEY.length > 10;
-    }
-    function updateControls() {
-      const allowed = consent.checked;
-      consentStatus.textContent = allowed ? "Consent checkbox selected. Ensure this matches your approved consent process." : "Consent is required before sign-in or chat.";
-      $("signIn").disabled = !allowed;
-      const signedIn = Boolean(accessToken);
-      $("signOut").disabled = !signedIn;
-      $("message").disabled = !signedIn;
-      $("send").disabled = !signedIn;
-      $("newConversation").disabled = !signedIn;
-    }
-    function addBubble(role, text, sources = []) {
-      const bubble = document.createElement("div");
-      bubble.className = "bubble " + (role === "You" ? "user" : "assistant");
-      const label = document.createElement("span");
-      label.className = "role";
-      label.textContent = role.toUpperCase();
-      const body = document.createElement("div");
-      body.textContent = text;
-      bubble.append(label, body);
-      if (Array.isArray(sources) && sources.length) {
-        const list = document.createElement("div");
-        list.className = "sources";
-        const title = document.createElement("strong");
-        title.textContent = "Sources";
-        list.append(title);
-        sources.forEach((source) => {
-          if (!source || typeof source.url !== "string" || !/^https?:\/\//i.test(source.url)) return;
-          const link = document.createElement("a");
-          link.href = source.url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = source.title || source.url;
-          const item = document.createElement("div");
-          item.append(link);
-          list.append(item);
-        });
-        bubble.append(list);
-      }
-      chatLog.append(bubble);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-    async function api(path, options = {}) {
-      const response = await fetch(`${SUPABASE_URL}/auth/v1${path}`, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_PUBLISHABLE_KEY,
-          ...(options.headers || {})
-        }
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.msg || data.message || data.error_description || "Request failed.");
-      return data;
-    }
-    consent.addEventListener("change", updateControls);
-    $("signIn").addEventListener("click", async () => {
-      if (!consent.checked) return;
-      if (!configured()) {
-        authStatus.textContent = "Preview mode: add the Supabase URL and publishable key in this file, then deploy the backend.";
-        return;
-      }
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      if (!email || !password) { authStatus.textContent = "Enter your participant email and password."; return; }
-      $("signIn").disabled = true;
-      authStatus.textContent = "Signing in…";
-      try {
-        const result = await api("/token?grant_type=password", {
-          method: "POST", body: JSON.stringify({ email, password })
-        });
-        accessToken = result.access_token;
-        authStatus.textContent = "Signed in.";
-        recordStatus.textContent = "Recording status: connected; send a test message to verify server-side saving.";
-        updateControls();
-      } catch (error) {
-        authStatus.textContent = "Sign-in failed: " + error.message;
-      } finally { updateControls(); }
-    });
-    $("signOut").addEventListener("click", async () => {
-      try {
-        if (configured() && accessToken) {
-          await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-            method: "POST",
-            headers: { "apikey": SUPABASE_PUBLISHABLE_KEY, "Authorization": `Bearer ${accessToken}` }
-          });
-        }
-      } catch (_) { /* Clear local session even if sign-out request fails. */ }
-      accessToken = null;
-      conversationId = null;
-      authStatus.textContent = "Signed out.";
-      recordStatus.textContent = "Recording status: not connected.";
-      updateControls();
-    });
-    $("chatForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const message = $("message").value.trim();
-      if (!message || !accessToken) return;
-      if (!configured()) { recordStatus.textContent = "Recording error: backend is not configured."; return; }
-      addBubble("You", message);
-      $("message").value = "";
-      $("send").disabled = true;
-      recordStatus.textContent = "Recording status: sending and saving…";
-      try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/${FUNCTION_NAME}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": SUPABASE_PUBLISHABLE_KEY,
-            "Authorization": `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            message,
-            conversation_id: conversationId,
-            consent_confirmed: consent.checked
-          })
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || data.message || `Server error (${response.status}).`);
-        if (typeof data.reply !== "string") throw new Error("The backend response did not contain a reply.");
-        conversationId = data.conversation_id || conversationId;
-        addBubble("Assistant", data.reply, data.sources || []);
-        recordStatus.textContent = data.saved === true
-          ? "Recording status: saved."
-          : "Response received, but the server did not confirm that it was saved. Check the research database before continuing.";
-      } catch (error) {
-        recordStatus.textContent = "Recording error: " + error.message + " Your message may not have been saved; verify before retrying.";
-      } finally { updateControls(); }
-    });
-    $("newConversation").addEventListener("click", () => {
-      conversationId = null;
-      chatLog.replaceChildren();
-      addBubble("Assistant", "New conversation started. Your previous conversation remains stored if the backend saved it.");
-      recordStatus.textContent = "Recording status: ready for a new conversation.";
-    });
-    updateControls();
-  </script>
   <script type="module" src="./chat.js"></script>
 </body>
 </html>
