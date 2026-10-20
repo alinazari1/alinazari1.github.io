@@ -1,7 +1,7 @@
 export const CONFIG = {
   supabaseUrl: "https://lejgdvmnlmbtsevgybid.supabase.co",
 
-  supabasePublishableKey: "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE",
+  supabasePublishableKey: "sb_publishable_e1S1bWv5PKHALZWBcfpGLw_QBa58s38",
 
   functionName: "research-chat",
 
