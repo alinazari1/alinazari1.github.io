@@ -1,1 +1,69 @@
 *{box-sizing:border-box}body{margin:0;background:#f3f6f9;color:#173044;font:16px/1.6 system-ui,sans-serif}header{background:#102d3d;padding:20px 5%;display:flex;justify-content:space-between;gap:16px}header a{color:white;text-decoration:none}header a:first-child{font-weight:800;letter-spacing:.15em}main{max-width:1240px;margin:auto;padding:25px 20px}h1,h2{line-height:1.3}h2{font-size:22px}h3{font-size:16px}.card{background:white;border:1px solid #d7e1e8;border-radius:13px;padding:22px;margin-bottom:18px}.workspace{display:grid;grid-template-columns:300px 1fr;gap:20px}aside{align-self:start}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}button{background:#146e68;color:white;border:0;padding:10px 15px;border-radius:7px;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#e8eff3;color:#173044}input:not([type=checkbox]),textarea{display:block;width:100%;font:inherit;padding:11px;border:1px solid #a7bbc8;border-radius:7px;margin-bottom:14px}label{display:block;margin:12px 0 6px}.check{display:flex;align-items:flex-start;gap:10px}.check input{margin-top:8px}textarea{min-height:110px;resize:vertical}.small{font-size:13px;color:#52687a}.notice{background:#fff3d4;padding:16px;border:1px solid #d6b868;border-radius:8px}#messages{min-height:180px;max-height:560px;overflow:auto}.msg{border:1px solid #dce5eb;padding:14px;border-radius:10px;margin:12px 0;overflow-wrap:anywhere}.msg.user{background:#edf6f3;margin-left:20px}.msg.assistant{background:#f5f8fc;margin-right:20px}.body{white-space:pre-wrap}.meta{font-size:12px;color:#52687a}#history{max-height:470px;overflow:auto}.history-item{display:block;width:100%;text-align:left;margin:8px 0;background:#f0f4f7;color:#173044;overflow-wrap:anywhere}.history-item.active{outline:2px solid #146e68}#status{min-height:30px}footer{text-align:center;padding:20px;color:#52687a}a{color:#146e68}summary{cursor:pointer;font-weight:650}[hidden]{display:none!important}:focus-visible{outline:3px solid #c58a2b;outline-offset:3px}@media(max-width:760px){.workspace{grid-template-columns:1fr}#history{max-height:200px}.card{padding:16px}}
+/* Formatted AI responses */
+.assistant .body.formatted {
+  white-space: normal;
+  line-height: 1.7;
+}
+
+.assistant .body.formatted > :first-child {
+  margin-top: 0;
+}
+
+.assistant .body.formatted > :last-child {
+  margin-bottom: 0;
+}
+
+.assistant .body.formatted p {
+  margin: 0 0 12px;
+}
+
+.assistant .body.formatted h1,
+.assistant .body.formatted h2,
+.assistant .body.formatted h3,
+.assistant .body.formatted h4,
+.assistant .body.formatted h5,
+.assistant .body.formatted h6 {
+  font-size: 1.1rem;
+  margin: 18px 0 8px;
+}
+
+.assistant .body.formatted ul,
+.assistant .body.formatted ol {
+  padding-left: 24px;
+  margin: 8px 0 14px;
+}
+
+.assistant .body.formatted li {
+  margin-bottom: 6px;
+}
+
+.assistant .body.formatted pre {
+  white-space: pre;
+  overflow-x: auto;
+  background: #e8edf3;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.assistant .body.formatted code {
+  font-family: monospace;
+}
+
+.assistant .body.formatted table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  max-width: 100%;
+}
+
+.assistant .body.formatted th,
+.assistant .body.formatted td {
+  border: 1px solid #cbd6df;
+  padding: 8px 10px;
+}
+
+.assistant .body.formatted blockquote {
+  border-left: 3px solid #9bb3c5;
+  margin-left: 0;
+  padding-left: 14px;
+}
