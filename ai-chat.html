@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
-<!--
-  <head>
+<head>
   <meta charset="utf-8">
 
   <meta
@@ -21,73 +20,300 @@
 
   <title>AI Research Assistant | Forenture</title>
 
-  <link rel="stylesheet" href="./chat.css">
+  <link rel="stylesheet" href="./chat.css?v=3">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #173044;
+      background: #f4f7fa;
+      line-height: 1.6;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .site-header {
+      display: block;
+      padding: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #dce3ec;
+    }
+
+    .site-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .site-header .site-brand {
+      color: #173044;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-decoration: none;
+    }
+
+    .site-header nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+    }
+
+    .site-header nav a {
+      color: #344b60;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .site-header nav a:hover {
+      color: #176c65;
+      text-decoration: underline;
+    }
+
+    .page-banner {
+      background: linear-gradient(
+        120deg,
+        #102d43 0%,
+        #1b4864 60%,
+        #176c65 100%
+      );
+      color: #ffffff;
+    }
+
+    .page-banner-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 46px 20px;
+    }
+
+    .banner-label {
+      margin: 0 0 10px;
+      color: #b9e2df;
+      font-size: 0.85rem;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .page-banner h1 {
+      margin: 0 0 14px;
+      color: #ffffff;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+    }
+
+    .banner-description {
+      max-width: 720px;
+      margin: 0;
+      color: #e0ebf4;
+      font-size: 1.05rem;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+
+    .card {
+      padding: 24px;
+      margin-bottom: 20px;
+      background: #ffffff;
+      border: 1px solid #dce3ec;
+      border-radius: 12px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+    }
+
+    input:not([type="checkbox"]),
+    textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      color: #173044;
+      background: #ffffff;
+      border: 1px solid #bdcad6;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .check input {
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    button {
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: #176c65;
+      color: #ffffff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: #edf3f8;
+      color: #173044;
+      border-color: #dce3ec;
+    }
+
+    #loginButton {
+      margin-top: 18px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .workspace > * {
+      min-width: 0;
+    }
+
+    #messages {
+      min-height: 180px;
+      overflow-wrap: anywhere;
+    }
+
+    .small {
+      color: #526577;
+      font-size: 0.88rem;
+    }
+
+    #status {
+      overflow-wrap: anywhere;
+    }
+
+    footer {
+      padding: 22px 20px;
+      text-align: center;
+      color: #526577;
+      border-top: 1px solid #dce3ec;
+      background: #ffffff;
+    }
+
+    @media (max-width: 760px) {
+      .site-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .site-header nav {
+        gap: 16px;
+      }
+
+      .page-banner-inner {
+        padding: 32px 20px;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
 </head>
--->
-<header class="site-header">
-  <div class="site-header-inner">
-    <a class="site-brand" href="/">FORENTURE</a>
 
-    <nav aria-label="Main navigation">
-      <a href="/">Home</a>
-      <a href="/research.html">Research</a>
-      <a href="/teaching.html">Teaching</a>
-      <a href="/contact.html">Contact</a>
-    </nav>
-  </div>
-</header>
-
-<section class="page-banner" aria-labelledby="page-title">
-  <div class="page-banner-inner">
-    <p class="banner-label">AI Foresight &amp; Venture Lab</p>
-
-    <h1 id="page-title">AI Research Assistant</h1>
-
-    <p class="banner-description">
-      Explore business challenges, develop ideas, and make
-      informed decisions through a conversation with AI.
-    </p>
-  </div>
-</section>
-
-
-
-  
 <body>
-  <header>
-    <a href="/">FORENTURE</a>
-    <a href="/">Back to homepage</a>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="/">FORENTURE</a>
+
+      <nav aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/research.html">Research</a>
+        <a href="/teaching.html">Teaching</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </div>
   </header>
+
+  <section class="page-banner" aria-labelledby="page-title">
+    <div class="page-banner-inner">
+      <p class="banner-label">
+        AI Foresight &amp; Venture Lab
+      </p>
+
+      <h1 id="page-title">AI Research Assistant</h1>
+
+      <p class="banner-description">
+        Explore business challenges, develop ideas, and make
+        informed decisions through a conversation with AI.
+      </p>
+    </div>
+  </section>
 
   <main>
     <p id="setup" class="notice" hidden>
-      Setup required: enter your real Supabase publishable key
-      in config.js. No AI requests can be made yet.
+      The assistant is not configured yet.
+      Please contact the site administrator.
     </p>
 
     <section id="study-panel" class="card">
       <h2>Study information and privacy</h2>
-      
+
       <p id="study"></p>
 
       <label class="check">
         <input type="checkbox" id="consent">
 
-      <span>
-        I have read the privacy notice and agree to the described
-        recording and use of my conversations.
-      </span>
+        <span>
+          I have read the privacy notice and agree to the
+          described recording and use of my conversations.
+        </span>
       </label>
     </section>
 
     <section id="auth" class="card">
-      <h2>Participant sign-in</h2>
+      <h2>Sign in</h2>
 
-      <p>
-        Use the email/password account created in this Supabase
-        project's Authentication → Users.
-        This is not your GitHub login.
-      </p>
+      <p>Sign in to access your AI conversations.</p>
 
       <form id="login">
         <label for="email">Email</label>
@@ -197,7 +423,7 @@
           <textarea
             id="prompt"
             maxlength="6000"
-            placeholder="Enter a fictional test question…"
+            placeholder="Ask a question or describe a business challenge…"
             required
           ></textarea>
 
@@ -218,9 +444,9 @@
         </form>
 
         <p class="small">
-          New chat and sign-out do not delete saved database
-          records. Verify important AI claims.
-          This configuration does not provide live web search.
+          Starting a new chat or signing out does not delete
+          saved conversations. Verify important AI claims.
+          This assistant does not provide live web search.
         </p>
       </section>
     </section>
@@ -233,7 +459,7 @@
   </main>
 
   <footer>
-    Forenture · Technical test version
+    Forenture · AI Foresight &amp; Venture Lab
   </footer>
 
   <script type="module" src="./chat.js"></script>
