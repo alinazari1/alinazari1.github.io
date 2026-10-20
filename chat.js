@@ -10,11 +10,11 @@ $('study').textContent=CONFIG.studyText;$('setup').hidden=ready;$('loginButton')
 let db=null,session=null,chats=[],turns=[],selected=null,busy=false,uncertain=null;
 
 function controls(){ 
-  const studyPanel = document.getElementById('study-panel');
+    const studyPanel = document.getElementById('study-panel');
 
-if (studyPanel) {
-  studyPanel.hidden = Boolean(session);
-}
+  if (studyPanel) {
+    studyPanel.hidden = Boolean(session);
+  }
   $('auth').hidden=!!session; $('workspace').hidden=!session; $('loginButton').disabled=!db; $('send').disabled=busy||!session||!$('consent').checked||!!uncertain;for(const id of ['new','refresh','logout','json','csv'])$(id).disabled=busy;$('check').hidden=!uncertain;$('check').disabled=busy; }
 function must(r){if(r.error)throw new Error(r.error.message);return r.data;}
 async function rows(table){let result=[];for(let start=0;;start+=500){const batch=must(await db.from(table).select('*').order('id').range(start,start+499));result.push(...batch);if(batch.length<500)return result;}}
@@ -47,7 +47,13 @@ function add(role,text,time,sources=[]){const box=document.createElement('articl
 function conversation(){$('title').textContent=chats.find(c=>c.id===selected)?.title||'New conversation';$('messages').replaceChildren();for(const t of turns.filter(t=>t.conversation_id===selected).sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id))){add('user',t.prompt,t.created_at);if(t.response)add('assistant',t.response,t.completed_at||t.created_at,t.sources);else{const p=document.createElement('p');p.className='small';p.textContent='Request status: '+t.status+' · ID: '+t.id;$('messages').append(p);}}$('messages').scrollTop=$('messages').scrollHeight;}
 $('consent').onchange=controls;$('search').oninput=history;
 if(ready){try{const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.49.8');db=createClient(CONFIG.supabaseUrl,CONFIG.supabasePublishableKey,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});db.auth.onAuthStateChange((_event,s)=>{session=s;if(!s){chats=[];turns=[];selected=null;uncertain=null;$('prompt').value='';history();conversation();}controls();});controls();}catch{say('Unable to load the sign-in service. Check config.js and your network.');}}
-$('login').onsubmit=async e=>{e.preventDefault();if(!db)return;if(!$('consent').checked)return say('Read the test notice and check consent first.');$('loginButton').disabled=true;say('Signing in…');try{const data=must(await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value}));session=data.session;$('password').value='';await load();say('Signed in. Saved history loaded.');}catch(e){say(session?'Signed in, but history failed to load: '+e.message:'Sign-in failed: '+e.message);}finally{controls();}};
+$('login').onsubmit=async e=>{e.preventDefault();if(!db)return;
+if (!$('consent').checked) {
+  return say(
+    'Please read the privacy notice and check the consent box before signing in.'
+  );
+}
+$('loginButton').disabled=true;say('Signing in…');try{const data=must(await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value}));session=data.session;$('password').value='';await load();say('Signed in. Saved history loaded.');}catch(e){say(session?'Signed in, but history failed to load: '+e.message:'Sign-in failed: '+e.message);}finally{controls();}};
 $('logout').onclick=async()=>{await db.auth.signOut({scope:'local'});session=null;uncertain=null;chats=[];turns=[];selected=null;$('prompt').value='';history();conversation();controls();say('Signed out. Saved records were not deleted.');};
 $('new').onclick=()=>{selected=null;$('prompt').value='';history();conversation();say('New conversation. Existing database records remain saved.');};
 $('refresh').onclick=async()=>{try{await load();say('History refreshed.');}catch(e){say('History error: '+e.message);}};
