@@ -1,4 +1,8 @@
 import { CONFIG } from './config.js';
+import { marked } from
+  'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
+import DOMPurify from
+  'https://esm.sh/dompurify';
 const $=id=>document.getElementById(id);
 const say=text=>{$('status').textContent=text;};
 const ready=!!(CONFIG.supabaseUrl&&CONFIG.supabasePublishableKey&&!CONFIG.supabasePublishableKey.includes('REPLACE_')&&!CONFIG.supabasePublishableKey.includes('PASTE_')&&CONFIG.studyReady);
