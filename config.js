@@ -1,8 +1,19 @@
 export const CONFIG = {
-  supabaseUrl: "", // https://YOUR-PROJECT.supabase.co
-  supabasePublishableKey: "", // Browser-safe publishable/anon key ONLY
+  supabaseUrl: "https://lejgdvmnlmbtsevgybid.supabase.co",
+
+  supabasePublishableKey: "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE",
+
   functionName: "research-chat",
+
   consentVersion: "pilot-1",
-  studyReady: false, // Set true only after replacing studyText and completing setup
-  studyText: "DRAFT: Replace with approved study information: purpose, collection of submitted messages and AI responses, external AI processing, storage/access, retention, withdrawal process, and researcher contact."
+
+  studyReady: true,
+
+  studyText:
+    "TEST VERSION — use fictional information only. " +
+    "Submitted messages and AI responses are saved in a private database " +
+    "and messages are sent to Google Gemini for processing. " +
+    "Do not enter personal, confidential, or sensitive business information. " +
+    "AI responses may be inaccurate. This version is for technical testing, " +
+    "not participant research."
 };
