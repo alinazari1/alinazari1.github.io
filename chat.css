@@ -160,3 +160,21 @@
     padding: 32px 20px;
   }
 }
+#voice[aria-pressed="true"] {
+  background: #a52b36;
+  color: #ffffff;
+  border-color: #a52b36;
+}
+
+#voiceStatus {
+  min-height: 1.5em;
+  margin-bottom: 6px;
+}
+
+#voicePrivacy {
+  margin-top: 6px;
+}
+
+#prompt[readonly] {
+  background: #f2f6f7;
+}
