@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id);
 const say=text=>{$('status').textContent=text;};
 const ready=!!(CONFIG.supabaseUrl&&CONFIG.supabasePublishableKey&&!CONFIG.supabasePublishableKey.includes('REPLACE_')&&!CONFIG.supabasePublishableKey.includes('PASTE_')&&CONFIG.studyReady);
 $('study').textContent=CONFIG.studyText;$('setup').hidden=ready;$('loginButton').disabled=true;
-<!-- let db=null,session=null,chats=[],turns=[],selected=null,busy=false,uncertain=null; -->
+let db=null,session=null,chats=[],turns=[],selected=null,busy=false,uncertain=null;
 const SpeechRecognitionAPI =
   window.SpeechRecognition ||
   window.webkitSpeechRecognition;
