@@ -711,12 +711,23 @@ body.signed-in #composer {
             placeholder="Ask a question or describe a business challenge…"
             required
           ></textarea>
-
-          <div class="row">
-            <button id="send" type="submit">
-              Send
-            </button>
-
+ 
+            <div class="row">
+              <button
+                id="voice"
+                type="button"
+                class="secondary"
+                aria-pressed="false"
+                aria-describedby="voicePrivacy voiceStatus"
+                disabled
+              >
+                Speak
+              </button>
+            
+              <button id="send" type="submit">
+                Send
+              </button>
+            
             <button
               id="check"
               type="button"
