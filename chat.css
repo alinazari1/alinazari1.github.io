@@ -220,7 +220,7 @@
 .login-video-box {
   box-sizing: border-box;
   width: 100%;
-  max-width: 420px;
+  max-width: none;
   margin: 0 auto 20px;
   padding: 20px;
 
