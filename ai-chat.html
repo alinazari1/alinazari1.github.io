@@ -2,50 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <meta
-    name="description"
-    content="Forenture AI Research Assistant"
-  >
-
-  <meta
-    name="referrer"
-    content="strict-origin-when-cross-origin"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Forenture AI Research Assistant">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>AI Research Assistant | Forenture</title>
-
-  <link rel="stylesheet" href="./chat.css?v=3">
-
+  <link rel="stylesheet" href="./chat.css?v=4">
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --app-bg: #fbfaf7;
+      --sidebar-bg: #f0efea;
+      --surface: #ffffff;
+      --text: #242826;
+      --muted: #686f6b;
+      --border: #dedfd8;
+      --accent: #167c80;
     }
-
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      color: #173044;
-      background: #f4f7fa;
+      color: var(--text);
+      background: var(--app-bg);
       line-height: 1.6;
     }
-
-    [hidden] {
-      display: none !important;
-    }
-
     .site-header {
       display: block;
       padding: 0;
-      background: #ffffff;
-      border-bottom: 1px solid #dce3ec;
+      background: var(--app-bg);
+      border-bottom: 1px solid var(--border);
     }
-
     .site-header-inner {
       max-width: 1200px;
       margin: 0 auto;
@@ -55,501 +41,205 @@
       align-items: center;
       gap: 20px;
     }
-
     .site-header .site-brand {
-      color: #173044;
+      color: var(--text);
       font-weight: 800;
-      letter-spacing: 0.14em;
+      letter-spacing: .08em;
       text-decoration: none;
     }
-
-    .site-header nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 22px;
-    }
-
+    .site-header nav { display: flex; flex-wrap: wrap; gap: 22px; }
     .site-header nav a {
-      color: #344b60;
+      color: var(--muted);
       text-decoration: none;
-      font-size: 0.95rem;
+      font-size: .95rem;
     }
-
-    .site-header nav a:hover {
-      color: #176c65;
-      text-decoration: underline;
-    }
-
+    .site-header nav a:hover { color: var(--accent); text-decoration: underline; }
     .page-banner {
-      background: linear-gradient(
-        120deg,
-        #102d43 0%,
-        #1b4864 60%,
-        #176c65 100%
-      );
+      background: linear-gradient(120deg, #102d43 0%, #1b4864 60%, #176c65 100%);
       color: #ffffff;
     }
-
-    .page-banner-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 46px 20px;
-    }
-
+    .page-banner-inner { max-width: 1200px; margin: 0 auto; padding: 46px 20px; }
     .banner-label {
       margin: 0 0 10px;
       color: #b9e2df;
-      font-size: 0.85rem;
+      font-size: .85rem;
       font-weight: 650;
-      letter-spacing: 0.1em;
+      letter-spacing: .1em;
       text-transform: uppercase;
     }
-
     .page-banner h1 {
       margin: 0 0 14px;
       color: #ffffff;
       font-size: clamp(2rem, 4vw, 3rem);
       line-height: 1.15;
     }
-
-    .banner-description {
-      max-width: 720px;
-      margin: 0;
-      color: #e0ebf4;
-      font-size: 1.05rem;
-    }
-
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 20px;
-    }
-
+    .banner-description { max-width: 720px; margin: 0; color: #e0ebf4; font-size: 1.05rem; }
+    main { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
     .card {
       padding: 24px;
       margin-bottom: 20px;
-      background: #ffffff;
-      border: 1px solid #dce3ec;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
+      box-shadow: none;
     }
-
-    .card h2 {
-      margin-top: 0;
-    }
-
-    label {
-      display: block;
-      margin: 12px 0 6px;
-    }
-
-    input:not([type="checkbox"]),
-    textarea {
+    .card h2 { margin-top: 0; }
+    label { display: block; margin: 12px 0 6px; }
+    input:not([type="checkbox"]), textarea {
       display: block;
       width: 100%;
       padding: 12px;
-      color: #173044;
-      background: #ffffff;
-      border: 1px solid #bdcad6;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 6px;
       font: inherit;
     }
-
-    textarea {
-      min-height: 130px;
-      resize: vertical;
-    }
-
-    .check {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .check input {
-      flex-shrink: 0;
-      margin-top: 6px;
-    }
-
+    textarea { min-height: 130px; resize: vertical; }
+    .check { display: flex; align-items: flex-start; gap: 10px; }
+    .check input { flex-shrink: 0; margin-top: 6px; }
     button {
       padding: 11px 18px;
       border: 1px solid transparent;
       border-radius: 6px;
-      background: #176c65;
+      background: var(--accent);
       color: #ffffff;
       font: inherit;
       cursor: pointer;
     }
-
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    button.secondary { background: transparent; color: var(--text); border-color: var(--border); }
+    input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 3px solid #80c8ca;
+      outline-offset: 3px;
     }
-
-    button.secondary {
-      background: #edf3f8;
-      color: #173044;
-      border-color: #dce3ec;
-    }
-
-    #loginButton {
-      margin-top: 18px;
-    }
-
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 12px 0;
-    }
-
+    #loginButton { margin-top: 18px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
     .workspace {
       display: grid;
       grid-template-columns: 290px minmax(0, 1fr);
       gap: 20px;
       align-items: start;
     }
-
-    .workspace > * {
-      min-width: 0;
+    .workspace > * { min-width: 0; }
+    #history { display: grid; gap: 6px; margin: 16px 0; }
+    .history-item {
+      width: 100%;
+      padding: 10px 12px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-size: .88rem;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-
-    #messages {
-      min-height: 180px;
-      overflow-wrap: anywhere;
+    .history-item:hover, .history-item.active { background: #e2e5de; }
+    #title { margin-bottom: 28px; font-size: 1.65rem; line-height: 1.3; }
+    #messages { min-height: 28vh; overflow-wrap: anywhere; }
+    .msg { margin: 0 0 30px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+    .msg .meta { margin-bottom: 10px; color: var(--muted); font-size: .78rem; }
+    .msg.user .body { padding: 14px 18px; border-radius: 16px; background: #eeefea; white-space: pre-wrap; }
+    .msg.assistant .body { color: var(--text); font-size: 1rem; line-height: 1.8; }
+    .formatted h1, .formatted h2, .formatted h3 { margin: 26px 0 12px; line-height: 1.35; }
+    .formatted p { margin: 0 0 16px; }
+    .formatted pre {
+      padding: 16px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f0f1ec;
     }
-
-    .small {
-      color: #526577;
-      font-size: 0.88rem;
-    }
-
-    #status {
-      overflow-wrap: anywhere;
-    }
-
+    .formatted table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+    .formatted th, .formatted td { padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+    #composer > label { margin: 0 0 8px; color: var(--muted); font-size: .85rem; }
+    #composer textarea { min-height: 82px; max-height: 240px; padding: 8px; border: 0; background: transparent; }
+    #composer .row { justify-content: flex-end; margin: 8px 0 0; }
+    #send { border-radius: 12px; }
+    .small { color: #526577; font-size: .88rem; }
+    #status { padding: 12px 20px; color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
     footer {
       padding: 22px 20px;
       text-align: center;
       color: #526577;
-      border-top: 1px solid #dce3ec;
-      background: #ffffff;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
     }
-
+    #voice[aria-pressed="true"] { background: #a52b36; color: #ffffff; border-color: #a52b36; }
+    #voiceStatus { min-height: 1.5em; margin-bottom: 6px; }
+    #voicePrivacy { margin-top: 6px; }
+    #prompt[readonly] { background: #f2f6f7; }
+    body.signed-in .page-banner, body.signed-in > footer { display: none; }
+    body.signed-in .site-header { position: sticky; top: 0; z-index: 20; }
+    body.signed-in .site-header-inner { max-width: none; }
+    body.signed-in main { max-width: none; padding: 0; }
+    body.signed-in .workspace {
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 0;
+      align-items: stretch;
+      min-height: calc(100dvh - 75px);
+    }
+    body.signed-in .workspace > aside.card {
+      position: sticky;
+      top: 75px;
+      align-self: start;
+      height: calc(100dvh - 75px);
+      overflow-y: auto;
+      margin: 0;
+      padding: 22px 16px;
+      border: 0;
+      border-right: 1px solid var(--border);
+      border-radius: 0;
+      background: var(--sidebar-bg);
+    }
+    body.signed-in .workspace > section.card {
+      width: 100%;
+      max-width: 860px;
+      min-width: 0;
+      margin: 0 auto;
+      padding: 36px 36px 20px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    body.signed-in #composer {
+      position: sticky;
+      bottom: 12px;
+      z-index: 10;
+      margin-top: 28px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: 0 6px 24px rgb(0 0 0 / 7%);
+    }
     @media (max-width: 760px) {
-      .site-header-inner {
-        flex-direction: column;
-        align-items: flex-start;
+      .site-header-inner { flex-direction: column; align-items: flex-start; }
+      .site-header nav { gap: 16px; }
+      .page-banner-inner { padding: 32px 20px; }
+      .workspace { grid-template-columns: 1fr; }
+      .card { padding: 18px; }
+      body.signed-in .site-header-inner { flex-direction: row; align-items: center; flex-wrap: wrap; padding: 14px 16px; }
+      body.signed-in .site-header nav { gap: 12px; }
+      body.signed-in .workspace { grid-template-columns: 1fr; min-height: auto; }
+      body.signed-in .workspace > aside.card {
+        position: static;
+        height: auto;
+        max-height: 280px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
       }
-
-      .site-header nav {
-        gap: 16px;
-      }
-
-      .page-banner-inner {
-        padding: 32px 20px;
-      }
-
-      .workspace {
-        grid-template-columns: 1fr;
-      }
-
-      .card {
-        padding: 18px;
-      }
+      body.signed-in .workspace > section.card { padding: 24px 16px; }
+      body.signed-in #composer { bottom: 8px; }
     }
-
-/* Shared Forenture appearance */
-:root {
-  --app-bg: #fbfaf7;
-  --sidebar-bg: #f0efea;
-  --surface: #ffffff;
-  --text: #242826;
-  --muted: #686f6b;
-  --border: #dedfd8;
-  --accent: #167c80;
-}
-
-body {
-  background: var(--app-bg);
-  color: var(--text);
-}
-
-.site-header {
-  background: var(--app-bg);
-  border-bottom-color: var(--border);
-}
-
-.site-header .site-brand {
-  color: var(--text);
-  letter-spacing: 0.08em;
-}
-
-.site-header nav a {
-  color: var(--muted);
-}
-
-.card {
-  border-color: var(--border);
-  box-shadow: none;
-}
-
-button {
-  background: var(--accent);
-}
-
-button.secondary {
-  background: transparent;
-  color: var(--text);
-  border-color: var(--border);
-}
-
-input:not([type="checkbox"]),
-textarea {
-  color: var(--text);
-  border-color: var(--border);
-}
-
-input:focus-visible,
-textarea:focus-visible,
-button:focus-visible,
-a:focus-visible {
-  outline: 3px solid #80c8ca;
-  outline-offset: 3px;
-}
-
-/* Signed-in application */
-body.signed-in .page-banner,
-body.signed-in > footer {
-  display: none;
-}
-
-body.signed-in .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-body.signed-in .site-header-inner {
-  max-width: none;
-}
-
-body.signed-in main {
-  max-width: none;
-  padding: 0;
-}
-
-body.signed-in .workspace {
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 0;
-  align-items: stretch;
-  min-height: calc(100dvh - 75px);
-}
-
-body.signed-in .workspace > aside.card {
-  position: sticky;
-  top: 75px;
-  align-self: start;
-  height: calc(100dvh - 75px);
-  overflow-y: auto;
-  margin: 0;
-  padding: 22px 16px;
-  border: 0;
-  border-right: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--sidebar-bg);
-}
-
-#history {
-  display: grid;
-  gap: 6px;
-  margin: 16px 0;
-}
-
-.history-item {
-  width: 100%;
-  padding: 10px 12px;
-  overflow: hidden;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text);
-  font-size: 0.88rem;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.history-item:hover,
-.history-item.active {
-  background: #e2e5de;
-}
-
-body.signed-in .workspace > section.card {
-  width: 100%;
-  max-width: 860px;
-  min-width: 0;
-  margin: 0 auto;
-  padding: 36px 36px 20px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-#title {
-  margin-bottom: 28px;
-  font-size: 1.65rem;
-  line-height: 1.3;
-}
-
-#messages {
-  min-height: 28vh;
-  overflow-wrap: anywhere;
-}
-
-.msg {
-  margin: 0 0 30px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.msg .meta {
-  margin-bottom: 10px;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.msg.user .body {
-  padding: 14px 18px;
-  border-radius: 16px;
-  background: #eeefea;
-  white-space: pre-wrap;
-}
-
-.msg.assistant .body {
-  color: var(--text);
-  font-size: 1rem;
-  line-height: 1.8;
-}
-
-.formatted h1,
-.formatted h2,
-.formatted h3 {
-  margin: 26px 0 12px;
-  line-height: 1.35;
-}
-
-.formatted p {
-  margin: 0 0 16px;
-}
-
-.formatted pre {
-  padding: 16px;
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #f0f1ec;
-}
-
-.formatted table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
-  border-collapse: collapse;
-}
-
-.formatted th,
-.formatted td {
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  text-align: left;
-}
-
-body.signed-in #composer {
-  position: sticky;
-  bottom: 12px;
-  z-index: 10;
-  margin-top: 28px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--surface);
-  box-shadow: 0 6px 24px rgb(0 0 0 / 7%);
-}
-
-#composer > label {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-#composer textarea {
-  min-height: 82px;
-  max-height: 240px;
-  padding: 8px;
-  border: 0;
-  background: transparent;
-}
-
-#composer .row {
-  justify-content: flex-end;
-  margin: 8px 0 0;
-}
-
-#send {
-  border-radius: 12px;
-}
-
-#status {
-  padding: 12px 20px;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-/* Smaller screens */
-@media (max-width: 760px) {
-  body.signed-in .site-header-inner {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 14px 16px;
-  }
-
-  body.signed-in .site-header nav {
-    gap: 12px;
-  }
-
-  body.signed-in .workspace {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-
-  body.signed-in .workspace > aside.card {
-    position: static;
-    height: auto;
-    max-height: 280px;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  body.signed-in .workspace > section.card {
-    padding: 24px 16px;
-  }
-
-  body.signed-in #composer {
-    bottom: 8px;
-  }
-}
-    
   </style>
 </head>
-
 <body>
   <header class="site-header">
     <div class="site-header-inner">
       <a class="site-brand" href="/">FORENTURE</a>
-
       <nav aria-label="Main navigation">
         <a href="/">Home</a>
         <a href="/research.html">Research</a>
@@ -561,215 +251,110 @@ body.signed-in #composer {
 
   <section class="page-banner" aria-labelledby="page-title">
     <div class="page-banner-inner">
-      <p class="banner-label">
-        AI Foresight &amp; Venture Lab
-      </p>
-
+      <p class="banner-label">AI Foresight &amp; Venture Lab</p>
       <h1 id="page-title">AI Research Assistant</h1>
-
       <p class="banner-description">
-        Explore business challenges, develop ideas, and make
-        informed decisions through a conversation with AI.
+        Explore business challenges, develop ideas, and make informed decisions
+        through a conversation with AI.
       </p>
     </div>
   </section>
 
   <main>
     <p id="setup" class="notice" hidden>
-      The assistant is not configured yet.
-      Please contact the site administrator.
+      The assistant is not configured yet. Please contact the site administrator.
     </p>
 
     <section id="study-panel" class="card">
       <h2>Study information and privacy</h2>
-
       <p id="study"></p>
-
       <label class="check">
         <input type="checkbox" id="consent">
-
         <span>
-          I have read the privacy notice and agree to the
-          described recording and use of my conversations.
+          I have read the privacy notice and agree to the described recording
+          and use of my conversations.
         </span>
       </label>
     </section>
 
     <section id="auth" class="card">
       <h2>Sign in</h2>
-
       <p>Sign in to access your AI conversations.</p>
-
       <form id="login">
         <label for="email">Email</label>
-
-        <input
-          id="email"
-          type="email"
-          autocomplete="username"
-          required
-        >
-
+        <input id="email" type="email" autocomplete="username" required>
         <label for="password">Password</label>
-
-        <input
-          id="password"
-          type="password"
-          autocomplete="current-password"
-          required
-        >
-
-        <button id="loginButton" type="submit">
-          Sign in
-        </button>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button id="loginButton" type="submit">Sign in</button>
       </form>
-      <p
-        id="voiceStatus"
-        class="small"
-        role="status"
-        aria-live="polite"
-      ></p>
-      
-      <p id="voicePrivacy" class="small">
-        Optional voice input may send audio to your browser's
-        speech-recognition provider. Do not dictate confidential
-        or sensitive information. Review the text before sending.
-      </p>
     </section>
 
-    <section
-      id="workspace"
-      class="workspace"
-      hidden
-    >
+    <section id="workspace" class="workspace" hidden>
       <aside class="card">
         <div class="row">
-          <button id="new" type="button">
-            New chat
-          </button>
-
-          <button
-            id="refresh"
-            type="button"
-            class="secondary"
-          >
-            Refresh
-          </button>
+          <button id="new" type="button">New chat</button>
+          <button id="refresh" type="button" class="secondary">Refresh</button>
         </div>
-
         <label for="search">Search history</label>
-
-        <input
-          id="search"
-          type="search"
-          placeholder="Search titles, prompts, responses"
-        >
-
+        <input id="search" type="search" placeholder="Search titles, prompts, responses">
         <p id="count" class="small"></p>
-
         <div id="history"></div>
-
         <hr>
-
         <p>Export all your saved chats:</p>
-
         <div class="row">
-          <button
-            id="json"
-            type="button"
-            class="secondary"
-          >
-            JSON
-          </button>
-
-          <button
-            id="csv"
-            type="button"
-            class="secondary"
-          >
-            CSV
-          </button>
+          <button id="json" type="button" class="secondary">JSON</button>
+          <button id="csv" type="button" class="secondary">CSV</button>
         </div>
-
         <p class="small">
-          Exports include your records only.
-          Search does not restrict exports.
+          Exports include your records only. Search does not restrict exports.
         </p>
-
-        <button
-          id="logout"
-          type="button"
-          class="secondary"
-        >
-          Sign out
-        </button>
+        <button id="logout" type="button" class="secondary">Sign out</button>
       </aside>
 
       <section class="card">
         <h2 id="title">New conversation</h2>
-
-        <div
-          id="messages"
-          role="log"
-          aria-live="polite"
-        ></div>
-
+        <div id="messages" role="log" aria-live="polite"></div>
         <form id="composer">
           <label for="prompt">Your message</label>
-
           <textarea
             id="prompt"
             maxlength="6000"
             placeholder="Ask a question or describe a business challenge…"
             required
           ></textarea>
- 
-            <div class="row">
-              <button
-                id="voice"
-                type="button"
-                class="secondary"
-                aria-pressed="false"
-                aria-describedby="voicePrivacy voiceStatus"
-                disabled
-              >
-                Speak
-              </button>
-            
-              <button id="send" type="submit">
-                Send
-              </button>
-            
+          <div class="row">
             <button
-              id="check"
+              id="voice"
               type="button"
               class="secondary"
-              hidden
-            >
+              aria-pressed="false"
+              aria-describedby="voicePrivacy voiceStatus"
+              disabled
+            >Speak</button>
+            <button id="send" type="submit">Send</button>
+            <button id="check" type="button" class="secondary" hidden>
               Check uncertain request
             </button>
           </div>
         </form>
-
+        <p id="voiceStatus" class="small" role="status" aria-live="polite"></p>
+        <p id="voicePrivacy" class="small">
+          Optional voice input may send audio to your browser's speech-recognition
+          provider. Do not dictate confidential or sensitive information.
+          Review the text before sending.
+        </p>
         <p class="small">
-          Starting a new chat or signing out does not delete
-          saved conversations. Verify important AI claims.
-          This assistant does not provide live web search.
+          Starting a new chat or signing out does not delete saved conversations.
+          Verify important AI claims. This assistant does not provide live web search.
         </p>
       </section>
     </section>
 
-    <p
-      id="status"
-      role="status"
-      aria-live="polite"
-    ></p>
+    <p id="status" role="status" aria-live="polite"></p>
+    <noscript>JavaScript must be enabled to sign in and use the assistant.</noscript>
   </main>
 
-  <footer>
-    Forenture · AI Foresight &amp; Venture Lab
-  </footer>
-
+  <footer>Forenture · AI Foresight &amp; Venture Lab</footer>
   <script type="module" src="./chat.js"></script>
 </body>
 </html>
