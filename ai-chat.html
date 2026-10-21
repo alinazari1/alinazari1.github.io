@@ -374,5 +374,15 @@
 
   <footer>Forenture · AI Foresight &amp; Venture Lab</footer>
   <script type="module" src="./chat.js?v=voice-fix-1"></script>
+  <script>
+  const brandVideo = document.getElementById("brandVideo");
+
+  brandVideo.muted = true;
+
+  brandVideo.play().catch((error) => {
+    console.error("Logo video could not play:", error);
+    brandVideo.controls = true;
+  });
+</script>
 </body>
 </html>
