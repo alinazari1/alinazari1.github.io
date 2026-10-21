@@ -26,7 +26,6 @@ function controls(){
     studyPanel.hidden = Boolean(session);
   }
   $('auth').hidden=!!session; $('workspace').hidden=!session; $('loginButton').disabled=!db; 
-  <!-- $('send').disabled=busy||!session||!$('consent').checked||!!uncertain; -->
   $('send').disabled =
   busy ||
   voiceActive ||
