@@ -79,7 +79,6 @@ $('refresh').onclick=async()=>{try{await load();say('History refreshed.');}catch
 async function send(payload){busy=true;controls();history();say('Saving prompt and waiting for AI response…');try{const {data,error}=await db.functions.invoke(CONFIG.functionName,{body:payload});if(error){let text=error.message;try{text=(await error.context.json()).error||text;}catch{}throw new Error(text);}if(!data||!['completed','failed','interrupted','pending'].includes(data.status))throw new Error('Unrecognized backend response');if(data.conversation_id)selected=data.conversation_id;if(data.status==='completed'&&data.saved===true){uncertain=null;$('prompt').value='';say('Saved: prompt and AI response.');}else if(['failed','interrupted'].includes(data.status)){uncertain=null;say('Your prompt was saved, but no completed AI response was saved. Check the function Logs and research_turns.error_code.');}else{uncertain=payload;say('Request remains pending. Wait, then check the same request.');}await load();}catch(e){uncertain=payload;say(e.message+' Recording is uncertain. Check the same request rather than resubmitting. Request ID: '+payload.request_id);try{await load();}catch{}}finally{busy=false;controls();history();}}
 $('composer').onsubmit=e=>{e.preventDefault();const message=$('prompt').value.trim();
 
-<!-- if(!session||busy||uncertain||!$('consent').checked||!message)return; -->
 if (
   !session ||
   busy ||
