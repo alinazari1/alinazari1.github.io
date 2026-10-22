@@ -452,6 +452,51 @@
       font-size: 14px;
       font-weight: 400;
     }
+
+    /* Soft background for secondary buttons:
+   Refresh, Analysis, Manage advisors, Export, Close, etc. */
+    button.secondary {
+      background: #e8efed;
+      color: #244b49;
+      border-color: #cbdad6;
+      transition: background-color 150ms ease;
+    }
+    
+    button.secondary:not(:disabled):hover {
+      background: #dce8e4;
+      border-color: #a9c5bc;
+    }
+    
+    /* Light background for personal and assigned topic titles. */
+    body.signed-in #history .history-item,
+    body.signed-in #advisorUsersList .history-item {
+      background: #e8efed;
+      color: var(--text);
+      border-color: #d6e1dc;
+      border-radius: 6px;
+    }
+    
+    body.signed-in #history .history-item:not(:disabled):hover,
+    body.signed-in #advisorUsersList .history-item:not(:disabled):hover {
+      background: #dce8e4;
+    }
+    
+    /* Clearly identify the selected personal topic. */
+    body.signed-in #history .history-item.active {
+      background: #cfe3dc;
+      border-color: #86b4a4;
+    }
+    
+    /* Subtle background for the dots-menu buttons. */
+    body.signed-in #history .topic-menu-trigger {
+      background: #e8efed;
+      color: #526b64;
+    }
+    
+    body.signed-in #history .topic-menu-trigger:not(:disabled):hover {
+      background: #dce8e4;
+    }
+    
   </style>
 </head>
 <body>
