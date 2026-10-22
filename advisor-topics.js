@@ -142,7 +142,14 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
       details.dataset.label = label.toLowerCase();
       
       details.style.margin = '12px 0';
-      const summary = element('summary', label);
+      
+      const summary = element('summary');
+      const userName = element('span', label);
+      userName.className = 'assigned-user-name';
+      const topicCount = element('span', '');
+      topicCount.className = 'assigned-user-count';
+      summary.append(userName, topicCount);
+      
       summary.style.cursor = 'pointer';
       summary.style.overflowWrap = 'anywhere';
       const topicsBox = element('div');
@@ -184,7 +191,8 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
             topicsBox.append(element('p', 'No topics in this view.', 'small'));
           }
           details.dataset.loaded = 'true';
-          summary.textContent = label + ' (' + topics.length + ')';
+         
+          topicCount.textContent = ' (' + topics.length + ')';
           filterTree();
           syncButtons();
         } catch (error) {
