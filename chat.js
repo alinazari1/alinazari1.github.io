@@ -85,6 +85,7 @@ function controls() {
   $('check').disabled = busy;
 
   syncVoiceControls();
+  syncAdvisorAdminUI();
 }
 
 function must(result) {
@@ -1356,3 +1357,354 @@ window.addEventListener(
   'resize',
   closeFloatingTopicMenus
 );
+
+
+
+/* ---------- Administrator: advisors and assigned users ---------- */
+
+function syncAdvisorAdminUI() {
+  const isAdmin =
+    session?.user.email?.trim().toLowerCase() ===
+    'infoforenture@gmail.com';
+
+  let button = $('manageAdvisors');
+
+  if (!button) {
+    button = document.createElement('button');
+    button.id = 'manageAdvisors';
+    button.type = 'button';
+    button.className = 'secondary';
+    button.textContent = 'Manage advisors';
+    button.style.marginBottom = '12px';
+    button.style.width = '100%';
+
+    $('logout').before(button);
+
+    button.onclick = openAdvisorAdmin;
+  }
+
+  button.hidden = !isAdmin;
+  button.disabled = busy || voiceActive || !!uncertain;
+
+  if (!isAdmin) {
+    const dialog = $('advisorAdminDialog');
+
+    if (dialog) {
+      if (dialog.open) dialog.close();
+      dialog.remove();
+    }
+  }
+}
+
+async function openAdvisorAdmin() {
+  if (
+    !db ||
+    !session ||
+    busy ||
+    voiceActive ||
+    uncertain ||
+    session.user.email?.toLowerCase() !==
+      'infoforenture@gmail.com'
+  ) {
+    return;
+  }
+
+  const existing = $('advisorAdminDialog');
+
+  if (existing) {
+    if (!existing.open) existing.showModal();
+    return;
+  }
+
+  const ownerId = session.user.id;
+  const dialog = document.createElement('dialog');
+
+  dialog.id = 'advisorAdminDialog';
+
+  Object.assign(dialog.style, {
+    width: 'min(700px, calc(100vw - 24px))',
+    maxHeight: '85dvh',
+    overflowY: 'auto',
+    padding: '24px',
+    border: '1px solid var(--border)',
+    borderRadius: '12px',
+    background: 'var(--surface)',
+    color: 'var(--text)'
+  });
+
+  // Static markup only. Account data is inserted with textContent.
+  dialog.innerHTML = `
+    <h2 id="advisorAdminHeading">Manage advisors</h2>
+    <p class="small">
+      Choose an account, set advisor status, and select its assigned users.
+      Saving replaces that account's current assignments.
+    </p>
+
+    <form id="advisorAdminForm">
+      <label for="adminAdvisorSelect">Advisor account</label>
+      <select id="adminAdvisorSelect" required disabled
+        style="width:100%; padding:12px; font:inherit;">
+      </select>
+
+      <label class="check">
+        <input id="adminAdvisorEnabled" type="checkbox" disabled>
+        <span>This account is an advisor</span>
+      </label>
+
+      <label for="adminUserSearch">Search users</label>
+      <input id="adminUserSearch" type="search"
+        placeholder="Search by email" disabled>
+
+      <fieldset id="adminAssignedFieldset" disabled>
+        <legend>Assigned users</legend>
+        <div id="adminAssignedList"
+          style="max-height:280px; overflow-y:auto;"></div>
+      </fieldset>
+
+      <p class="small">
+        Removing advisor status also removes its assignments.
+        User accounts and saved conversations are not deleted.
+      </p>
+
+      <p id="adminAdvisorStatus" role="status" aria-live="polite"></p>
+
+      <div class="row">
+        <button id="adminAdvisorSave" type="submit" disabled>
+          Save changes
+        </button>
+        <button id="adminAdvisorClose" type="button"
+          class="secondary">Close</button>
+      </div>
+    </form>
+  `;
+
+  dialog.setAttribute('aria-labelledby', 'advisorAdminHeading');
+  document.body.append(dialog);
+  dialog.showModal();
+
+  const select = $('adminAdvisorSelect');
+  const enabled = $('adminAdvisorEnabled');
+  const search = $('adminUserSearch');
+  const list = $('adminAssignedList');
+  const fieldset = $('adminAssignedFieldset');
+  const save = $('adminAdvisorSave');
+  const status = $('adminAdvisorStatus');
+
+  let directory = { users: [], assignments: [] };
+  let checked = new Set();
+  let saving = false;
+
+  const stillCurrent = () =>
+    dialog.isConnected &&
+    session?.user.id === ownerId &&
+    session.user.email?.toLowerCase() ===
+      'infoforenture@gmail.com';
+
+  function renderAssignedUsers() {
+    list.replaceChildren();
+
+    const query = search.value.trim().toLowerCase();
+
+    for (const user of directory.users) {
+      if (user.id === select.value) continue;
+
+      if (
+        query &&
+        !user.email.toLowerCase().includes(query)
+      ) {
+        continue;
+      }
+
+      const label = document.createElement('label');
+      label.className = 'check';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = checked.has(user.id);
+
+      checkbox.onchange = () => {
+        if (checkbox.checked) {
+          checked.add(user.id);
+        } else {
+          checked.delete(user.id);
+        }
+      };
+
+      const text = document.createElement('span');
+      text.textContent = user.email;
+
+      label.append(checkbox, text);
+      list.append(label);
+    }
+
+    if (!list.childElementCount) {
+      const empty = document.createElement('p');
+      empty.className = 'small';
+      empty.textContent = 'No matching users.';
+      list.append(empty);
+    }
+  }
+
+  function selectAdvisor() {
+    const user = directory.users.find(
+      item => item.id === select.value
+    );
+
+    enabled.checked = Boolean(user?.is_advisor);
+
+    checked = new Set(
+      directory.assignments
+        .filter(item => item.advisor_id === select.value)
+        .map(item => item.user_id)
+    );
+
+    search.value = '';
+    status.textContent = '';
+    fieldset.disabled = !enabled.checked;
+
+    renderAssignedUsers();
+  }
+
+  function closeDialog() {
+    if (saving) return;
+
+    dialog.close();
+    dialog.remove();
+  }
+
+  $('adminAdvisorClose').onclick = closeDialog;
+
+  dialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    closeDialog();
+  });
+
+  select.onchange = selectAdvisor;
+  search.oninput = renderAssignedUsers;
+
+  enabled.onchange = () => {
+    fieldset.disabled = !enabled.checked;
+  };
+
+  async function loadDirectory(preferredId) {
+    const data = must(
+      await db.rpc('forenture_admin_directory')
+    );
+
+    if (!stillCurrent()) return false;
+
+    directory = data;
+    select.replaceChildren();
+
+    for (const user of directory.users) {
+      const option = document.createElement('option');
+
+      option.value = user.id;
+      option.textContent =
+        user.email +
+        (user.is_advisor ? ' — Advisor' : '');
+
+      select.append(option);
+    }
+
+    if (
+      preferredId &&
+      directory.users.some(user => user.id === preferredId)
+    ) {
+      select.value = preferredId;
+    }
+
+    selectAdvisor();
+    return true;
+  }
+
+  $('advisorAdminForm').onsubmit = async event => {
+    event.preventDefault();
+
+    if (saving || !stillCurrent() || !select.value) return;
+
+    const advisor = directory.users.find(
+      user => user.id === select.value
+    );
+
+    const advisorId = select.value;
+    const advisorEnabled = enabled.checked;
+    const assignedIds = advisorEnabled ? [...checked] : [];
+
+    const confirmed = window.confirm(
+      'Save advisor settings for ' + advisor.email + '?\n\n' +
+      'Advisor: ' + (advisorEnabled ? 'Yes' : 'No') + '\n' +
+      'Assigned users: ' + assignedIds.length + '\n\n' +
+      'This replaces the current assignments for this account.'
+    );
+
+    if (!confirmed) return;
+
+    saving = true;
+    select.disabled = true;
+    enabled.disabled = true;
+    search.disabled = true;
+    fieldset.disabled = true;
+    save.disabled = true;
+    $('adminAdvisorClose').disabled = true;
+
+    status.textContent = 'Saving…';
+
+    try {
+      must(
+        await db.rpc('forenture_admin_save_advisor', {
+          p_advisor_id: advisorId,
+          p_enabled: advisorEnabled,
+          p_user_ids: assignedIds
+        })
+      );
+
+      if (!stillCurrent()) return;
+
+      await loadDirectory(advisorId);
+
+      if (stillCurrent()) {
+        status.textContent = 'Advisor settings saved.';
+      }
+    } catch (error) {
+      if (stillCurrent()) {
+        status.textContent = 'Save failed: ' + error.message;
+      }
+    } finally {
+      saving = false;
+
+      if (stillCurrent()) {
+        select.disabled = false;
+        enabled.disabled = false;
+        search.disabled = false;
+        fieldset.disabled = !enabled.checked;
+        save.disabled = false;
+        $('adminAdvisorClose').disabled = false;
+      }
+    }
+  };
+
+  status.textContent = 'Loading accounts…';
+
+  try {
+    const loaded = await loadDirectory();
+
+    if (!loaded) return;
+
+    const hasUsers = directory.users.length > 0;
+
+    select.disabled = !hasUsers;
+    enabled.disabled = !hasUsers;
+    search.disabled = !hasUsers;
+    save.disabled = !hasUsers;
+
+    status.textContent = hasUsers
+      ? ''
+      : 'No registered accounts found.';
+  } catch (error) {
+    if (stillCurrent()) {
+      status.textContent =
+        'Could not load administrator form: ' + error.message;
+    }
+  }
+}
