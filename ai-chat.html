@@ -361,6 +361,18 @@
       
         box-shadow: none;
       }
+    /* Let the topic list grow naturally. */
+    body.signed-in #history {
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      align-content: start;
+    }
+    
+    /* Keep scrolling on the whole sidebar. */
+    body.signed-in .workspace > aside.card {
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
