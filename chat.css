@@ -244,12 +244,12 @@
 }
     #auth .login-video-box {
       box-sizing: border-box;
-      width: 100%;
+      width: 50%;
       margin: 0 0 18px;
       border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
-      background: #ffffff;
+      background: #000000;
     }
     #auth .login-video-box video {
       display: block;
