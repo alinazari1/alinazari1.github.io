@@ -851,10 +851,30 @@
               id="voice"
               type="button"
               class="secondary"
+              aria-label="Start voice input"
               aria-pressed="false"
               aria-describedby="voicePrivacy voiceStatus"
+              title="Start voice input"
               disabled
-            >Speak</button>
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect x="9" y="2" width="6" height="12" rx="3"/>
+                <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+                <path d="M12 19v3M8 22h8"/>
+              </svg>
+            </button>
+            
             <button id="send" type="submit">Send</button>
             <button id="check" type="button" class="secondary" hidden>
               Check uncertain request
