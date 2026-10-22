@@ -238,9 +238,15 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
       <div id="analysisReport" class="formatted" style="overflow-wrap:anywhere"></div>
       <div id="analysisEvidence"></div>
     `;
-    $('analysisScopeLabel').textContent = scope === 'mine'
-      ? 'Scope: your own topics only'
-      : 'Scope: assigned user ' + userLabel;
+
+    const scopeDescription = scope === 'mine'
+      ? 'My topics: ' + (getSession()?.user.email || 'Your account')
+      : 'Assigned user: ' + userLabel;
+    
+    $('analysisScopeLabel').textContent =
+      scopeDescription + '\n' +
+      'Select report options below, then generate the analysis.';
+    
     $('analysisBack').onclick = backToChat;
     const form = $('analysisForm');
     form.onsubmit = async event => {
@@ -267,6 +273,30 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
       }
       const current = () => epoch === version && getSession()?.user.id === owner &&
         status.isConnected;
+      
+      const reportNames = {
+        overview: 'Overview',
+        themes: 'Themes and connections',
+        actions: 'Decisions, actions, and gaps',
+        full: 'Full report'
+      };
+      
+      const periodDescription =
+        !payload.from && !payload.to
+          ? 'All dates'
+          : (payload.from || 'Beginning') +
+            ' to ' +
+            (payload.to || 'Latest available');
+      
+      $('analysisScopeLabel').textContent = [
+        scopeDescription,
+        'Report: ' +
+          (reportNames[payload.report_type] || payload.report_type),
+        'Period: ' + periodDescription + ' · UTC',
+        payload.include_hidden
+          ? 'Hidden conversations included'
+          : 'Hidden conversations excluded'
+      ].join('\n');
       running = true;
       submit.disabled = true;
       for (const control of form.querySelectorAll('input, select')) control.disabled = true;
