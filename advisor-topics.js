@@ -1,3 +1,6 @@
+import { marked } from 'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
+import DOMPurify from 'https://esm.sh/dompurify';
+
 export function createAdvisorTopics({ getDb, getSession, isLocked }) {
   const $ = id => document.getElementById(id);
   let account = null;
@@ -374,14 +377,33 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
           'meta'
         );
   
-        const body = element(
-          'div',
-          String(text ?? ''),
-          'body'
-        );
-  
-        body.style.whiteSpace = 'pre-wrap';
+        const body = element('div', undefined, 'body');
+        
         body.style.overflowWrap = 'anywhere';
+        
+        if (role === 'assistant') {
+          const html = marked.parse(String(text ?? ''), {
+            gfm: true,
+            breaks: true,
+            async: false
+          });
+        
+          body.innerHTML = DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: [
+              'p', 'br', 'strong', 'em', 'del',
+              'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+              'ul', 'ol', 'li', 'blockquote',
+              'pre', 'code', 'hr',
+              'table', 'thead', 'tbody', 'tr', 'th', 'td'
+            ],
+            ALLOWED_ATTR: ['start']
+          });
+        
+          body.classList.add('formatted');
+        } else {
+          body.textContent = String(text ?? '');
+          body.style.whiteSpace = 'pre-wrap';
+        }
   
         article.append(meta, body);
         content.append(article);
