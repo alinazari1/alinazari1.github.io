@@ -1,5 +1,7 @@
 import { CONFIG } from './config.js';
-import { createAdvisorTopics } from './advisor-topics.js?v=1';
+
+import { createAdvisorTopics } from './advisor-topics.js?v=2';
+import { mountAnalysisUI } from './analysis-ui-patch.js?v=2';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
@@ -47,7 +49,11 @@ const advisorTopics = createAdvisorTopics({
   getSession: () => session,
   isLocked: () => historyLocked()
 });
-
+const analysisUI = mountAnalysisUI({
+  getDb: () => db,
+  getSession: () => session,
+  isLocked: () => historyLocked()
+});
 /* ---------- Shared controls ---------- */
 
 function historyLocked() {
@@ -92,6 +98,7 @@ function controls() {
   syncVoiceControls();
   syncAdvisorAdminUI();
   advisorTopics.sync();
+  analysisUI.sync();
 }
 
 function must(result) {
