@@ -1095,32 +1095,67 @@ function syncVoiceControls() {
     cancelVoice();
   }
 
-  if (!SpeechRecognitionAPI) {
-    button.disabled = true;
-    button.textContent = 'Voice unavailable';
-  } else {
-    button.textContent = voiceActive ? 'Stop' : 'Speak';
+  const available =
+    Boolean(SpeechRecognitionAPI && voiceRecognition);
 
-    button.disabled =
-      !voiceRecognition ||
-      !session ||
-      busy ||
-      !!uncertain ||
-      !$('consent').checked;
-  }
+  const label = !available
+    ? 'Voice input unavailable in this browser'
+    : voiceActive
+      ? 'Stop voice input'
+      : 'Start voice input';
 
-  button.setAttribute(
-    'aria-pressed',
-    String(voiceActive)
-  );
+  button.innerHTML = voiceActive
+    ? `
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <rect x="6" y="6" width="12" height="12" rx="2"/>
+      </svg>
+    `
+    : `
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <rect x="9" y="2" width="6" height="12" rx="3"/>
+        <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+        <path d="M12 19v3M8 22h8"/>
+      </svg>
+    `;
+
+  button.title = label;
+  button.setAttribute('aria-label', label);
+  button.setAttribute('aria-pressed', String(voiceActive));
+
+  button.disabled =
+    !available ||
+    !session ||
+    busy ||
+    !!uncertain ||
+    !$('consent').checked;
 
   $('prompt').readOnly = voiceActive;
 
   $('new').disabled = busy || voiceActive;
   $('refresh').disabled = busy || voiceActive;
 
-  for (const historyButton of
-    $('history').querySelectorAll('button')) {
+  for (
+    const historyButton of
+    $('history').querySelectorAll('button')
+  ) {
     historyButton.disabled = historyLocked();
   }
 }
@@ -1140,7 +1175,7 @@ function initializeVoice() {
     voiceRecognition = new SpeechRecognitionAPI();
 
     voiceRecognition.lang = 'en-US';
-    voiceRecognition.continuous = false;
+    voiceRecognition.continuous = true;
     voiceRecognition.interimResults = false;
     voiceRecognition.maxAlternatives = 1;
   } catch {
