@@ -1,13 +1,37 @@
 import { CONFIG } from './config.js';
+
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
+
 import DOMPurify from
   'https://esm.sh/dompurify';
-const $=id=>document.getElementById(id);
-const say=text=>{$('status').textContent=text;};
-const ready=!!(CONFIG.supabaseUrl&&CONFIG.supabasePublishableKey&&!CONFIG.supabasePublishableKey.includes('REPLACE_')&&!CONFIG.supabasePublishableKey.includes('PASTE_')&&CONFIG.studyReady);
-$('study').textContent=CONFIG.studyText;$('setup').hidden=ready;$('loginButton').disabled=true;
-let db=null,session=null,chats=[],turns=[],selected=null,busy=false,uncertain=null;
+
+const $ = id => document.getElementById(id);
+
+const say = text => {
+  $('status').textContent = text;
+};
+
+const ready = !!(
+  CONFIG.supabaseUrl &&
+  CONFIG.supabasePublishableKey &&
+  !CONFIG.supabasePublishableKey.includes('REPLACE_') &&
+  !CONFIG.supabasePublishableKey.includes('PASTE_') &&
+  CONFIG.studyReady
+);
+
+$('study').textContent = CONFIG.studyText;
+$('setup').hidden = ready;
+$('loginButton').disabled = true;
+
+let db = null;
+let session = null;
+let chats = [];
+let turns = [];
+let selected = null;
+let busy = false;
+let uncertain = null;
+
 const SpeechRecognitionAPI =
   window.SpeechRecognition ||
   window.webkitSpeechRecognition;
@@ -18,108 +42,926 @@ let voiceCancelled = false;
 let voiceBaseText = '';
 let voiceUserId = null;
 
-function controls(){
-   document.body.classList.toggle('signed-in', Boolean(session));
-    const studyPanel = document.getElementById('study-panel');
+
+/* ---------- Shared controls ---------- */
+
+function historyLocked() {
+  return busy || voiceActive || !!uncertain || !session;
+}
+
+function controls() {
+  document.body.classList.toggle(
+    'signed-in',
+    Boolean(session)
+  );
+
+  const studyPanel = $('study-panel');
 
   if (studyPanel) {
     studyPanel.hidden = Boolean(session);
   }
-  $('auth').hidden=!!session; $('workspace').hidden=!session; $('loginButton').disabled=!db; 
+
+  $('auth').hidden = !!session;
+  $('workspace').hidden = !session;
+  $('loginButton').disabled = !db || busy;
+
   $('send').disabled =
-  busy ||
-  voiceActive ||
-  !session ||
-  !$('consent').checked ||
-  !!uncertain;
-  for(const id of ['new','refresh','logout','json','csv'])$(id).disabled=busy;$('check').hidden=!uncertain;$('check').disabled=busy; 
+    busy ||
+    voiceActive ||
+    !session ||
+    !$('consent').checked ||
+    !!uncertain;
+
+  for (const id of ['new', 'refresh', 'logout', 'json', 'csv']) {
+    $(id).disabled = busy;
+  }
+
+  $('check').hidden = !uncertain;
+  $('check').disabled = busy;
+
   syncVoiceControls();
 }
-function must(r){if(r.error)throw new Error(r.error.message);return r.data;}
-async function rows(table){let result=[];for(let start=0;;start+=500){const batch=must(await db.from(table).select('*').order('id').range(start,start+499));result.push(...batch);if(batch.length<500)return result;}}
-async function load(){const [c,t]=await Promise.all([rows('research_conversations'),rows('research_turns')]);chats=c.sort((a,b)=>b.created_at.localeCompare(a.created_at));turns=t;history();conversation();}
-function history(){const q=$('search').value.trim().toLowerCase();const matches=chats.filter(c=>!q||c.title.toLowerCase().includes(q)||turns.some(t=>t.conversation_id===c.id&&((t.prompt||'')+' '+(t.response||'')).toLowerCase().includes(q)));$('history').replaceChildren();$('count').textContent=matches.length+' conversation(s)';for(const c of matches){const b=document.createElement('button');b.type='button';b.className='history-item'+(selected===c.id?' active':'');b.textContent=c.title+' · '+new Date(c.created_at).toLocaleDateString();b.disabled=busy;b.onclick=()=>{selected=c.id;history();conversation();};$('history').append(b);}}
-function add(role,text,time,sources=[]){const box=document.createElement('article');box.className='msg '+role;const meta=document.createElement('div');meta.className='meta';meta.textContent=(role==='user'?'You':'AI assistant')+' · '+new Date(time).toLocaleString();const body=document.createElement('div');body.className='body';
-  if (role === 'assistant') {
-  const formatted = marked.parse(String(text), {
-    gfm: true,
-    breaks: true,
-    async: false
-  });
 
-  body.innerHTML = DOMPurify.sanitize(formatted, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'del',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote',
-      'pre', 'code', 'hr',
-      'table', 'thead', 'tbody', 'tr', 'th', 'td'
-    ],
-    ALLOWED_ATTR: ['start']
-  });
+function must(result) {
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
 
-  body.classList.add('formatted');
-} else {
-  body.textContent = text;
+  return result.data;
 }
-                                        box.append(meta,body);if(Array.isArray(sources)){for(const s of sources){try{const u=new URL(s.url);if(!['https:','http:'].includes(u.protocol))continue;const p=document.createElement('p'),a=document.createElement('a');a.href=u.href;a.textContent=s.title||u.href;a.target='_blank';a.rel='noopener noreferrer';p.append(a);box.append(p);}catch{}}}$('messages').append(box);}
-function conversation(){$('title').textContent=chats.find(c=>c.id===selected)?.title||'New conversation';$('messages').replaceChildren();for(const t of turns.filter(t=>t.conversation_id===selected).sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id))){add('user',t.prompt,t.created_at);if(t.response)add('assistant',t.response,t.completed_at||t.created_at,t.sources);else{const p=document.createElement('p');p.className='small';p.textContent='Request status: '+t.status+' · ID: '+t.id;$('messages').append(p);}}$('messages').scrollTop=$('messages').scrollHeight;}
-$('consent').onchange=controls;$('search').oninput=history;
-if(ready){try{const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.49.8');db=createClient(CONFIG.supabaseUrl,CONFIG.supabasePublishableKey,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});db.auth.onAuthStateChange((_event,s)=>{session=s;if(!s){chats=[];turns=[];selected=null;uncertain=null;$('prompt').value='';history();conversation();}controls();});controls();}catch{say('Unable to load the sign-in service. Check config.js and your network.');}}
 
 
-$('signupButton').onclick=async()=>{
-  if(!db)return;
-  if(!$('consent').checked)return say('Please check the privacy notice before signing up.');
-  const email=$('email').value.trim(),password=$('password').value;
-  if(!email||password.length<8)return say('Enter your email and a password of at least 8 characters.');
-  $('signupButton').disabled=true;say('Creating your account…');
-  try{
-    const {data,error}=await db.auth.signUp({email,password});
-    // Handle failure first:
-      if (error) {
-        document.getElementById("status").textContent =
-          "Sign-up failed: " + error.message;
-        return;
+/* ---------- Load saved records ---------- */
+
+async function rows(table) {
+  const result = [];
+
+  for (let start = 0; ; start += 500) {
+    const batch = must(
+      await db
+        .from(table)
+        .select('*')
+        .order('id')
+        .range(start, start + 499)
+    );
+
+    result.push(...batch);
+
+    if (batch.length < 500) {
+      return result;
+    }
+  }
+}
+
+async function load() {
+  const userId = session?.user.id;
+
+  if (!db || !userId) return;
+
+  const [conversations, messages] = await Promise.all([
+    rows('research_conversations'),
+    rows('research_turns')
+  ]);
+
+  if (session?.user.id !== userId) return;
+
+  chats = conversations.sort((a, b) =>
+    b.created_at.localeCompare(a.created_at)
+  );
+
+  turns = messages;
+
+  if (
+    selected &&
+    !chats.some(c =>
+      c.id === selected &&
+      c.is_visible !== 0
+    )
+  ) {
+    selected = null;
+  }
+
+  history();
+  conversation();
+}
+
+
+/* ---------- History, pin, rename and soft delete ---------- */
+
+function history() {
+  const query = $('search').value.trim().toLowerCase();
+
+  const matches = chats
+    .filter(c => c.is_visible !== 0)
+    .filter(c =>
+      !query ||
+      (c.title || '').toLowerCase().includes(query) ||
+      turns.some(t =>
+        t.conversation_id === c.id &&
+        (
+          (t.prompt || '') + ' ' + (t.response || '')
+        ).toLowerCase().includes(query)
+      )
+    )
+    .sort((a, b) =>
+      Number(Boolean(b.is_pinned)) -
+        Number(Boolean(a.is_pinned)) ||
+      b.created_at.localeCompare(a.created_at) ||
+      String(a.id).localeCompare(String(b.id))
+    );
+
+  $('history').replaceChildren();
+
+  $('count').textContent =
+    matches.length + ' conversation(s)';
+
+  const locked = historyLocked();
+
+  for (const topic of matches) {
+    const row = document.createElement('div');
+    row.className = 'history-entry';
+
+    const open = document.createElement('button');
+
+    open.type = 'button';
+    open.className =
+      'history-item' +
+      (selected === topic.id ? ' active' : '');
+
+    open.textContent =
+      (topic.is_pinned ? '📌 ' : '') +
+      (topic.title || 'Untitled conversation') +
+      ' · ' +
+      new Date(topic.created_at).toLocaleDateString();
+
+    open.title = topic.title || 'Untitled conversation';
+    open.disabled = locked;
+
+    open.onclick = () => {
+      if (historyLocked()) return;
+
+      selected = topic.id;
+      history();
+      conversation();
+    };
+
+    const actions = document.createElement('div');
+    actions.className = 'history-actions';
+
+    const pin = document.createElement('button');
+
+    pin.type = 'button';
+    pin.className = 'secondary';
+    pin.textContent = topic.is_pinned ? 'Unpin' : 'Pin';
+    pin.disabled = locked;
+
+    pin.setAttribute(
+      'aria-pressed',
+      String(Boolean(topic.is_pinned))
+    );
+
+    pin.setAttribute(
+      'aria-label',
+      (topic.is_pinned ? 'Unpin ' : 'Pin ') +
+      (topic.title || 'conversation')
+    );
+
+    pin.onclick = () => togglePin(topic.id);
+
+    const rename = document.createElement('button');
+
+    rename.type = 'button';
+    rename.className = 'secondary';
+    rename.textContent = 'Rename';
+    rename.disabled = locked;
+
+    rename.setAttribute(
+      'aria-label',
+      'Rename ' + (topic.title || 'conversation')
+    );
+
+    rename.onclick = () => renameTopic(topic.id);
+
+    const remove = document.createElement('button');
+
+    remove.type = 'button';
+    remove.className = 'secondary history-delete';
+    remove.textContent = 'Delete';
+    remove.disabled = locked;
+
+    remove.title =
+      'Remove from history; retain stored records';
+
+    remove.setAttribute(
+      'aria-label',
+      'Remove ' +
+      (topic.title || 'conversation') +
+      ' from history'
+    );
+
+    remove.onclick = () => deleteTopic(topic.id);
+
+    actions.append(pin, rename, remove);
+    row.append(open, actions);
+
+    $('history').append(row);
+  }
+}
+
+async function updateTopicMetadata(id, changes) {
+  if (!db || historyLocked()) return false;
+
+  const topic = chats.find(c =>
+    c.id === id &&
+    c.is_visible !== 0
+  );
+
+  if (!topic) return false;
+
+  const userId = session.user.id;
+
+  busy = true;
+  controls();
+  history();
+
+  try {
+    const updated = must(
+      await db
+        .from('research_conversations')
+        .update(changes)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select('id, title, is_visible, is_pinned')
+        .single()
+    );
+
+    if (session?.user.id !== userId) return false;
+
+    Object.assign(topic, updated);
+
+    if (
+      updated.is_visible === 0 &&
+      selected === id
+    ) {
+      selected = null;
+      $('prompt').value = '';
+    }
+
+    conversation();
+
+    return true;
+  } catch (error) {
+    say('Topic update failed: ' + error.message);
+    return false;
+  } finally {
+    busy = false;
+    controls();
+    history();
+  }
+}
+
+async function renameTopic(id) {
+  if (!db || historyLocked()) return;
+
+  const topic = chats.find(c =>
+    c.id === id &&
+    c.is_visible !== 0
+  );
+
+  if (!topic) return;
+
+  const answer = window.prompt(
+    'Enter a new topic title:',
+    topic.title || ''
+  );
+
+  if (answer === null) return;
+
+  const title = answer.trim();
+
+  if (!title) {
+    say('The topic title cannot be empty.');
+    return;
+  }
+
+  if (title === topic.title) return;
+
+  say('Renaming topic…');
+
+  const saved = await updateTopicMetadata(id, { title });
+
+  if (saved) {
+    say('Topic renamed.');
+  }
+}
+
+async function togglePin(id) {
+  if (!db || historyLocked()) return;
+
+  const topic = chats.find(c =>
+    c.id === id &&
+    c.is_visible !== 0
+  );
+
+  if (!topic) return;
+
+  const nextPinned = !topic.is_pinned;
+
+  say(nextPinned ? 'Pinning topic…' : 'Unpinning topic…');
+
+  const saved = await updateTopicMetadata(id, {
+    is_pinned: nextPinned
+  });
+
+  if (saved) {
+    say(nextPinned ? 'Topic pinned.' : 'Topic unpinned.');
+  }
+}
+
+async function deleteTopic(id) {
+  if (!db || historyLocked()) return;
+
+  const topic = chats.find(c =>
+    c.id === id &&
+    c.is_visible !== 0
+  );
+
+  if (!topic) return;
+
+  const confirmed = window.confirm(
+    'Remove "' +
+    (topic.title || 'Untitled conversation') +
+    '" from your history?\n\n' +
+    'The conversation and messages will remain stored ' +
+    'for the study. This does not erase the records.'
+  );
+
+  if (!confirmed) return;
+
+  say('Removing topic from history…');
+
+  const saved = await updateTopicMetadata(id, {
+    is_visible: 0,
+    is_pinned: false
+  });
+
+  if (saved) {
+    say(
+      'Topic removed from your history. ' +
+      'Database records retained.'
+    );
+  }
+}
+
+
+/* ---------- Render messages ---------- */
+
+function add(role, text, time, sources = []) {
+  const box = document.createElement('article');
+  box.className = 'msg ' + role;
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+
+  meta.textContent =
+    (role === 'user' ? 'You' : 'AI assistant') +
+    ' · ' +
+    new Date(time).toLocaleString();
+
+  const body = document.createElement('div');
+  body.className = 'body';
+
+  if (role === 'assistant') {
+    const formatted = marked.parse(String(text), {
+      gfm: true,
+      breaks: true,
+      async: false
+    });
+
+    body.innerHTML = DOMPurify.sanitize(formatted, {
+      ALLOWED_TAGS: [
+        'p', 'br', 'strong', 'em', 'del',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'ul', 'ol', 'li', 'blockquote',
+        'pre', 'code', 'hr',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td'
+      ],
+      ALLOWED_ATTR: ['start']
+    });
+
+    body.classList.add('formatted');
+  } else {
+    body.textContent = text;
+  }
+
+  box.append(meta, body);
+
+  if (Array.isArray(sources)) {
+    for (const source of sources) {
+      try {
+        const url = new URL(source.url);
+
+        if (!['https:', 'http:'].includes(url.protocol)) {
+          continue;
+        }
+
+        const paragraph = document.createElement('p');
+        const link = document.createElement('a');
+
+        link.href = url.href;
+        link.textContent = source.title || url.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+
+        paragraph.append(link);
+        box.append(paragraph);
+      } catch {
+        // Ignore invalid source URLs.
       }
-      
-    // ADD THE CONFIRMATION MESSAGE HERE:
-      document.getElementById("status").textContent =
-        "Please check your email for a confirmation link. " +
-        "Click the link to verify your email address, then return here to sign in. " +
-        "If you don’t see the email, check your Spam or Junk folder.";
-   
-    if(data.session){session=data.session;await load();say('Account created. You are signed in.');}
-    else say('Account created. Check your email for a confirmation link, then sign in.');
-  }catch(e){say('Sign-up failed: '+e.message);}
-  finally{$('signupButton').disabled=false;controls();}
+    }
+  }
+
+  $('messages').append(box);
+}
+
+function conversation() {
+  const current = chats.find(c =>
+    c.id === selected &&
+    c.is_visible !== 0
+  );
+
+  $('title').textContent =
+    current?.title || 'New conversation';
+
+  $('messages').replaceChildren();
+
+  if (!current) return;
+
+  const messages = turns
+    .filter(t => t.conversation_id === selected)
+    .sort((a, b) =>
+      a.created_at.localeCompare(b.created_at) ||
+      a.id.localeCompare(b.id)
+    );
+
+  for (const turn of messages) {
+    add('user', turn.prompt, turn.created_at);
+
+    if (turn.response) {
+      add(
+        'assistant',
+        turn.response,
+        turn.completed_at || turn.created_at,
+        turn.sources
+      );
+    } else {
+      const paragraph = document.createElement('p');
+
+      paragraph.className = 'small';
+
+      paragraph.textContent =
+        'Request status: ' +
+        turn.status +
+        ' · ID: ' +
+        turn.id;
+
+      $('messages').append(paragraph);
+    }
+  }
+
+  $('messages').scrollTop = $('messages').scrollHeight;
+}
+
+
+/* ---------- Authentication ---------- */
+
+$('consent').onchange = controls;
+$('search').oninput = history;
+
+if (ready) {
+  try {
+    const { createClient } = await import(
+      'https://esm.sh/@supabase/supabase-js@2.49.8'
+    );
+
+    db = createClient(
+      CONFIG.supabaseUrl,
+      CONFIG.supabasePublishableKey,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: true,
+          detectSessionInUrl: false
+        }
+      }
+    );
+
+    db.auth.onAuthStateChange((_event, newSession) => {
+      session = newSession;
+
+      if (!newSession) {
+        chats = [];
+        turns = [];
+        selected = null;
+        uncertain = null;
+
+        $('prompt').value = '';
+
+        history();
+        conversation();
+      }
+
+      controls();
+    });
+
+    controls();
+  } catch {
+    say(
+      'Unable to load the sign-in service. ' +
+      'Check config.js and your network.'
+    );
+  }
+}
+
+$('signupButton').onclick = async () => {
+  if (!db || busy) return;
+
+  if (!$('consent').checked) {
+    say('Please check the privacy notice before signing up.');
+    return;
+  }
+
+  const email = $('email').value.trim();
+  const password = $('password').value;
+
+  if (!email || password.length < 8) {
+    say(
+      'Enter your email and a password of at least 8 characters.'
+    );
+    return;
+  }
+
+  $('signupButton').disabled = true;
+  say('Creating your account…');
+
+  try {
+    const { data, error } = await db.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data.session) {
+      session = data.session;
+      await load();
+
+      say('Account created. You are signed in.');
+    } else {
+      say(
+        'Please check your email for a confirmation link. ' +
+        'Click the link to verify your email address, ' +
+        'then return here to sign in. ' +
+        'If you don’t see the email, check your Spam or Junk folder.'
+      );
+    }
+  } catch (error) {
+    say('Sign-up failed: ' + error.message);
+  } finally {
+    $('signupButton').disabled = false;
+    controls();
+  }
 };
 
-$('login').onsubmit=async e=>{e.preventDefault();if(!db)return;
-if (!$('consent').checked) {
-  return say(
-    'Please read the privacy notice and check the consent box before signing in.'
-  );
-}
-$('loginButton').disabled=true;say('Signing in…');try{const data=must(await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value}));session=data.session;$('password').value='';await load();say('Signed in. Saved history loaded.');}catch(e){say(session?'Signed in, but history failed to load: '+e.message:'Sign-in failed: '+e.message);}finally{controls();}};
-$('logout').onclick=async()=>{await db.auth.signOut({scope:'local'});session=null;uncertain=null;chats=[];turns=[];selected=null;$('prompt').value='';history();conversation();controls();say('Signed out. Saved records were not deleted.');};
-$('new').onclick=()=>{selected=null;$('prompt').value='';history();conversation();say('New conversation. Existing database records remain saved.');};
-$('refresh').onclick=async()=>{try{await load();say('History refreshed.');}catch(e){say('History error: '+e.message);}};
-async function send(payload){busy=true;controls();history();say('Saving prompt and waiting for AI response…');try{const {data,error}=await db.functions.invoke(CONFIG.functionName,{body:payload});if(error){let text=error.message;try{text=(await error.context.json()).error||text;}catch{}throw new Error(text);}if(!data||!['completed','failed','interrupted','pending'].includes(data.status))throw new Error('Unrecognized backend response');if(data.conversation_id)selected=data.conversation_id;if(data.status==='completed'&&data.saved===true){uncertain=null;$('prompt').value='';say('Saved: prompt and AI response.');}else if(['failed','interrupted'].includes(data.status)){uncertain=null;say('Your prompt was saved, but no completed AI response was saved. Check the function Logs and research_turns.error_code.');}else{uncertain=payload;say('Request remains pending. Wait, then check the same request.');}await load();}catch(e){uncertain=payload;say(e.message+' Recording is uncertain. Check the same request rather than resubmitting. Request ID: '+payload.request_id);try{await load();}catch{}}finally{busy=false;controls();history();}}
-$('composer').onsubmit=e=>{e.preventDefault();const message=$('prompt').value.trim();
+$('login').onsubmit = async event => {
+  event.preventDefault();
 
-if (
-  !session ||
-  busy ||
-  voiceActive ||
-  uncertain ||
-  !$('consent').checked ||
-  !message
-) return;                           
-send({request_id:crypto.randomUUID(),conversation_id:selected,message,consent_version:CONFIG.consentVersion});};$('check').onclick=()=>{if(uncertain&&!busy)send(uncertain);};
-function download(name,text,type){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
-async function exportData(type){busy=true;controls();try{await load();if(type==='json')download('forenture-my-chats.json',JSON.stringify({exported_at:new Date().toISOString(),conversations:chats,turns},null,2),'application/json');else{const cols=['id','conversation_id','user_id','created_at','completed_at','status','prompt','response','model','preset','config_version','consent_version','consent_at','sources','usage','error_code'];const cell=v=>{let s=typeof v==='object'&&v!==null?JSON.stringify(v):String(v??'');if(/^\s*[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};const data=turns.slice().sort((a,b)=>a.created_at.localeCompare(b.created_at)).map(t=>cols.map(c=>cell(t[c])).join(','));download('forenture-my-chats.csv','\uFEFF'+[cols.join(','),...data].join('\r\n'),'text/csv;charset=utf-8');}say('Exported all your saved chats. JSON preserves original text; CSV escapes formula-like values.');}catch(e){say('Export failed: '+e.message);}finally{busy=false;controls();history();}}
-$('json').onclick=()=>exportData('json');$('csv').onclick=()=>exportData('csv');controls();
+  if (!db || busy) return;
+
+  if (!$('consent').checked) {
+    say(
+      'Please read the privacy notice and check ' +
+      'the consent box before signing in.'
+    );
+    return;
+  }
+
+  $('loginButton').disabled = true;
+  say('Signing in…');
+
+  try {
+    const data = must(
+      await db.auth.signInWithPassword({
+        email: $('email').value.trim(),
+        password: $('password').value
+      })
+    );
+
+    session = data.session;
+    $('password').value = '';
+
+    await load();
+
+    say('Signed in. Saved history loaded.');
+  } catch (error) {
+    say(
+      session
+        ? 'Signed in, but history failed to load: ' + error.message
+        : 'Sign-in failed: ' + error.message
+    );
+  } finally {
+    controls();
+  }
+};
+
+$('logout').onclick = async () => {
+  if (busy) return;
+
+  cancelVoice();
+
+  try {
+    const result = await db.auth.signOut({ scope: 'local' });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    session = null;
+    uncertain = null;
+    chats = [];
+    turns = [];
+    selected = null;
+
+    $('prompt').value = '';
+
+    history();
+    conversation();
+    controls();
+
+    say('Signed out. Saved records were not deleted.');
+  } catch (error) {
+    say('Sign-out failed: ' + error.message);
+  }
+};
+
+
+/* ---------- New conversation and refresh ---------- */
+
+$('new').onclick = () => {
+  if (busy || voiceActive) return;
+
+  selected = null;
+  $('prompt').value = '';
+
+  history();
+  conversation();
+
+  say('New conversation. Existing database records remain saved.');
+};
+
+$('refresh').onclick = async () => {
+  if (busy || voiceActive) return;
+
+  try {
+    await load();
+    say('History refreshed.');
+  } catch (error) {
+    say('History error: ' + error.message);
+  }
+};
+
+
+/* ---------- Send messages ---------- */
+
+async function send(payload) {
+  busy = true;
+
+  controls();
+  history();
+
+  say('Saving prompt and waiting for AI response…');
+
+  try {
+    const { data, error } = await db.functions.invoke(
+      CONFIG.functionName,
+      { body: payload }
+    );
+
+    if (error) {
+      let text = error.message;
+
+      try {
+        text = (await error.context.json()).error || text;
+      } catch {
+        // Keep the original error message.
+      }
+
+      throw new Error(text);
+    }
+
+    if (
+      !data ||
+      !['completed', 'failed', 'interrupted', 'pending']
+        .includes(data.status)
+    ) {
+      throw new Error('Unrecognized backend response');
+    }
+
+    if (data.conversation_id) {
+      selected = data.conversation_id;
+    }
+
+    if (data.status === 'completed' && data.saved === true) {
+      uncertain = null;
+      $('prompt').value = '';
+
+      say('Saved: prompt and AI response.');
+    } else if (['failed', 'interrupted'].includes(data.status)) {
+      uncertain = null;
+
+      say(
+        'Your prompt was saved, but no completed AI response ' +
+        'was saved. Check the function Logs and ' +
+        'research_turns.error_code.'
+      );
+    } else {
+      uncertain = payload;
+
+      say(
+        'Request remains pending. Wait, then check the same request.'
+      );
+    }
+
+    await load();
+  } catch (error) {
+    uncertain = payload;
+
+    say(
+      error.message +
+      ' Recording is uncertain. Check the same request ' +
+      'rather than resubmitting. Request ID: ' +
+      payload.request_id
+    );
+
+    try {
+      await load();
+    } catch {
+      // Preserve the uncertain request for checking.
+    }
+  } finally {
+    busy = false;
+
+    controls();
+    history();
+  }
+}
+
+$('composer').onsubmit = event => {
+  event.preventDefault();
+
+  const message = $('prompt').value.trim();
+
+  if (
+    !session ||
+    busy ||
+    voiceActive ||
+    uncertain ||
+    !$('consent').checked ||
+    !message
+  ) {
+    return;
+  }
+
+  send({
+    request_id: crypto.randomUUID(),
+    conversation_id: selected,
+    message,
+    consent_version: CONFIG.consentVersion
+  });
+};
+
+$('check').onclick = () => {
+  if (uncertain && !busy) {
+    send(uncertain);
+  }
+};
+
+
+/* ---------- Export all saved records ---------- */
+
+function download(name, text, type) {
+  const url = URL.createObjectURL(
+    new Blob([text], { type })
+  );
+
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = name;
+
+  document.body.append(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+async function exportData(type) {
+  if (!db || !session || busy || voiceActive) return;
+
+  busy = true;
+  controls();
+  history();
+
+  try {
+    await load();
+
+    if (type === 'json') {
+      download(
+        'forenture-my-chats.json',
+        JSON.stringify(
+          {
+            exported_at: new Date().toISOString(),
+            conversations: chats,
+            turns
+          },
+          null,
+          2
+        ),
+        'application/json'
+      );
+    } else {
+      const columns = [
+        'id',
+        'conversation_id',
+        'user_id',
+        'created_at',
+        'completed_at',
+        'status',
+        'prompt',
+        'response',
+        'model',
+        'preset',
+        'config_version',
+        'consent_version',
+        'consent_at',
+        'sources',
+        'usage',
+        'error_code'
+      ];
+
+      const cell = value => {
+        let text =
+          typeof value === 'object' && value !== null
+            ? JSON.stringify(value)
+            : String(value ?? '');
+
+        if (/^\s*[=+@\-\t\r]/.test(text)) {
+          text = "'" + text;
+        }
+
+        return '"' + text.replaceAll('"', '""') + '"';
+      };
+
+      const data = turns
+        .slice()
+        .sort((a, b) =>
+          a.created_at.localeCompare(b.created_at)
+        )
+        .map(turn =>
+          columns.map(column => cell(turn[column])).join(',')
+        );
+
+      download(
+        'forenture-my-chats.csv',
+        '\uFEFF' +
+          [columns.join(','), ...data].join('\r\n'),
+        'text/csv;charset=utf-8'
+      );
+    }
+
+    say(
+      'Exported all your saved chats, including topics removed ' +
+      'from history. JSON preserves original text; ' +
+      'CSV escapes formula-like values.'
+    );
+  } catch (error) {
+    say('Export failed: ' + error.message);
+  } finally {
+    busy = false;
+
+    controls();
+    history();
+  }
+}
+
+$('json').onclick = () => exportData('json');
+$('csv').onclick = () => exportData('csv');
+
+
+/* ---------- Voice input ---------- */
 
 function voiceSay(message) {
   $('voiceStatus').textContent = message;
@@ -137,13 +979,6 @@ function syncVoiceControls() {
 
   if (!button) return;
 
-  if (!SpeechRecognitionAPI) {
-    button.disabled = true;
-    button.textContent = 'Voice unavailable';
-    return;
-  }
-
-  // Discard dictation if the user signs out or changes accounts.
   if (
     voiceActive &&
     (
@@ -155,29 +990,33 @@ function syncVoiceControls() {
     cancelVoice();
   }
 
-  button.textContent = voiceActive ? 'Stop' : 'Speak';
+  if (!SpeechRecognitionAPI) {
+    button.disabled = true;
+    button.textContent = 'Voice unavailable';
+  } else {
+    button.textContent = voiceActive ? 'Stop' : 'Speak';
+
+    button.disabled =
+      !voiceRecognition ||
+      !session ||
+      busy ||
+      !!uncertain ||
+      !$('consent').checked;
+  }
 
   button.setAttribute(
     'aria-pressed',
     String(voiceActive)
   );
 
-  button.disabled =
-    !voiceRecognition ||
-    !session ||
-    busy ||
-    !!uncertain ||
-    !$('consent').checked;
-
-  // Avoid editing the message while its voice transcript is pending.
   $('prompt').readOnly = voiceActive;
 
-  // Prevent switching conversations during dictation.
   $('new').disabled = busy || voiceActive;
   $('refresh').disabled = busy || voiceActive;
 
-  for (const button of $('history').querySelectorAll('button')) {
-    button.disabled = busy || voiceActive;
+  for (const historyButton of
+    $('history').querySelectorAll('button')) {
+    historyButton.disabled = historyLocked();
   }
 }
 
@@ -227,7 +1066,9 @@ function initializeVoice() {
       voiceCancelled ||
       !session ||
       session.user.id !== voiceUserId
-    ) return;
+    ) {
+      return;
+    }
 
     const pieces = [];
 
@@ -251,12 +1092,12 @@ function initializeVoice() {
     const combined =
       voiceBaseText + separator + spokenText;
 
-    const limit = $('prompt').maxLength > 0
-      ? $('prompt').maxLength
-      : 6000;
+    const limit =
+      $('prompt').maxLength > 0
+        ? $('prompt').maxLength
+        : 6000;
 
     $('prompt').value = combined.slice(0, limit);
-
     voiceBaseText = $('prompt').value;
 
     $('prompt').dispatchEvent(
@@ -343,11 +1184,14 @@ function initializeVoice() {
       busy ||
       uncertain ||
       !$('consent').checked
-    ) return;
+    ) {
+      return;
+    }
 
-    const limit = $('prompt').maxLength > 0
-      ? $('prompt').maxLength
-      : 6000;
+    const limit =
+      $('prompt').maxLength > 0
+        ? $('prompt').maxLength
+        : 6000;
 
     if ($('prompt').value.length >= limit) {
       voiceSay(
@@ -381,16 +1225,21 @@ function initializeVoice() {
     }
   };
 
-  // Search rebuilds the history buttons; restore their voice lock.
   $('search').addEventListener('input', syncVoiceControls);
 
   window.addEventListener('pagehide', cancelVoice);
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) cancelVoice();
+    if (document.hidden) {
+      cancelVoice();
+    }
   });
 
   syncVoiceControls();
 }
 
+
+/* ---------- Initial page state ---------- */
+
+controls();
 initializeVoice();
