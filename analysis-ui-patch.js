@@ -79,12 +79,50 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
       button = document.createElement('button');
       button.id = 'analyzeMyTopics';
       button.type = 'button';
-      button.className = 'secondary';
-      button.textContent = 'Analyze my topics';
-      button.style.width = '100%';
-      button.style.margin = '0 0 10px';
-      $('history').before(button);
-      button.onclick = () => { if (!blocked()) open('mine'); };
+      button.className = 'secondary compact-analyze';
+    
+      button.innerHTML = `
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3z"/>
+        </svg>
+        <span>Analyze</span>
+      `;
+    
+      button.title = 'Analyze all your topics';
+      button.setAttribute('aria-label', 'Analyze all your topics');
+    
+      const heading = $('myTopicsHeading');
+    
+      if (heading) {
+        let header = $('myTopicsHeader');
+    
+        if (!header) {
+          header = document.createElement('div');
+          header.id = 'myTopicsHeader';
+          heading.before(header);
+          header.append(heading);
+        }
+    
+        header.append(button);
+      } else {
+        // Fallback if the topics heading is not available.
+        $('history').before(button);
+      }
+    
+      button.onclick = () => {
+        if (!blocked()) open('mine');
+      };
     }
     const next = getSession()?.user.id || null;
     if (next !== account) {
