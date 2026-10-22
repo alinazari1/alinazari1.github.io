@@ -1,5 +1,6 @@
 import { marked } from 'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
 import DOMPurify from 'https://esm.sh/dompurify';
+import { renderMyTopicsVisuals } from './analysis-visuals.js?v=1';
 
 export function mountAnalysisUI({ getDb, getSession, isLocked }) {
   const $ = id => document.getElementById(id);
@@ -271,6 +272,19 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
       for (const control of form.querySelectorAll('input, select')) control.disabled = true;
       sync();
       report.replaceChildren();
+      let visuals = $('analysisVisuals');
+
+      if (!visuals) {
+        visuals = document.createElement('div');
+        visuals.id = 'analysisVisuals';
+      
+        // Charts appear above the written report.
+        report.before(visuals);
+      }
+      
+      // Remove visuals from the previous report.
+      visuals.replaceChildren();
+      
       evidence.replaceChildren();
       status.textContent = 'Generating report… You can return to chat while this runs.';
       try {
@@ -284,6 +298,19 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
           throw new Error(data?.error || 'Invalid report response.');
         }
         if (!current()) return;
+        // Add charts for personal-topic analysis.
+        if (scope === 'mine') {
+          renderMyTopicsVisuals(
+            visuals,
+            data.evidence,
+            {
+              from: payload.from,
+              to: payload.to
+            }
+          );
+        }
+
+        
         status.textContent = `${data.stats.topic_count} topic(s), ${data.stats.completed_turn_count} completed turn(s). AI interpretations: review against the evidence. Report not saved to the database.`;
         report.innerHTML = DOMPurify.sanitize(marked.parse(data.report, {
           gfm: true, breaks: true, async: false,
