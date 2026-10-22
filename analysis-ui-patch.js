@@ -1,94 +1,227 @@
+import { marked } from 'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
+import DOMPurify from 'https://esm.sh/dompurify';
+
 export function mountAnalysisUI({ getDb, getSession, isLocked }) {
-  const $=id=>document.getElementById(id);
-  let button=null, dialog=null, account=null, running=false, generation=0;
-  const blocked=()=>!getSession()||isLocked()||running;
-  function close() {
-    generation++;
-    if(dialog) { if(dialog.open) dialog.close(); dialog.remove(); dialog=null; }
+  const $ = id => document.getElementById(id);
+  let button = null;
+  let account = null;
+  let analysisView = null;
+  let chatView = null;
+  let activeScope = null;
+  let activeUser = null;
+  let running = false;
+  let epoch = 0;
+
+  const blocked = () => !getSession() || isLocked() || running;
+
+  function backToChat() {
+    if (analysisView) analysisView.hidden = true;
+    if (chatView) chatView.hidden = false;
   }
+
+  function ensureViews() {
+    if (analysisView) return;
+    const main = $('workspace').querySelector(':scope > section.card');
+    if (!main) throw new Error('Cannot find the main chat section.');
+    chatView = document.createElement('div');
+    chatView.id = 'personalChatView';
+    while (main.firstChild) chatView.append(main.firstChild);
+    main.append(chatView);
+    analysisView = document.createElement('section');
+    analysisView.id = 'mainAnalysisView';
+    analysisView.hidden = true;
+    main.append(analysisView);
+
+    $('history').addEventListener('click', event => {
+      const target = event.target.closest('button.history-item');
+      if (target && !target.disabled) backToChat();
+    }, true);
+    $('new').addEventListener('click', () => {
+      if (!$('new').disabled) backToChat();
+    }, true);
+  }
+
   function addAssignedButtons() {
-    document.querySelectorAll('#advisorUsersList details').forEach(details=>{
-      if(!details.dataset.userId) return;
-      let b=details.querySelector('.advisorAnalyzeUser');
-      if(!b) {
-        const summary=details.querySelector('summary'); if(!summary) return;
-        b=document.createElement('button'); b.type='button';
-        b.className='secondary advisorAnalyzeUser'; b.textContent='Analyze this user';
-        b.style.margin='6px 0';
-        b.onclick=()=>{ if(!blocked()) open('assigned_user',details.dataset.userId,
-          summary.textContent.replace(/ \(\d+\)$/,'')); };
-        summary.after(b);
+    document.querySelectorAll('#advisorUsersList details').forEach(details => {
+      if (!details.dataset.userId) return;
+      let action = details.querySelector('.advisorAnalyzeUser');
+      if (!action) {
+        const summary = details.querySelector('summary');
+        if (!summary) return;
+        action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'secondary advisorAnalyzeUser';
+        action.textContent = 'Analyze this user';
+        action.style.margin = '6px 0';
+        action.onclick = () => {
+          if (!blocked()) open('assigned_user', details.dataset.userId,
+            summary.textContent.replace(/ \(\d+\)$/, ''));
+        };
+        summary.after(action);
       }
-      if(b.disabled!==Boolean(blocked())) b.disabled=Boolean(blocked());
+      if (action.disabled !== Boolean(blocked())) {
+        action.disabled = Boolean(blocked());
+      }
     });
   }
-  function sync() {
-    if(!button) {
-      button=document.createElement('button'); button.id='analyzeMyTopics'; button.type='button';
-      button.className='secondary'; button.textContent='Analyze my topics';
-      button.style.width='100%'; button.style.margin='0 0 10px';
-      $('history').before(button);
-      button.onclick=()=>{ if(!blocked()) open('mine'); };
-    }
-    const next=getSession()?.user.id||null;
-    if(next!==account) { account=next; close(); }
-    button.hidden=!next; button.disabled=Boolean(blocked()); addAssignedButtons();
+
+  function resetForAccount() {
+    epoch++;
+    activeScope = null;
+    activeUser = null;
+    analysisView.replaceChildren();
+    backToChat();
   }
-  function open(scope,userId=null,userLabel='') {
-    if(blocked()) return;
-    close(); const version=generation, owner=getSession().user.id;
-    const view=document.createElement('dialog'); dialog=view;
-    Object.assign(view.style,{width:'min(820px, calc(100vw - 24px))',maxHeight:'88dvh',
-      overflowY:'auto',padding:'24px',border:'1px solid var(--border)',borderRadius:'12px',
-      background:'var(--surface)',color:'var(--text)'});
-    view.setAttribute('aria-labelledby','analysisHeading');
-    view.innerHTML=`<h2 id="analysisHeading">Conversation analysis</h2>
-      <p class="small" id="analysisScopeLabel"></p>
+
+  function sync() {
+    ensureViews();
+    if (!button) {
+      button = document.createElement('button');
+      button.id = 'analyzeMyTopics';
+      button.type = 'button';
+      button.className = 'secondary';
+      button.textContent = 'Analyze my topics';
+      button.style.width = '100%';
+      button.style.margin = '0 0 10px';
+      $('history').before(button);
+      button.onclick = () => { if (!blocked()) open('mine'); };
+    }
+    const next = getSession()?.user.id || null;
+    if (next !== account) {
+      account = next;
+      resetForAccount();
+    }
+    button.hidden = !next;
+    button.disabled = Boolean(blocked());
+    addAssignedButtons();
+  }
+
+  function open(scope, userId = null, userLabel = '') {
+    if (blocked()) return;
+    ensureViews();
+    const sameSelection = activeScope === scope && activeUser === userId &&
+      analysisView.childElementCount > 0;
+    if (!sameSelection) {
+      epoch++;
+      activeScope = scope;
+      activeUser = userId;
+      buildForm(scope, userId, userLabel);
+    }
+    chatView.hidden = true;
+    analysisView.hidden = false;
+    analysisView.querySelector('h2')?.focus({ preventScroll: true });
+    analysisView.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  function buildForm(scope, userId, userLabel) {
+    analysisView.innerHTML = `
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 id="analysisHeading" tabindex="-1" style="margin:0">Conversation analysis</h2>
+        <button id="analysisBack" type="button" class="secondary">Back to chat</button>
+      </div>
+      <p id="analysisScopeLabel" class="small"></p>
       <form id="analysisForm">
-      <label for="analysisType">Report</label>
-      <select id="analysisType" style="width:100%;padding:12px;font:inherit">
-        <option value="overview">Overview</option><option value="themes">Themes and connections</option>
-        <option value="actions">Decisions, actions, and gaps</option><option value="full">Full report</option>
-      </select>
-      <p class="small">Dates filter completed messages, not topic creation dates. Dates use UTC; the end date is included.</p>
-      <div class="row"><div style="flex:1;min-width:150px"><label for="analysisFrom">From</label><input id="analysisFrom" type="date"></div>
-      <div style="flex:1;min-width:150px"><label for="analysisTo">To</label><input id="analysisTo" type="date"></div></div>
-      <label class="check"><input id="analysisHidden" type="checkbox"><span>Include hidden conversations</span></label>
-      <label class="check"><input id="analysisConsent" type="checkbox" required><span>I understand that the selected saved conversation text will be sent to the configured AI provider for analysis.</span></label>
-      <p id="analysisStatus" role="status" aria-live="polite"></p>
-      <div id="analysisReport"></div>
-      <div class="row"><button id="analysisGenerate" type="submit">Generate report</button>
-      <button id="analysisClose" type="button" class="secondary">Close</button></div></form>`;
-    document.body.append(view);
-    view.querySelector('#analysisScopeLabel').textContent=scope==='mine'?'Scope: your own topics only':`Scope: assigned user ${userLabel}`;
-    const active=()=>dialog===view&&view.isConnected&&generation===version&&getSession()?.user.id===owner;
-    view.querySelector('#analysisClose').onclick=close;
-    view.addEventListener('cancel',e=>{e.preventDefault();close();}); view.showModal();
-    view.querySelector('#analysisForm').onsubmit=async e=>{
-      e.preventDefault(); if(blocked()||!active()) return;
-      const submit=view.querySelector('#analysisGenerate'),status=view.querySelector('#analysisStatus'),output=view.querySelector('#analysisReport');
-      const payload={scope,user_id:userId,report_type:view.querySelector('#analysisType').value,
-        from:view.querySelector('#analysisFrom').value||null,to:view.querySelector('#analysisTo').value||null,
-        include_hidden:view.querySelector('#analysisHidden').checked,
-        analysis_acknowledged:view.querySelector('#analysisConsent').checked};
-      if(payload.from&&payload.to&&payload.from>payload.to){status.textContent='Start date must precede end date.';return;}
-      running=true;submit.disabled=true;sync();output.replaceChildren();status.textContent='Generating report… Please do not submit again.';
+        <label for="analysisType">Report</label>
+        <select id="analysisType" style="width:100%;padding:12px;font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)">
+          <option value="overview">Overview</option>
+          <option value="themes">Themes and connections</option>
+          <option value="actions">Decisions, actions, and gaps</option>
+          <option value="full">Full report</option>
+        </select>
+        <p class="small">Dates filter completed messages, not topic creation dates. Dates use UTC; the end date is included.</p>
+        <div class="row">
+          <div style="flex:1;min-width:150px"><label for="analysisFrom">From</label><input id="analysisFrom" type="date"></div>
+          <div style="flex:1;min-width:150px"><label for="analysisTo">To</label><input id="analysisTo" type="date"></div>
+        </div>
+        <label class="check"><input id="analysisHidden" type="checkbox"><span>Include hidden conversations</span></label>
+        <label class="check"><input id="analysisConsent" type="checkbox" required><span>I understand that the selected saved conversation text will be sent to the configured AI provider for analysis.</span></label>
+        <div class="row"><button id="analysisGenerate" type="submit">Generate report</button></div>
+      </form>
+      <p id="analysisStatus" role="status" aria-live="polite" class="small"></p>
+      <div id="analysisReport" class="formatted" style="overflow-wrap:anywhere"></div>
+      <div id="analysisEvidence"></div>
+    `;
+    $('analysisScopeLabel').textContent = scope === 'mine'
+      ? 'Scope: your own topics only'
+      : 'Scope: assigned user ' + userLabel;
+    $('analysisBack').onclick = backToChat;
+    const form = $('analysisForm');
+    form.onsubmit = async event => {
+      event.preventDefault();
+      if (blocked()) return;
+      const owner = getSession()?.user.id;
+      const version = epoch;
+      const status = $('analysisStatus');
+      const report = $('analysisReport');
+      const evidence = $('analysisEvidence');
+      const submit = $('analysisGenerate');
+      const payload = {
+        scope,
+        user_id: userId,
+        report_type: $('analysisType').value,
+        from: $('analysisFrom').value || null,
+        to: $('analysisTo').value || null,
+        include_hidden: $('analysisHidden').checked,
+        analysis_acknowledged: $('analysisConsent').checked,
+      };
+      if (payload.from && payload.to && payload.from > payload.to) {
+        status.textContent = 'Start date must be before or equal to the end date.';
+        return;
+      }
+      const current = () => epoch === version && getSession()?.user.id === owner &&
+        status.isConnected;
+      running = true;
+      submit.disabled = true;
+      for (const control of form.querySelectorAll('input, select')) control.disabled = true;
+      sync();
+      report.replaceChildren();
+      evidence.replaceChildren();
+      status.textContent = 'Generating report… You can return to chat while this runs.';
       try {
-        const {data,error}=await getDb().functions.invoke('research-analysis',{body:payload});
-        if(error){let message=error.message;try{message=(await error.context.json()).error||message;}catch{}throw new Error(message);}
-        if(!data||data.error||typeof data.report!=='string')throw new Error(data?.error||'Invalid report response.');
-        if(!active())return;
-        status.textContent=`${data.stats.topic_count} topic(s), ${data.stats.completed_turn_count} completed turn(s). AI interpretations: review against the evidence. Report not saved.`;
-        const text=document.createElement('div');text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';text.textContent=data.report;output.append(text);
-        const refs=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Evidence references';refs.append(summary);
-        for(const item of data.evidence||[]){const p=document.createElement('p');p.className='small';p.style.overflowWrap='anywhere';
-          p.textContent=`[${item.ref}] ${item.topic_title} · ${new Date(item.created_at).toLocaleString()} · conversation ${item.topic_id} · message ${item.turn_id}`;refs.append(p);}
-        output.append(refs);
-      } catch(err){if(active())status.textContent='Analysis failed: '+err.message;}
-      finally{running=false;if(active())submit.disabled=false;sync();}
+        const { data, error } = await getDb().functions.invoke('research-analysis', { body: payload });
+        if (error) {
+          let message = error.message;
+          try { message = (await error.context.json()).error || message; } catch {}
+          throw new Error(message);
+        }
+        if (!data || data.error || typeof data.report !== 'string') {
+          throw new Error(data?.error || 'Invalid report response.');
+        }
+        if (!current()) return;
+        status.textContent = `${data.stats.topic_count} topic(s), ${data.stats.completed_turn_count} completed turn(s). AI interpretations: review against the evidence. Report not saved to the database.`;
+        report.innerHTML = DOMPurify.sanitize(marked.parse(data.report, {
+          gfm: true, breaks: true, async: false,
+        }), {
+          ALLOWED_TAGS: ['p','br','strong','em','del','h1','h2','h3','h4','h5','h6',
+            'ul','ol','li','blockquote','pre','code','hr','table','thead','tbody','tr','th','td'],
+          ALLOWED_ATTR: ['start'],
+        });
+        const refs = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'Evidence references';
+        refs.append(summary);
+        for (const item of data.evidence || []) {
+          const p = document.createElement('p');
+          p.className = 'small';
+          p.style.overflowWrap = 'anywhere';
+          p.textContent = `[${item.ref}] ${item.topic_title} · ${new Date(item.created_at).toLocaleString()} · conversation ${item.topic_id} · message ${item.turn_id}`;
+          refs.append(p);
+        }
+        evidence.append(refs);
+      } catch (error) {
+        if (current()) status.textContent = 'Analysis failed: ' + error.message;
+      } finally {
+        running = false;
+        if (current()) {
+          submit.disabled = false;
+          for (const control of form.querySelectorAll('input, select')) control.disabled = false;
+        }
+        sync();
+      }
     };
   }
-  const observer=new MutationObserver(addAssignedButtons);
-  observer.observe($('workspace'),{childList:true,subtree:true});
-  return {sync};
+
+  const observer = new MutationObserver(addAssignedButtons);
+  observer.observe($('workspace'), { childList: true, subtree: true });
+  return { sync };
 }
