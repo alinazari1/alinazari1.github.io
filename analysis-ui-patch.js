@@ -15,6 +15,9 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
   const blocked = () => !getSession() || isLocked() || running;
 
   function backToChat() {
+    const review = $('advisorReviewView');
+  
+    if (review) review.hidden = true;
     if (analysisView) analysisView.hidden = true;
     if (chatView) chatView.hidden = false;
   }
@@ -196,8 +199,12 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
       activeUser = userId;
       buildForm(scope, userId, userLabel);
     }
+
+    const review = $('advisorReviewView');
+    if (review) review.hidden = true;
     chatView.hidden = true;
     analysisView.hidden = false;
+    
     analysisView.querySelector('h2')?.focus({ preventScroll: true });
     analysisView.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
