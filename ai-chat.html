@@ -383,28 +383,74 @@
         overflow-y: auto;
       }
     }
-        /* Smaller gaps between personal topics. */
+
+
+    /* Compact personal topic list. */
     body.signed-in #history {
-      gap: 2px;
+      display: flex !important;
+      flex-direction: column;
+      gap: 2px !important;
+    
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 6px 0 10px !important;
+      padding: 0 !important;
     }
     
+    /* Remove extra spacing or minimum height on each row. */
+    body.signed-in #history > .topic-row {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+    
+      height: 30px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    /* Topic title button. */
     body.signed-in #history .history-item {
-      padding: 5px 8px;
-      line-height: 1.3;
+      height: 28px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 4px 8px !important;
+    
+      font-size: 13px;
+      line-height: 18px !important;
     }
     
-    /* Smaller dots button so it does not keep rows tall. */
-    body.signed-in .topic-row > .topic-menu-trigger {
-      height: 26px;
+    /* Dots menu button. */
+    body.signed-in #history .topic-menu-trigger {
+      height: 28px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    
       font-size: 21px;
+      line-height: 1 !important;
     }
     
-    /* Compact assigned-user topic lists too. */
+    /* Reduce space below the heading. */
+    body.signed-in #myTopicsHeading {
+      margin-bottom: 6px;
+    }
+    
+    /* Compact assigned-user topic buttons too. */
     body.signed-in #advisorUsersList .history-item {
-      display: block;
-      margin: 2px 0;
-      padding: 5px 8px;
-      line-height: 1.3;
+      min-height: 0 !important;
+      height: auto !important;
+      margin: 2px 0 !important;
+      padding: 5px 8px !important;
+      line-height: 18px !important;
+    }
+
+    /* Font for topic titles only. */
+    body.signed-in #history .history-item,
+    body.signed-in #advisorUsersList .history-item {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 14px;
+      font-weight: 400;
     }
   </style>
 </head>
