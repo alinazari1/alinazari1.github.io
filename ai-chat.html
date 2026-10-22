@@ -344,46 +344,68 @@
 
     /* Sidebar width controls the first column.
    The chat area takes the remaining space. */
-@media (min-width: 761px) {
-  body.signed-in .workspace {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  body.signed-in .workspace > aside.card {
-    width: 260px;
-    min-width: 200px;
-    max-width: min(600px, 50vw);
-
-    resize: horizontal;
-    overflow: auto;
-
-    height: calc(100dvh - 75px);
-    min-height: 0;
-    max-height: none;
-
-    padding-bottom: 24px;
-  }
-}
-
-/* Keep the normal stacked layout on smaller screens. */
-@media (max-width: 760px) {
-  body.signed-in .workspace {
-    grid-template-columns: 1fr;
-  }
-
-  body.signed-in .workspace > aside.card {
-    width: auto;
-    min-width: 0;
-    max-width: none;
-    resize: none;
-
-    height: auto;
-    min-height: 0;
-    max-height: 280px;
-    overflow-y: auto;
-  }
-}
+    @media (min-width: 761px) {
+      body.signed-in .workspace {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
     
+      body.signed-in .workspace > aside.card {
+        width: 260px;
+        min-width: 200px;
+        max-width: min(600px, 50vw);
+    
+        resize: horizontal;
+        overflow: auto;
+    
+        height: calc(100dvh - 75px);
+        min-height: 0;
+        max-height: none;
+    
+        padding-bottom: 24px;
+      }
+    }
+    
+    /* Keep the normal stacked layout on smaller screens. */
+    @media (max-width: 760px) {
+      body.signed-in .workspace {
+        grid-template-columns: 1fr;
+      }
+    
+      body.signed-in .workspace > aside.card {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        resize: none;
+    
+        height: auto;
+        min-height: 0;
+        max-height: 280px;
+        overflow-y: auto;
+      }
+    }
+        /* Smaller gaps between personal topics. */
+    body.signed-in #history {
+      gap: 2px;
+    }
+    
+    body.signed-in #history .history-item {
+      padding: 5px 8px;
+      line-height: 1.3;
+    }
+    
+    /* Smaller dots button so it does not keep rows tall. */
+    body.signed-in .topic-row > .topic-menu-trigger {
+      height: 26px;
+      font-size: 21px;
+    }
+    
+    /* Compact assigned-user topic lists too. */
+    body.signed-in #advisorUsersList .history-item {
+      display: block;
+      margin: 2px 0;
+      padding: 5px 8px;
+      line-height: 1.3;
+    }
   </style>
 </head>
 <body>
