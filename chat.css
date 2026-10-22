@@ -242,3 +242,18 @@
   height: auto;
   object-fit: contain;
 }
+    #auth .login-video-box {
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0 0 18px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    #auth .login-video-box video {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
