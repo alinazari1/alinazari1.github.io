@@ -1315,3 +1315,32 @@ function initializeVoice() {
 
 controls();
 initializeVoice();
+
+function closeFloatingTopicMenus(event) {
+  for (const panel of
+    document.querySelectorAll(
+      '.floating-topic-menu:popover-open'
+    )) {
+
+    // Allow scrolling inside the menu itself on small screens.
+    if (
+      event?.target instanceof Node &&
+      panel.contains(event.target)
+    ) {
+      continue;
+    }
+
+    panel.hidePopover();
+  }
+}
+
+document.addEventListener(
+  'scroll',
+  closeFloatingTopicMenus,
+  true
+);
+
+window.addEventListener(
+  'resize',
+  closeFloatingTopicMenus
+);
