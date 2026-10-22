@@ -42,27 +42,78 @@ export function mountAnalysisUI({ getDb, getSession, isLocked }) {
   }
 
   function addAssignedButtons() {
-    document.querySelectorAll('#advisorUsersList details').forEach(details => {
-      if (!details.dataset.userId) return;
+    const entries = document.querySelectorAll(
+      '#advisorUsersList > details'
+    );
+  
+    for (const details of entries) {
+      const userId = details.dataset.userId;
+      const summary = details.querySelector(':scope > summary');
+  
+      if (!userId || !summary) continue;
+  
       let action = details.querySelector('.advisorAnalyzeUser');
+  
       if (!action) {
-        const summary = details.querySelector('summary');
-        if (!summary) return;
         action = document.createElement('button');
         action.type = 'button';
         action.className = 'secondary advisorAnalyzeUser';
-        action.textContent = 'Analyze this user';
-        action.style.margin = '6px 0';
-        action.onclick = () => {
-          if (!blocked()) open('assigned_user', details.dataset.userId,
-            summary.textContent.replace(/ \(\d+\)$/, ''));
-        };
-        summary.after(action);
+  
+        action.innerHTML = `
+          <span aria-hidden="true">✧</span>
+          <span>Analyze</span>
+        `;
+  
+        action.title = 'Analyze this user’s topics';
       }
-      if (action.disabled !== Boolean(blocked())) {
-        action.disabled = Boolean(blocked());
+  
+      // Keep the action visible even when the user is collapsed.
+      if (action.parentElement !== summary) {
+        summary.append(action);
       }
-    });
+  
+      const userLabel =
+        summary.querySelector('.assigned-user-name')
+          ?.textContent ||
+        details.dataset.label ||
+        'Assigned user';
+  
+      action.setAttribute(
+        'aria-label',
+        'Analyze topics for ' + userLabel
+      );
+  
+      action.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
+  
+        if (blocked()) {
+          const status = document.getElementById('status');
+  
+          if (status) {
+            status.textContent =
+              'Finish the current request or voice input before opening analysis.';
+          }
+  
+          return;
+        }
+  
+        open('assigned_user', userId, userLabel);
+      };
+  
+      // Keep button keyboard events separate from the disclosure.
+      action.onkeydown = event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.stopPropagation();
+        }
+      };
+  
+      const disabled = Boolean(blocked());
+  
+      if (action.disabled !== disabled) {
+        action.disabled = disabled;
+      }
+    }
   }
 
   function resetForAccount() {
