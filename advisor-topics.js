@@ -34,10 +34,20 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
 
   function closeReview() {
     reviewRequest++;
+  
+    const wasVisible = dialog && !dialog.hidden;
+  
     if (dialog) {
-      if (dialog.open) dialog.close();
       dialog.remove();
       dialog = null;
+    }
+  
+    if (wasVisible) {
+      const chat = $('personalChatView');
+      const analysis = $('mainAnalysisView');
+  
+      if (chat) chat.hidden = false;
+      if (analysis) analysis.hidden = true;
     }
   }
 
@@ -212,78 +222,215 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
   }
 
   async function openTopic(assignment, topic) {
+    if (isLocked()) return;
+  
+    const chat = $('personalChatView');
+    const analysis = $('mainAnalysisView');
+  
+    if (!chat || !analysis) {
+      const status = $('status');
+  
+      if (status) {
+        status.textContent =
+          'The main-page analysis interface must be loaded first. ' +
+          'Check analysis-ui-patch.js and refresh the page.';
+      }
+  
+      return;
+    }
+  
     closeReview();
+  
     const request = reviewRequest;
     const version = generation;
-    const viewer = element('dialog');
+  
+    const viewer = element('section');
+    viewer.id = 'advisorReviewView';
     dialog = viewer;
-    Object.assign(viewer.style, {
-      width: 'min(900px, calc(100vw - 24px))',
-      maxHeight: '88dvh', overflowY: 'auto', padding: '24px',
-      border: '1px solid var(--border)', borderRadius: '12px',
-      background: 'var(--surface)', color: 'var(--text)'
-    });
-    const heading = element('h2', topic.title || 'Untitled conversation');
-    heading.id = 'advisorReviewHeading';
-    viewer.setAttribute('aria-labelledby', heading.id);
-    const close = element('button', 'Close review', 'secondary');
-    close.type = 'button';
-    close.onclick = closeReview;
-    const note = element('p',
-      'Advisor review — read-only · ' + assignment.user_label, 'small');
+  
+    const toolbar = element('div');
+    toolbar.className = 'row';
+    toolbar.style.justifyContent = 'space-between';
+    toolbar.style.alignItems = 'center';
+  
+    const label = element(
+      'span',
+      'Advisor review — read-only',
+      'small'
+    );
+  
+    const back = element(
+      'button',
+      'Back to my chat',
+      'secondary'
+    );
+  
+    back.type = 'button';
+    back.onclick = closeReview;
+  
+    toolbar.append(label, back);
+  
+    const heading = element(
+      'h2',
+      topic.title || 'Untitled conversation'
+    );
+  
+    heading.tabIndex = -1;
+  
+    const owner = element(
+      'p',
+      'Assigned user: ' +
+        (assignment.user_label || 'Assigned user'),
+      'small'
+    );
+  
     const content = element('div');
     content.setAttribute('aria-live', 'polite');
-    content.append(element('p', 'Loading conversation…', 'small'));
-    viewer.append(close, heading, note, content);
-    viewer.addEventListener('cancel', event => {
-      event.preventDefault();
-      closeReview();
+  
+    content.append(
+      element('p', 'Loading conversation…', 'small')
+    );
+  
+    viewer.append(toolbar, heading, owner, content);
+  
+    // Add the review beside the existing chat and analysis views.
+    chat.parentElement.append(viewer);
+  
+    chat.hidden = true;
+    analysis.hidden = true;
+    viewer.hidden = false;
+  
+    heading.focus({ preventScroll: true });
+  
+    viewer.scrollIntoView({
+      block: 'start',
+      behavior: 'smooth'
     });
-    document.body.append(viewer);
-    viewer.showModal();
-    const active = () => current(version) && request === reviewRequest &&
+  
+    const active = () =>
+      current(version) &&
+      request === reviewRequest &&
       viewer.isConnected;
+  
     try {
-      // Fresh reads ensure RLS is checked when opening a cached topic.
+      // Recheck access when opening the topic.
       const { data: allowed, error } = await getDb()
-        .from('research_conversations').select('id,is_visible')
-        .eq('id', topic.id).eq('user_id', assignment.user_id).maybeSingle();
+        .from('research_conversations')
+        .select('id, is_visible')
+        .eq('id', topic.id)
+        .eq('user_id', assignment.user_id)
+        .maybeSingle();
+  
       if (!active()) return;
-      if (error) throw new Error(error.message);
-      if (!allowed) throw new Error('This topic is no longer accessible.');
-      if (allowed.is_visible === 0 && !$('advisorIncludeHidden').checked) {
-        throw new Error('This topic is now hidden. Refresh the user list.');
+  
+      if (error) {
+        throw new Error(error.message);
       }
-      const messages = await collect(() => getDb().from('research_turns')
-        .select('id,prompt,response,status,created_at,completed_at')
-        .eq('user_id', assignment.user_id).eq('conversation_id', topic.id)
-        .order('created_at').order('id'), version);
+  
+      if (!allowed) {
+        throw new Error(
+          'This topic is no longer accessible.'
+        );
+      }
+  
+      if (
+        allowed.is_visible === 0 &&
+        !$('advisorIncludeHidden').checked
+      ) {
+        throw new Error(
+          'This topic is now hidden. Refresh the user list.'
+        );
+      }
+  
+      const messages = await collect(
+        () => getDb()
+          .from('research_turns')
+          .select(
+            'id, prompt, response, status, ' +
+            'created_at, completed_at'
+          )
+          .eq('user_id', assignment.user_id)
+          .eq('conversation_id', topic.id)
+          .order('created_at')
+          .order('id'),
+        version
+      );
+  
       if (!active()) return;
+  
       content.replaceChildren();
-      const appendMessage = (label, text, time) => {
-        const article = element('article', undefined, 'msg');
-        article.append(element('div', label + ' · ' +
-          new Date(time).toLocaleString(), 'meta'));
-        const body = element('div', text || '', 'body');
+  
+      const appendMessage = (name, text, time, role) => {
+        const article = element(
+          'article',
+          undefined,
+          'msg ' + role
+        );
+  
+        const meta = element(
+          'div',
+          name + ' · ' +
+            new Date(time).toLocaleString(),
+          'meta'
+        );
+  
+        const body = element(
+          'div',
+          String(text ?? ''),
+          'body'
+        );
+  
         body.style.whiteSpace = 'pre-wrap';
         body.style.overflowWrap = 'anywhere';
-        article.append(body);
+  
+        article.append(meta, body);
         content.append(article);
       };
+  
       for (const turn of messages) {
-        appendMessage(assignment.user_label || 'Assigned user',
-          turn.prompt, turn.created_at);
-        if (turn.response !== null && turn.response !== undefined) {
-          appendMessage('AI assistant', turn.response,
-            turn.completed_at || turn.created_at);
+        appendMessage(
+          assignment.user_label || 'Assigned user',
+          turn.prompt,
+          turn.created_at,
+          'user'
+        );
+  
+        if (
+          turn.response !== null &&
+          turn.response !== undefined
+        ) {
+          appendMessage(
+            'AI assistant',
+            turn.response,
+            turn.completed_at || turn.created_at,
+            'assistant'
+          );
         } else {
-          content.append(element('p', 'Request status: ' + turn.status, 'small'));
+          content.append(
+            element(
+              'p',
+              'Request status: ' + turn.status,
+              'small'
+            )
+          );
         }
       }
-      if (!messages.length) content.append(element('p', 'No saved messages.', 'small'));
+  
+      if (!messages.length) {
+        content.append(
+          element('p', 'No saved messages.', 'small')
+        );
+      }
     } catch (error) {
-      if (active()) content.replaceChildren(element('p',
-        'Could not load conversation: ' + error.message, 'small'));
+      if (active()) {
+        content.replaceChildren(
+          element(
+            'p',
+            'Could not load conversation: ' + error.message,
+            'small'
+          )
+        );
+      }
     }
   }
 
