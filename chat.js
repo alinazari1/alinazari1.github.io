@@ -178,23 +178,25 @@ function history() {
   const locked = historyLocked();
 
   for (const topic of matches) {
+    const title = topic.title || 'Untitled conversation';
+
     const row = document.createElement('div');
-    row.className = 'history-entry';
+    row.className = 'topic-row';
 
     const open = document.createElement('button');
-
     open.type = 'button';
+
     open.className =
       'history-item' +
       (selected === topic.id ? ' active' : '');
 
     open.textContent =
-      (topic.is_pinned ? '📌 ' : '') +
-      (topic.title || 'Untitled conversation') +
-      ' · ' +
+      (topic.is_pinned ? '📌 ' : '') + title;
+
+    open.title =
+      title + ' · ' +
       new Date(topic.created_at).toLocaleDateString();
 
-    open.title = topic.title || 'Untitled conversation';
     open.disabled = locked;
 
     open.onclick = () => {
@@ -205,64 +207,75 @@ function history() {
       conversation();
     };
 
-    const actions = document.createElement('div');
-    actions.className = 'history-actions';
+    const menu = document.createElement('details');
+    menu.className = 'topic-menu';
 
-    const pin = document.createElement('button');
-
-    pin.type = 'button';
-    pin.className = 'secondary';
-    pin.textContent = topic.is_pinned ? 'Unpin' : 'Pin';
-    pin.disabled = locked;
-
-    pin.setAttribute(
-      'aria-pressed',
-      String(Boolean(topic.is_pinned))
-    );
-
-    pin.setAttribute(
+    const trigger = document.createElement('summary');
+    trigger.textContent = '…';
+    trigger.setAttribute(
       'aria-label',
-      (topic.is_pinned ? 'Unpin ' : 'Pin ') +
-      (topic.title || 'conversation')
+      'Options for ' + title
     );
 
-    pin.onclick = () => togglePin(topic.id);
+    trigger.onclick = event => {
+      if (historyLocked()) {
+        event.preventDefault();
+      }
+    };
 
-    const rename = document.createElement('button');
+    trigger.setAttribute('aria-disabled', String(locked));
 
-    rename.type = 'button';
-    rename.className = 'secondary';
-    rename.textContent = 'Rename';
-    rename.disabled = locked;
+    menu.addEventListener('toggle', () => {
+      if (!menu.open) return;
 
-    rename.setAttribute(
-      'aria-label',
-      'Rename ' + (topic.title || 'conversation')
+      for (const other of
+        $('history').querySelectorAll('details.topic-menu')) {
+        if (other !== menu) {
+          other.open = false;
+        }
+      }
+    });
+
+    const panel = document.createElement('div');
+    panel.className = 'topic-menu-panel';
+
+    const addAction = (label, action, className = '') => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.className = 'topic-action ' + className;
+      button.textContent = label;
+      button.disabled = locked;
+
+      button.onclick = () => {
+        menu.open = false;
+
+        if (historyLocked()) return;
+
+        action();
+      };
+
+      panel.append(button);
+    };
+
+    addAction(
+      topic.is_pinned ? 'Unpin' : 'Pin',
+      () => togglePin(topic.id)
     );
 
-    rename.onclick = () => renameTopic(topic.id);
-
-    const remove = document.createElement('button');
-
-    remove.type = 'button';
-    remove.className = 'secondary history-delete';
-    remove.textContent = 'Delete';
-    remove.disabled = locked;
-
-    remove.title =
-      'Remove from history; retain stored records';
-
-    remove.setAttribute(
-      'aria-label',
-      'Remove ' +
-      (topic.title || 'conversation') +
-      ' from history'
+    addAction(
+      'Rename',
+      () => renameTopic(topic.id)
     );
 
-    remove.onclick = () => deleteTopic(topic.id);
+    addAction(
+      'Delete',
+      () => deleteTopic(topic.id),
+      'topic-action-delete'
+    );
 
-    actions.append(pin, rename, remove);
-    row.append(open, actions);
+    menu.append(trigger, panel);
+    row.append(open, menu);
 
     $('history').append(row);
   }
