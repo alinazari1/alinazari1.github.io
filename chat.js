@@ -321,19 +321,19 @@ async function updateTopicMetadata(id, changes) {
     }
 
     conversation();
-
     return true;
+
   } catch (error) {
-      console.error('Topic update failed:', error);
-    
-      const message =
-        'Topic update failed: ' + error.message;
-    
-      say(message);
-      window.alert(message);
-    
-      return false;
-    }
+    console.error('Topic update failed:', error);
+
+    const message =
+      'Topic update failed: ' + error.message;
+
+    say(message);
+    window.alert(message);
+
+    return false;
+
   } finally {
     busy = false;
     controls();
