@@ -341,6 +341,44 @@
     .floating-topic-menu .floating-topic-delete:hover {
       background: #fff1f2;
     }
+
+    /* Resize the topics sidebar vertically. */
+body.signed-in .workspace > aside.card {
+  resize: vertical;
+  overflow: auto;
+
+  height: calc(100dvh - 90px);
+  min-height: 180px;
+  max-height: calc(100dvh - 90px);
+
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Resize the prompt text box vertically. */
+body.signed-in #composer textarea {
+  resize: vertical;
+  overflow: auto;
+
+  height: 100px;
+  min-height: 70px;
+  max-height: 55dvh;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* Keep the sidebar manageable in the stacked mobile layout. */
+@media (max-width: 760px) {
+  body.signed-in .workspace > aside.card {
+    height: 280px;
+    min-height: 150px;
+    max-height: 65dvh;
+  }
+}
+
+    
   </style>
 </head>
 <body>
