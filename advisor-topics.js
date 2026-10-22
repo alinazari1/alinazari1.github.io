@@ -106,8 +106,11 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
       if (seen.has(assignment.user_id)) continue;
       seen.add(assignment.user_id);
       const label = assignment.user_label || 'Assigned user';
+
       const details = element('details');
+      details.dataset.userId = assignment.user_id;
       details.dataset.label = label.toLowerCase();
+      
       details.style.margin = '12px 0';
       const summary = element('summary', label);
       summary.style.cursor = 'pointer';
