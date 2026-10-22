@@ -324,8 +324,16 @@ async function updateTopicMetadata(id, changes) {
 
     return true;
   } catch (error) {
-    say('Topic update failed: ' + error.message);
-    return false;
+      console.error('Topic update failed:', error);
+    
+      const message =
+        'Topic update failed: ' + error.message;
+    
+      say(message);
+      window.alert(message);
+    
+      return false;
+    }
   } finally {
     busy = false;
     controls();
