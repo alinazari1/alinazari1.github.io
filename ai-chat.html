@@ -336,6 +336,31 @@
       .topic-menu-panel .topic-action-delete:hover {
         background: #fff1f2;
       }
+
+    /* Let the open menu take up space within the topic list. */
+      .topic-row {
+        align-items: flex-start;
+      }
+      
+      .topic-menu[open] {
+        flex: 0 0 150px;
+      }
+      
+      .topic-menu[open] > summary {
+        margin-left: auto;
+      }
+      
+      .topic-menu > .topic-menu-panel {
+        position: static;
+        top: auto;
+        right: auto;
+      
+        width: 150px;
+        max-width: 100%;
+        margin-top: 4px;
+      
+        box-shadow: none;
+      }
   </style>
 </head>
 <body>
