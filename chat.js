@@ -149,6 +149,12 @@ async function load() {
 /* ---------- History, pin, rename and soft delete ---------- */
 
 function history() {
+  // Remove old floating menus before rebuilding the list.
+  for (const panel of
+    document.querySelectorAll('.floating-topic-menu')) {
+    panel.remove();
+  }
+
   const query = $('search').value.trim().toLowerCase();
 
   const matches = chats
@@ -184,8 +190,8 @@ function history() {
     row.className = 'topic-row';
 
     const open = document.createElement('button');
-    open.type = 'button';
 
+    open.type = 'button';
     open.className =
       'history-item' +
       (selected === topic.id ? ' active' : '');
@@ -207,48 +213,39 @@ function history() {
       conversation();
     };
 
-    const menu = document.createElement('details');
-    menu.className = 'topic-menu';
+    const trigger = document.createElement('button');
 
-    const trigger = document.createElement('summary');
+    trigger.type = 'button';
+    trigger.className = 'topic-menu-trigger';
     trigger.textContent = '…';
+    trigger.disabled = locked;
+
     trigger.setAttribute(
       'aria-label',
       'Options for ' + title
     );
 
-    trigger.onclick = event => {
-      if (historyLocked()) {
-        event.preventDefault();
-      }
-    };
-
-    trigger.setAttribute('aria-disabled', String(locked));
-
-    menu.addEventListener('toggle', () => {
-      if (!menu.open) return;
-
-      for (const other of
-        $('history').querySelectorAll('details.topic-menu')) {
-        if (other !== menu) {
-          other.open = false;
-        }
-      }
-    });
-
     const panel = document.createElement('div');
-    panel.className = 'topic-menu-panel';
 
-    const addAction = (label, action, className = '') => {
+    panel.className = 'floating-topic-menu';
+    panel.id = 'topic-options-' + topic.id;
+    panel.setAttribute('popover', 'auto');
+
+    trigger.setAttribute('popovertarget', panel.id);
+    trigger.setAttribute('popovertargetaction', 'toggle');
+
+    const addAction = (label, action, extraClass = '') => {
       const button = document.createElement('button');
 
       button.type = 'button';
-      button.className = 'topic-action ' + className;
+      button.className =
+        'floating-topic-action ' + extraClass;
+
       button.textContent = label;
       button.disabled = locked;
 
       button.onclick = () => {
-        menu.open = false;
+        panel.hidePopover();
 
         if (historyLocked()) return;
 
@@ -271,12 +268,66 @@ function history() {
     addAction(
       'Delete',
       () => deleteTopic(topic.id),
-      'topic-action-delete'
+      'floating-topic-delete'
     );
 
-    menu.append(trigger, panel);
-    row.append(open, menu);
+    panel.addEventListener('toggle', () => {
+      if (!panel.matches(':popover-open')) return;
 
+      if (historyLocked()) {
+        panel.hidePopover();
+        return;
+      }
+
+      const rect = trigger.getBoundingClientRect();
+      const gap = 6;
+      const edge = 8;
+
+      const width = panel.offsetWidth;
+      const height = panel.offsetHeight;
+
+      const viewportWidth =
+        document.documentElement.clientWidth;
+
+      const viewportHeight =
+        document.documentElement.clientHeight;
+
+      // Align with the dots button, keeping the menu onscreen.
+      const left = Math.max(
+        edge,
+        Math.min(
+          rect.right - width,
+          viewportWidth - width - edge
+        )
+      );
+
+      // Open upward when there is insufficient space below.
+      let top = rect.bottom + gap;
+
+      if (top + height > viewportHeight - edge) {
+        top = rect.top - height - gap;
+      }
+
+      top = Math.max(
+        edge,
+        Math.min(top, viewportHeight - height - edge)
+      );
+
+      panel.style.left = left + 'px';
+      panel.style.top = top + 'px';
+      panel.style.visibility = 'visible';
+    });
+
+    panel.addEventListener('beforetoggle', event => {
+      if (event.newState === 'open') {
+        panel.style.visibility = 'hidden';
+      }
+    });
+
+    // Attach the floating menu to the page, not the sidebar.
+    document.body.append(panel);
+
+    row.append(open, trigger);
     $('history').append(row);
   }
 }
