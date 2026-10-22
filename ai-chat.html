@@ -234,6 +234,108 @@
       body.signed-in .workspace > section.card { padding: 24px 16px; }
       body.signed-in #composer { bottom: 8px; }
     }
+
+
+      .topic-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+      }
+      
+      .topic-row > .history-item {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+      }
+      
+      .topic-menu {
+        position: relative;
+        flex: 0 0 auto;
+      }
+      
+      .topic-menu[open] {
+        z-index: 30;
+      }
+      
+      .topic-menu > summary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      
+        width: 32px;
+        height: 32px;
+        padding: 0;
+      
+        list-style: none;
+        cursor: pointer;
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 22px;
+        line-height: 1;
+      }
+      
+      .topic-menu > summary::-webkit-details-marker {
+        display: none;
+      }
+      
+      .topic-menu > summary:hover,
+      .topic-menu[open] > summary {
+        background: #e2e5de;
+        color: var(--text);
+      }
+      
+      .topic-menu > summary[aria-disabled="true"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .topic-menu > summary:focus-visible {
+        outline: 3px solid #80c8ca;
+        outline-offset: 2px;
+      }
+      
+      .topic-menu-panel {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+      
+        display: grid;
+        gap: 2px;
+        width: 150px;
+        padding: 6px;
+      
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+      }
+      
+      .topic-menu-panel .topic-action {
+        width: 100%;
+        margin: 0;
+        padding: 8px 12px;
+      
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+      
+        color: var(--text);
+        font-size: 0.85rem;
+        text-align: left;
+      }
+      
+      .topic-menu-panel .topic-action:hover {
+        background: #eeefea;
+      }
+      
+      .topic-menu-panel .topic-action-delete {
+        color: #a52b36;
+      }
+      
+      .topic-menu-panel .topic-action-delete:hover {
+        background: #fff1f2;
+      }
   </style>
 </head>
 <body>
