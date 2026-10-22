@@ -76,7 +76,19 @@ $('signupButton').onclick=async()=>{
   $('signupButton').disabled=true;say('Creating your account…');
   try{
     const {data,error}=await db.auth.signUp({email,password});
-    if(error)throw new Error(error.message);
+    // Handle failure first:
+      if (error) {
+        document.getElementById("status").textContent =
+          "Sign-up failed: " + error.message;
+        return;
+      }
+      
+    // ADD THE CONFIRMATION MESSAGE HERE:
+      document.getElementById("status").textContent =
+        "Please check your email for a confirmation link. " +
+        "Click the link to verify your email address, then return here to sign in. " +
+        "If you don’t see the email, check your Spam or Junk folder.";
+   
     if(data.session){session=data.session;await load();say('Account created. You are signed in.');}
     else say('Account created. Check your email for a confirmation link, then sign in.');
   }catch(e){say('Sign-up failed: '+e.message);}
