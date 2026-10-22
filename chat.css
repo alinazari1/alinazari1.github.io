@@ -244,7 +244,7 @@
 }
     #auth .login-video-box {
       box-sizing: border-box;
-      width: 50%;
+      width: 100%;
       margin: 0 0 18px;
       border: 1px solid var(--border);
       border-radius: 6px;
