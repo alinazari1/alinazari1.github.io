@@ -1,4 +1,5 @@
 import { CONFIG } from './config.js';
+import { createAdvisorTopics } from './advisor-topics.js?v=1';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
@@ -41,7 +42,11 @@ let voiceActive = false;
 let voiceCancelled = false;
 let voiceBaseText = '';
 let voiceUserId = null;
-
+const advisorTopics = createAdvisorTopics({
+  getDb: () => db,
+  getSession: () => session,
+  isLocked: () => historyLocked()
+});
 
 /* ---------- Shared controls ---------- */
 
@@ -86,6 +91,7 @@ function controls() {
 
   syncVoiceControls();
   syncAdvisorAdminUI();
+  advisorTopics.sync();
 }
 
 function must(result) {
@@ -107,6 +113,7 @@ async function rows(table) {
   const result = [];
 
   for (let start = 0; ; start += 500) {
+
     const batch = must(
       await db
         .from(table)
@@ -115,7 +122,7 @@ async function rows(table) {
         .order('id')
         .range(start, start + 499)
     );
-
+    
     if (session?.user.id !== userId) return [];
 
     result.push(...batch);
@@ -807,11 +814,16 @@ $('new').onclick = () => {
 };
 
 $('refresh').onclick = async () => {
-  if (busy || voiceActive) return;
+  if (historyLocked()) return;
 
   try {
     await load();
-    say('History refreshed.');
+    await advisorTopics.refresh();
+
+    say(
+      'Personal history refreshed. ' +
+      'Check the assigned-users panel for advisor status.'
+    );
   } catch (error) {
     say('History error: ' + error.message);
   }
