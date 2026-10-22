@@ -99,6 +99,10 @@ function must(result) {
 /* ---------- Load saved records ---------- */
 
 async function rows(table) {
+  const userId = session?.user.id;
+
+  if (!db || !userId) return [];
+
   const result = [];
 
   for (let start = 0; ; start += 500) {
@@ -106,9 +110,12 @@ async function rows(table) {
       await db
         .from(table)
         .select('*')
+        .eq('user_id', userId)
         .order('id')
         .range(start, start + 499)
     );
+
+    if (session?.user.id !== userId) return [];
 
     result.push(...batch);
 
