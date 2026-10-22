@@ -66,6 +66,23 @@ function add(role,text,time,sources=[]){const box=document.createElement('articl
 function conversation(){$('title').textContent=chats.find(c=>c.id===selected)?.title||'New conversation';$('messages').replaceChildren();for(const t of turns.filter(t=>t.conversation_id===selected).sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id))){add('user',t.prompt,t.created_at);if(t.response)add('assistant',t.response,t.completed_at||t.created_at,t.sources);else{const p=document.createElement('p');p.className='small';p.textContent='Request status: '+t.status+' · ID: '+t.id;$('messages').append(p);}}$('messages').scrollTop=$('messages').scrollHeight;}
 $('consent').onchange=controls;$('search').oninput=history;
 if(ready){try{const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.49.8');db=createClient(CONFIG.supabaseUrl,CONFIG.supabasePublishableKey,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});db.auth.onAuthStateChange((_event,s)=>{session=s;if(!s){chats=[];turns=[];selected=null;uncertain=null;$('prompt').value='';history();conversation();}controls();});controls();}catch{say('Unable to load the sign-in service. Check config.js and your network.');}}
+
+
+$('signupButton').onclick=async()=>{
+  if(!db)return;
+  if(!$('consent').checked)return say('Please check the privacy notice before signing up.');
+  const email=$('email').value.trim(),password=$('password').value;
+  if(!email||password.length<8)return say('Enter your email and a password of at least 8 characters.');
+  $('signupButton').disabled=true;say('Creating your account…');
+  try{
+    const {data,error}=await db.auth.signUp({email,password});
+    if(error)throw new Error(error.message);
+    if(data.session){session=data.session;await load();say('Account created. You are signed in.');}
+    else say('Account created. Check your email for a confirmation link, then sign in.');
+  }catch(e){say('Sign-up failed: '+e.message);}
+  finally{$('signupButton').disabled=false;controls();}
+};
+
 $('login').onsubmit=async e=>{e.preventDefault();if(!db)return;
 if (!$('consent').checked) {
   return say(
