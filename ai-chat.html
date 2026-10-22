@@ -527,7 +527,56 @@
         background: #e2e5de;
       }
 
+      /* Heading and compact analysis action on the same line. */
+      #myTopicsHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 12px 0 6px;
+      }
+      
+      body.signed-in #myTopicsHeader #myTopicsHeading {
+        min-width: 0;
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.3;
+      }
+      
+      /* Small Analyze button beside the heading. */
+      #myTopicsHeader .compact-analyze {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        flex: 0 0 auto;
+      
+        width: auto;
+        min-height: 28px;
+        margin: 0;
+        padding: 3px 8px;
+      
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      
+      .compact-analyze svg {
+        flex-shrink: 0;
+      }
+      
+      /* Compact sidebar toolbar actions. */
+      body.signed-in #new,
+      body.signed-in #refresh {
+        min-height: 32px;
+        padding: 5px 10px;
+        font-size: 0.82rem;
+        line-height: 1.25;
+      }
 
+
+    
     
   </style>
 </head>
@@ -607,7 +656,15 @@
     <section id="workspace" class="workspace" hidden>
       <aside class="card">
         <div class="row">
-          <button id="new" type="button">New chat</button>
+          <button
+            id="new"
+            type="button"
+            title="Start a new conversation"
+            aria-label="Start a new conversation"
+          >
+            <span aria-hidden="true">＋</span> New
+          </button>
+          
           <button id="refresh" type="button" class="secondary">Refresh</button>
         </div>
         <label for="search">Search history</label>
