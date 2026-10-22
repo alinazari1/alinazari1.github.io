@@ -612,7 +612,38 @@
         flex-shrink: 0;
       }
 
+    .sidebar-export-label {
+      margin: 12px 0 6px;
+    }
     
+    .sidebar-export-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 6px;
+    }
+    
+    body.signed-in .workspace > aside.card .sidebar-small-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    
+      width: auto;
+      min-height: 28px;
+      margin: 0;
+      padding: 4px 8px;
+    
+      border-radius: 6px;
+      font-size: 0.75rem;
+      line-height: 1.2;
+    }
+    
+    .sidebar-small-action svg {
+      display: block;
+      flex-shrink: 0;
+    }
     
     
   </style>
@@ -709,7 +740,63 @@
         <p id="count" class="small"></p>
         <div id="history"></div>
         <hr>
-        <p>Export all your saved chats:</p>
+
+        <p class="small sidebar-export-label">Export my chats</p>
+        
+        <div class="sidebar-export-actions">
+          <button
+            id="json"
+            type="button"
+            class="secondary sidebar-small-action"
+            title="Export all your saved chats as JSON"
+            aria-label="Export all your saved chats as JSON"
+          >
+            <span aria-hidden="true">↓</span>
+            <span>JSON</span>
+          </button>
+        
+          <button
+            id="csv"
+            type="button"
+            class="secondary sidebar-small-action"
+            title="Export all your saved chats as CSV"
+            aria-label="Export all your saved chats as CSV"
+          >
+            <span aria-hidden="true">↓</span>
+            <span>CSV</span>
+          </button>
+        </div>
+        
+        <p class="small">
+          Your records only, including hidden topics.
+          Search does not restrict exports.
+        </p>
+        
+        <button
+          id="logout"
+          type="button"
+          class="secondary sidebar-small-action"
+          title="Sign out"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M9 4H4v16h5"/>
+            <path d="M10 12h11"/>
+            <path d="m17 8 4 4-4 4"/>
+          </svg>
+          <span>Sign out</span>
+        </button>
+        
         <div class="row">
           <button id="json" type="button" class="secondary">JSON</button>
           <button id="csv" type="button" class="secondary">CSV</button>
