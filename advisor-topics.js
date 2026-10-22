@@ -51,7 +51,37 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
     panel.hidden = true;
     panel.innerHTML = `
       <hr>
+      
+    <div class="assigned-users-header">
       <h3>Assigned users</h3>
+    
+      <button
+        id="advisorTopicsRefresh"
+        type="button"
+        class="secondary assigned-refresh"
+        title="Refresh assigned users and topics"
+        aria-label="Refresh assigned users and topics"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M20 7v5h-5"/>
+          <path d="M4 17v-5h5"/>
+          <path d="M6.1 7a7 7 0 0 1 11.6-1L20 9"/>
+          <path d="M17.9 17a7 7 0 0 1-11.6 1L4 15"/>
+        </svg>
+      </button>
+    </div>
+      
       <p class="small">Open a user to see their topics. Conversations are read-only.</p>
       <label for="advisorTopicSearch">Search users and topic titles</label>
       <input id="advisorTopicSearch" type="search" placeholder="Search assigned users or titles">
@@ -59,7 +89,7 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
         <input id="advisorIncludeHidden" type="checkbox">
         <span>Include hidden conversations</span>
       </label>
-      <button id="advisorTopicsRefresh" type="button" class="secondary">Refresh assigned users</button>
+      
       <p id="advisorTopicsStatus" class="small" role="status" aria-live="polite"></p>
       <div id="advisorUsersList"></div>`;
     $('history').after(panel);
