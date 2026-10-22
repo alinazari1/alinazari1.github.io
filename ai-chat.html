@@ -496,6 +496,38 @@
     body.signed-in #history .topic-menu-trigger:not(:disabled):hover {
       background: #dce8e4;
     }
+
+
+
+    /* Topic titles: no background or visible border. */
+      body.signed-in #history .history-item,
+      body.signed-in #advisorUsersList .history-item {
+        background: transparent;
+        border-color: transparent;
+      }
+      
+      /* Gentle highlight only while hovering. */
+      body.signed-in #history .history-item:not(:disabled):hover,
+      body.signed-in #advisorUsersList .history-item:not(:disabled):hover {
+        background: #e2e5de;
+      }
+      
+      /* Keep the selected personal topic identifiable. */
+      body.signed-in #history .history-item.active {
+        background: #e2e5de;
+        border-color: transparent;
+      }
+      
+      /* Dots-menu buttons: transparent until hovered. */
+      body.signed-in #history .topic-menu-trigger {
+        background: transparent;
+      }
+      
+      body.signed-in #history .topic-menu-trigger:not(:disabled):hover {
+        background: #e2e5de;
+      }
+
+
     
   </style>
 </head>
