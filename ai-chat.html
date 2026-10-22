@@ -644,7 +644,42 @@
       display: block;
       flex-shrink: 0;
     }
+
+
+
+    /* Assigned user name, count, and analysis action. */
+    #advisorUsersList > details > summary {
+      cursor: pointer;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
     
+    .assigned-user-name {
+      font-size: 0.82rem;
+    }
+    
+    .assigned-user-count {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    
+    body.signed-in .workspace > aside.card
+    #advisorUsersList .advisorAnalyzeUser {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      vertical-align: middle;
+    
+      width: auto;
+      min-height: 24px;
+      margin: 0 0 0 6px;
+      padding: 2px 6px;
+    
+      border-radius: 5px;
+      font-size: 0.72rem;
+      line-height: 18px;
+    }
     
   </style>
 </head>
@@ -845,7 +880,8 @@
 
   <footer>Forenture · AI Foresight &amp; Venture Lab</footer>
  
-  <script type="module" src="./chat.js?v=refresh-icon-1"></script>
+  <script type="module" src="./chat.js?v=user-analyze-2"></script>
+  
   <script>
   const brandVideo = document.getElementById("brandVideo");
 
