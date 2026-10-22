@@ -54,7 +54,12 @@ function controls() {
     'signed-in',
     Boolean(session)
   );
+  // Stop the login video after signing in.
+  const loginVideo = $('brandVideo');
 
+  if (session && loginVideo) {
+    loginVideo.pause();
+  }
   const studyPanel = $('study-panel');
 
   if (studyPanel) {
