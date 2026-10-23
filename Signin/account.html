@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account | Forenture</title>
+  <link rel="stylesheet" href="account.css">
+  <script type="module" src="account.js"></script>
+</head>
+<body>
+  <header class="header"><a class="brand" href="index.html">Forenture</a><a href="index.html">Back to website</a></header>
+  <main class="layout">
+    <section class="intro"><p class="eyebrow">YOUR FORENTURE ACCOUNT</p><h1>One account.<br>A connected workspace.</h1><p>Sign in with your existing AI Assistant account, or register using your email address.</p><p class="muted">This standalone account page does not grant Inbox or administrator access.</p></section>
+    <section class="card" aria-label="Account access">
+      <p id="status" role="status" aria-live="polite" aria-atomic="true">Loading account services…</p>
+      <div id="auth-panel" hidden>
+        <nav class="tabs" aria-label="Account options"><button id="login-tab" type="button" aria-pressed="true">Sign in</button><button id="register-tab" type="button" aria-pressed="false">Register</button></nav>
+        <form id="login-form">
+          <h2>Welcome back</h2>
+          <label for="login-email">Email address</label><input id="login-email" type="email" autocomplete="username" maxlength="254" required>
+          <label for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" required>
+          <button class="primary" type="submit">Sign in</button><button id="forgot-button" class="text-button" type="button">Forgot your password?</button>
+        </form>
+        <form id="register-form" hidden>
+          <h2>Create an account</h2>
+          <label for="register-name">Full name</label><input id="register-name" autocomplete="name" maxlength="150" required>
+          <label for="register-organization">Organization / University (optional)</label><input id="register-organization" autocomplete="organization" maxlength="250">
+          <label for="register-email">Email address</label><input id="register-email" type="email" autocomplete="username" maxlength="254" required>
+          <label for="register-password">Password</label><input id="register-password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-help">
+          <p id="password-help" class="hint">Use at least 8 characters. Your site's password policy may require more.</p>
+          <label for="register-confirm">Confirm password</label><input id="register-confirm" type="password" autocomplete="new-password" minlength="8" required>
+          <p class="hint">Your name and organization are saved as account metadata. AI Assistant participant enrollment requires the existing table integration.</p>
+          <button class="primary" type="submit">Create account</button>
+        </form>
+        <form id="forgot-form" hidden>
+          <h2>Reset your password</h2><p>Enter your account email to request a reset link.</p>
+          <label for="forgot-email">Email address</label><input id="forgot-email" type="email" autocomplete="email" maxlength="254" required>
+          <button class="primary" type="submit">Send reset link</button><button id="back-button" class="text-button" type="button">Back to sign in</button>
+        </form>
+      </div>
+      <section id="account-panel" hidden><h2>You are signed in</h2><p id="account-email"></p><p class="hint">Your account is connected. Participant enrollment and the administrator Inbox will be connected after the existing database structure is checked.</p><button id="signout-button" class="primary" type="button">Sign out on this browser</button></section>
+      <form id="password-form" hidden><h2>Choose a new password</h2><label for="new-password">New password</label><input id="new-password" type="password" autocomplete="new-password" minlength="8" required><label for="new-confirm">Confirm new password</label><input id="new-confirm" type="password" autocomplete="new-password" minlength="8" required><button class="primary" type="submit">Update password</button><button id="cancel-recovery" class="text-button" type="button">Return to account</button></form>
+      <noscript>This page requires JavaScript. Enable it to sign in or register.</noscript>
+    </section>
+  </main>
+</body>
+</html>
