@@ -112,13 +112,25 @@ checkedForm("register-form", () => {
       console.error("Registration error:", error);
       return;
     }
+    
     $("register-form").reset();
     session = data.session;
+    
+    if (session) {
+      window.location.replace(
+        new URL("../index.html", window.location.href).href
+      );
+      return;
+    }
+    
     view = "login";
     render();
-    notice(session
-      ? "Account created. You are signed in."
-      : "If registration is available for this address, check your email for a confirmation link. If you already have an account, sign in or reset your password.", "success");
+    
+    notice(
+      "Check your email for a confirmation link if registration " +
+      "is available for this address. Then return here to sign in.",
+      "success"
+    );
   });
 });
 
