@@ -656,3 +656,36 @@ footer {
 .page-banner-content p {
     font-size: 1.1rem;
 }
+
+/* Homepage account navigation */
+
+#homepage-account,
+#homepage-user:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#homepage-account [hidden] {
+  display: none !important;
+}
+
+#homepage-signout {
+  padding: 7px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+#homepage-signout:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+#homepage-account-status {
+  font-size: 0.85rem;
+}
