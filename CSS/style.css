@@ -689,3 +689,9 @@ footer {
 #homepage-account-status {
   font-size: 0.85rem;
 }
+
+/* Keep account elements hidden when JavaScript sets hidden. */
+#homepage-signin[hidden],
+#homepage-user[hidden] {
+  display: none !important;
+}
