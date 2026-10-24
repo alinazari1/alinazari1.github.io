@@ -565,6 +565,44 @@
   });
   </script>
 
-  <script type="module" src="homepage-account.js"></script>
+    <script>
+    (() => {
+      const dropdown = document.getElementById("homepage-user");
+  
+      if (!dropdown) return;
+  
+      // Close when clicking outside the account dropdown.
+      document.addEventListener("click", (event) => {
+        if (!dropdown.contains(event.target)) {
+          dropdown.open = false;
+        }
+      });
+  
+      // Close with Escape and return focus to the icon.
+      dropdown.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && dropdown.open) {
+          event.preventDefault();
+  
+          dropdown.open = false;
+          dropdown.querySelector("summary").focus();
+        }
+      });
+  
+      // Close when navigating to account information.
+      dropdown.querySelector("a").addEventListener("click", () => {
+        dropdown.open = false;
+      });
+  
+      // Close after authentication code hides the signed-out dropdown.
+      new MutationObserver(() => {
+        if (dropdown.hidden) {
+          dropdown.open = false;
+        }
+      }).observe(dropdown, {
+        attributes: true,
+        attributeFilter: ["hidden"]
+      });
+    })();
+  </script>
 </body>
 </html>
