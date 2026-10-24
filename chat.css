@@ -310,36 +310,3 @@
   }
 }
 
-/* Embedded platform guide */
-
-.assistant-guide {
-  width: 100%;
-  max-width: 1200px;
-  margin: 24px auto;
-  padding: 0 16px;
-}
-
-.assistant-guide h2 {
-  margin-bottom: 8px;
-}
-
-.assistant-guide-frame {
-  display: block;
-  width: 100%;
-  height: 720px;
-
-  border: 1px solid #dce4e9;
-  border-radius: 14px;
-  background: #f8f9f5;
-}
-
-.assistant-guide-link {
-  margin-top: 10px;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 600px) {
-  .assistant-guide-frame {
-    height: 600px;
-  }
-}
