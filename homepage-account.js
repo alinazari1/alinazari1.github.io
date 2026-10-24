@@ -92,7 +92,7 @@ async function initializeHomepageAccount() {
       if (error) throw error;
 
       renderUser(null);
-      statusElement.textContent = "You are signed out.";
+      statusElement.textContent = "";
     } catch (error) {
       console.error("Sign-out failed:", error);
 
