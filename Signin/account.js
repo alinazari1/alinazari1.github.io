@@ -82,8 +82,10 @@ checkedForm("login-form", () => {
     session = data.session;
     recovery = false;
     $("login-form").reset();
-    history.replaceState({}, "", location.pathname);
-    render(); notice("You are signed in.", "success");
+    
+    window.location.replace(
+      new URL("../index.html", window.location.href).href
+    );
   });
 });
 
