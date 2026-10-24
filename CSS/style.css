@@ -659,12 +659,19 @@ footer {
 
 /* Homepage account navigation */
 
-#homepage-account,
-#homepage-user:not([hidden]) {
+#homepage-account {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+#homepage-user:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 #homepage-account [hidden] {
