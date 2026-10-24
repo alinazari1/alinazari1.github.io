@@ -46,6 +46,37 @@
         <a href="/ai-chat.html">AI Research Assistant</a>
         <a href="contact.html">Contact</a>
         <a href="Signin/account.html"> Sign in / Register</a>
+
+        <!-- Account navigation -->
+        <div id="homepage-account" aria-label="Your account">
+        
+          <a
+            id="homepage-signin"
+            href="Signin/account.html"
+            hidden
+          >
+            Sign in / Register
+          </a>
+        
+          <span id="homepage-user" hidden>
+            <span>
+              Hello, <span id="homepage-name"></span>
+            </span>
+        
+            <button id="homepage-signout" type="button">
+              Sign out
+            </button>
+          </span>
+        
+          <span
+            id="homepage-account-status"
+            role="status"
+            aria-live="polite"
+          >
+            Checking account…
+          </span>
+        
+        </div>
       </div>
 
     </nav>
@@ -480,6 +511,6 @@
   });
   </script>
 
-  
+  <script type="module" src="homepage-account.js"></script>
 </body>
 </html>
