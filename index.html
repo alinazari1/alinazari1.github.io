@@ -44,6 +44,7 @@
         <a href="teaching.html">Teaching</a>
         <a href="ai-tools.html">AI Tools</a>
         <a href="/ai-chat.html">AI Research Assistant</a>
+        <a href="#forenture-guide">Platform Guide</a>
         <a href="contact.html">Contact</a>
         <!-- Account navigation -->
         <div id="homepage-account" aria-label="Your account">
@@ -413,7 +414,7 @@
         </article>
         <article class="card">
           <h3>Information Systems</h3>
-          <p>Research and teaching at the intersection of digital systems, business analytics, and innovation.</p>
+          <p>Research and  at the intersection of digital systems, business analytics, and innovation.</p>
         </article>
       </div>
     </section>
@@ -478,43 +479,1442 @@
   Your existing Publications and Teaching sections remain
   commented out above.
 -->
-
-        <!-- PLATFORM GUIDE: visible on the homepage -->
-        <section
-          id="platform-guide"
-          class="homepage-platform-guide"
-          aria-labelledby="platform-guide-heading"
-        >
-          <div class="homepage-guide-heading">
-            <h2 id="platform-guide-heading">
-              How the Forenture AI Assistant Works
+          
+          <!-- ==================================================
+               FORENTURE PLATFORM GUIDE
+               Inline homepage section: no iframe or separate form
+          =================================================== -->
+          
+          <style>
+            #forenture-guide {
+              width: 100%;
+              max-width: 1200px;
+              margin: 50px auto;
+              padding: 0 20px;
+              color: #193044;
+              font-family:
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+              font-size: 16px;
+              line-height: 1.65;
+              text-align: left;
+              scroll-margin-top: 110px;
+            }
+          
+            #forenture-guide,
+            #forenture-guide * {
+              box-sizing: border-box;
+            }
+          
+            #forenture-guide [hidden] {
+              display: none !important;
+            }
+          
+            #forenture-guide .fg-heading {
+              margin: 0 0 12px;
+              color: #193044;
+              font-size: clamp(1.7rem, 3vw, 2.4rem);
+              line-height: 1.25;
+            }
+          
+            #forenture-guide .fg-intro,
+            #forenture-guide .fg-lead {
+              max-width: 950px;
+              margin: 0 0 22px;
+              color: #596d7d;
+            }
+          
+            #forenture-guide .fg-notice {
+              margin: 20px 0;
+              padding: 14px 18px;
+              border: 1px solid #e8cc91;
+              border-radius: 10px;
+              background: #fff5df;
+              font-size: 0.9rem;
+            }
+          
+            /* Tab navigation */
+          
+            #forenture-guide .fg-tabs {
+              display: flex;
+              gap: 9px;
+              overflow-x: auto;
+              margin-bottom: 25px;
+              padding: 5px 2px 15px;
+              border-bottom: 1px solid #d9e2e7;
+            }
+          
+            #forenture-guide .fg-tabs button {
+              display: block;
+              flex: 0 0 auto;
+              width: auto;
+              margin: 0;
+              padding: 11px 16px;
+              border: 1px solid #cbd6df;
+              border-radius: 9px;
+              background: #ffffff;
+              color: #193044;
+              font: inherit;
+              font-weight: 500;
+              line-height: 1.4;
+              letter-spacing: normal;
+              text-transform: none;
+              white-space: nowrap;
+              cursor: pointer;
+            }
+          
+            #forenture-guide .fg-tabs button:hover {
+              border-color: #21458d;
+              background: #f0f4fa;
+            }
+          
+            #forenture-guide .fg-tabs button[aria-selected="true"] {
+              border-color: #21458d;
+              background: #21458d;
+              color: #ffffff;
+            }
+          
+            #forenture-guide button:focus-visible,
+            #forenture-guide summary:focus-visible,
+            #forenture-guide .fg-panel:focus-visible {
+              outline: 3px solid #b8812d;
+              outline-offset: 3px;
+            }
+          
+            /* Content panels */
+          
+            #forenture-guide .fg-panel {
+              margin: 0;
+              padding: 4px 0 20px;
+              border: 0;
+              background: transparent;
+            }
+          
+            #forenture-guide h3 {
+              margin: 0 0 12px;
+              color: #193044;
+              font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+              line-height: 1.3;
+            }
+          
+            #forenture-guide h4 {
+              color: #193044;
+              font-size: 1.08rem;
+              line-height: 1.4;
+            }
+          
+            #forenture-guide p {
+              margin: 0 0 14px;
+            }
+          
+            /* Six-step cards */
+          
+            #forenture-guide .fg-steps {
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 18px;
+              margin: 24px 0;
+            }
+          
+            #forenture-guide .fg-step {
+              min-width: 0;
+              margin: 0;
+              padding: 23px;
+              border: 1px solid #d6e1d1;
+              border-radius: 14px;
+              background: #e6ede2;
+              box-shadow: none;
+            }
+          
+            #forenture-guide .fg-number {
+              display: grid;
+              width: 38px;
+              height: 38px;
+              place-items: center;
+              border-radius: 50%;
+              background: #52725e;
+              color: #ffffff;
+              font-weight: 750;
+            }
+          
+            #forenture-guide .fg-step h4 {
+              margin: 15px 0 10px;
+            }
+          
+            #forenture-guide .fg-tip {
+              margin-bottom: 0;
+              padding-top: 12px;
+              border-top: 1px solid #c3d2bd;
+              color: #3c5849;
+              font-size: 0.85rem;
+            }
+          
+            /* Supporting cards */
+          
+            #forenture-guide .fg-two {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin: 24px 0;
+            }
+          
+            #forenture-guide .fg-box {
+              min-width: 0;
+              margin: 0;
+              padding: 23px;
+              border: 1px solid #d9e2e7;
+              border-radius: 12px;
+              background: #ffffff;
+              box-shadow: none;
+            }
+          
+            #forenture-guide .fg-box h4 {
+              margin: 0 0 12px;
+            }
+          
+            #forenture-guide .fg-box p:last-child {
+              margin-bottom: 0;
+            }
+          
+            /* Process flow */
+          
+            #forenture-guide .fg-flow {
+              display: grid;
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+              gap: 14px;
+              margin: 24px 0;
+              padding: 0;
+              list-style: none;
+            }
+          
+            #forenture-guide .fg-flow li {
+              min-width: 0;
+              margin: 0;
+              padding: 19px;
+              border: 1px solid #cfddcd;
+              border-radius: 12px;
+              background: #e2ebdf;
+            }
+          
+            #forenture-guide .fg-flow span {
+              display: block;
+              margin-bottom: 8px;
+              color: #52725e;
+              font-size: 0.8rem;
+              font-weight: 800;
+              letter-spacing: 0.05em;
+            }
+          
+            /* Notes and lists */
+          
+            #forenture-guide .fg-callout {
+              margin: 24px 0;
+              padding: 19px 23px;
+              border-left: 4px solid #b8812d;
+              border-radius: 0 10px 10px 0;
+              background: #f5f7fa;
+            }
+          
+            #forenture-guide .fg-callout h4 {
+              margin: 0 0 12px;
+            }
+          
+            #forenture-guide .fg-callout p:last-child {
+              margin-bottom: 0;
+            }
+          
+            #forenture-guide .fg-list {
+              padding-left: 22px;
+              list-style: disc;
+            }
+          
+            #forenture-guide .fg-list li {
+              margin: 8px 0;
+            }
+          
+            #forenture-guide .fg-subheading {
+              margin: 28px 0 12px;
+            }
+          
+            #forenture-guide .fg-status {
+              display: inline-block;
+              margin: 4px 5px 4px 0;
+              padding: 5px 10px;
+              border-radius: 20px;
+              background: #edf3fb;
+              color: #294e76;
+              font-size: 0.82rem;
+            }
+          
+            /* Tables */
+          
+            #forenture-guide .fg-table-wrap {
+              overflow-x: auto;
+              margin: 24px 0;
+              border: 1px solid #d9e2e7;
+              border-radius: 12px;
+            }
+          
+            #forenture-guide table {
+              width: 100%;
+              min-width: 680px;
+              border-collapse: collapse;
+              background: #ffffff;
+              font: inherit;
+            }
+          
+            #forenture-guide caption {
+              padding: 15px;
+              background: #ffffff;
+              font-weight: 700;
+              text-align: left;
+            }
+          
+            #forenture-guide th,
+            #forenture-guide td {
+              padding: 15px;
+              border-bottom: 1px solid #e2e8ec;
+              color: #193044;
+              text-align: left;
+              vertical-align: top;
+            }
+          
+            #forenture-guide th {
+              background: #eaf0f5;
+            }
+          
+            #forenture-guide tr:last-child td {
+              border-bottom: 0;
+            }
+          
+            /* Questions */
+          
+            #forenture-guide details {
+              margin: 12px 0;
+              padding: 17px 20px;
+              border: 1px solid #d9e2e7;
+              border-radius: 10px;
+              background: #ffffff;
+            }
+          
+            #forenture-guide summary {
+              display: list-item;
+              font-weight: 700;
+              cursor: pointer;
+            }
+          
+            #forenture-guide details p {
+              margin: 14px 0 0;
+            }
+          
+            #forenture-guide .fg-footer {
+              margin-top: 12px;
+              padding-top: 16px;
+              border-top: 1px solid #d9e2e7;
+              color: #596d7d;
+              font-size: 0.9rem;
+            }
+          
+            /* Responsive layout */
+          
+            @media (max-width: 850px) {
+              #forenture-guide .fg-steps,
+              #forenture-guide .fg-flow {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+              }
+          
+              #forenture-guide .fg-two {
+                grid-template-columns: 1fr;
+              }
+            }
+          
+            @media (max-width: 540px) {
+              #forenture-guide {
+                margin: 32px auto;
+                padding: 0 14px;
+              }
+          
+              #forenture-guide .fg-steps,
+              #forenture-guide .fg-flow {
+                grid-template-columns: 1fr;
+              }
+          
+              #forenture-guide .fg-tabs button {
+                padding: 10px 13px;
+              }
+            }
+          
+            @media print {
+              #forenture-guide .fg-tabs {
+                display: none;
+              }
+          
+              #forenture-guide .fg-panel[hidden] {
+                display: block !important;
+              }
+          
+              #forenture-guide .fg-panel {
+                break-before: page;
+              }
+          
+              #forenture-guide .fg-step,
+              #forenture-guide .fg-box {
+                break-inside: avoid;
+              }
+            }
+          </style>
+          
+          <section
+            id="forenture-guide"
+            aria-labelledby="fg-heading"
+          >
+            <h2 id="fg-heading" class="fg-heading">
+              How the AI Assistant Works
             </h2>
-        
-            <p>
-              Explore the guide for users, advisors, and administrators.
-              Learn how conversations can support structured topic models,
-              review, and comparison.
+          
+            <p class="fg-intro">
+              Choose a tab to explore the workflow for users,
+              advisors, and administrators.
             </p>
-          </div>
-        
-          <iframe
-            class="homepage-guide-frame"
-            src="platform-guide.html"
-            title="Forenture platform guide for users, advisors, and administrators"
-            loading="lazy"
-          ></iframe>
-        
-          <p class="homepage-guide-full-link">
-            <a
-              href="platform-guide.html"
-              target="_blank"
-              rel="noopener"
+          
+            <aside class="fg-notice">
+              This guide includes proposed features. Topic-model extraction,
+              versioning, cross-user synthesis, and the private contact Inbox
+              require implementation and testing before they are available.
+            </aside>
+          
+            <noscript>
+              <p>
+                JavaScript is disabled. All guide sections are shown below
+                instead of displaying one tab at a time.
+              </p>
+            </noscript>
+          
+            <!-- TAB BUTTONS -->
+          
+            <div
+              class="fg-tabs"
+              aria-label="Platform guide sections"
             >
-              Open the guide in a full page ↗
-            </a>
-          </p>
-        </section>
-
+              <button
+                id="fg-tab-overview"
+                type="button"
+                data-panel="fg-panel-overview"
+              >
+                Overview
+              </button>
+          
+              <button
+                id="fg-tab-users"
+                type="button"
+                data-panel="fg-panel-users"
+              >
+                Users
+              </button>
+          
+              <button
+                id="fg-tab-advisors"
+                type="button"
+                data-panel="fg-panel-advisors"
+              >
+                Advisors
+              </button>
+          
+              <button
+                id="fg-tab-administrators"
+                type="button"
+                data-panel="fg-panel-administrators"
+              >
+                Administrators
+              </button>
+          
+              <button
+                id="fg-tab-shared-context"
+                type="button"
+                data-panel="fg-panel-shared-context"
+              >
+                Shared context
+              </button>
+          
+              <button
+                id="fg-tab-access-rules"
+                type="button"
+                data-panel="fg-panel-access-rules"
+              >
+                Access rules
+              </button>
+          
+              <button
+                id="fg-tab-questions"
+                type="button"
+                data-panel="fg-panel-questions"
+              >
+                Questions
+              </button>
+            </div>
+          
+            <!-- OVERVIEW -->
+          
+            <section
+              id="fg-panel-overview"
+              class="fg-panel"
+            >
+              <h3>From a conversation to a clearer decision</h3>
+          
+              <p class="fg-lead">
+                The conversation is the discussion. The topic model is a
+                structured interpretation that people can inspect and correct.
+                A synthesis is a separate model derived from selected,
+                authorized sources.
+              </p>
+          
+              <ol class="fg-flow">
+                <li>
+                  <span>01 · DISCUSS</span>
+                  Explore one problem within a topic.
+                </li>
+          
+                <li>
+                  <span>02 · STRUCTURE</span>
+                  Build a draft model linked to source messages.
+                </li>
+          
+                <li>
+                  <span>03 · REVIEW</span>
+                  Confirm, correct, and save a model version.
+                </li>
+          
+                <li>
+                  <span>04 · COMPARE</span>
+                  Compare authorized models and develop a separate synthesis.
+                </li>
+              </ol>
+          
+              <div class="fg-two">
+                <article class="fg-box">
+                  <h4>What a topic model contains</h4>
+          
+                  <ul class="fg-list">
+                    <li>Decision question and context.</li>
+                    <li>Goals, constraints, and priorities.</li>
+                    <li>Options and comparison criteria.</li>
+                    <li>Assumptions and evidence references.</li>
+                    <li>Information gaps and unresolved questions.</li>
+                    <li>Review status and model versions.</li>
+                  </ul>
+                </article>
+          
+                <article class="fg-box">
+                  <h4>People remain in control</h4>
+          
+                  <p>
+                    AI suggestions begin as drafts. Users confirm their
+                    circumstances and preferences. Advisors contribute
+                    feedback within their assigned access.
+                  </p>
+          
+                  <p>
+                    Important interpretations should remain open to correction,
+                    explanation, and review.
+                  </p>
+                </article>
+              </div>
+          
+              <div class="fg-callout">
+                An AI-generated statement is not automatically a fact.
+                User-reported information is not independent verification.
+                A preference score is not a probability of success.
+              </div>
+            </section>
+          
+            <!-- USERS -->
+          
+            <section
+              id="fg-panel-users"
+              class="fg-panel"
+            >
+              <h3>User guide</h3>
+          
+              <p class="fg-lead">
+                Explore one problem at a time and help the model reflect
+                your actual situation.
+              </p>
+          
+              <div class="fg-steps">
+                <article class="fg-step">
+                  <span class="fg-number">1</span>
+          
+                  <h4>Describe your problem</h4>
+          
+                  <p>
+                    Explain your situation, the decision you face,
+                    and the outcome you want.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Example: Should we launch now or run a paid pilot?
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">2</span>
+          
+                  <h4>Clarify what matters</h4>
+          
+                  <p>
+                    Answer focused questions about goals, constraints,
+                    priorities, timing, and missing context.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Confirm currencies, dates, and important definitions.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">3</span>
+          
+                  <h4>Explore your options</h4>
+          
+                  <p>
+                    Review suggested actions and comparison criteria.
+                    Add, revise, or reject items that do not fit.
+                  </p>
+          
+                  <p class="fg-tip">
+                    An AI proposal is not automatically your preference.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">4</span>
+          
+                  <h4>Check the draft model</h4>
+          
+                  <p>
+                    Inspect assumptions, evidence references, and
+                    information gaps. Correct misinterpretations.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Distinguish user reports, AI suggestions,
+                    and external evidence.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">5</span>
+          
+                  <h4>Compare trade-offs</h4>
+          
+                  <p>
+                    Examine benefits, risks, uncertainty,
+                    and assigned-advisor input when available.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Inspect criteria and assumptions—not just
+                    the final ranking.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">6</span>
+          
+                  <h4>Review and refine</h4>
+          
+                  <p>
+                    Test scenarios, review feedback, and save an
+                    updated model version as your situation develops.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Hypothetical changes should not silently replace
+                    your current circumstances.
+                  </p>
+                </article>
+              </div>
+          
+              <div class="fg-two">
+                <article class="fg-box">
+                  <h4>Before continuing</h4>
+          
+                  <ul class="fg-list">
+                    <li>Use separate topics for unrelated decisions.</li>
+                    <li>Confirm important model items.</li>
+                    <li>Avoid passwords and unnecessary sensitive details.</li>
+                    <li>Review sharing permissions before cross-user synthesis.</li>
+                  </ul>
+                </article>
+          
+                <article class="fg-box">
+                  <h4>Expected outputs when implemented</h4>
+          
+                  <ul class="fg-list">
+                    <li>A conversation connected to one topic.</li>
+                    <li>A source-linked topic-model draft.</li>
+                    <li>A user-reviewed model version.</li>
+                    <li>Unresolved questions and possible next actions.</li>
+                  </ul>
+                </article>
+              </div>
+            </section>
+          
+            <!-- ADVISORS -->
+          
+            <section
+              id="fg-panel-advisors"
+              class="fg-panel"
+            >
+              <h3>Advisor guide</h3>
+          
+              <p class="fg-lead">
+                Compare cases without erasing individual context
+                or expanding your access.
+              </p>
+          
+              <div class="fg-steps">
+                <article class="fg-step">
+                  <span class="fg-number">1</span>
+          
+                  <h4>Select authorized topics</h4>
+          
+                  <p>
+                    Choose topics and model versions available
+                    within your assigned access.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Advisor status alone should not reveal every user.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">2</span>
+          
+                  <h4>Review sources and status</h4>
+          
+                  <p>
+                    Inspect source messages, evidence links,
+                    user confirmations, and unresolved questions.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Interpretation review is not independent
+                    factual verification.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">3</span>
+          
+                  <h4>Check comparability</h4>
+          
+                  <p>
+                    Align decision context, criteria, units,
+                    assessment scales, and time horizons.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Similar terminology does not establish
+                    equivalent circumstances.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">4</span>
+          
+                  <h4>Compare side by side</h4>
+          
+                  <p>
+                    Identify shared patterns, contextual differences,
+                    conflicting assumptions, and evidence gaps.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Do not average incompatible scores or hide disagreement.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">5</span>
+          
+                  <h4>Create a separate synthesis</h4>
+          
+                  <p>
+                    Select authorized elements and record source topics,
+                    versions, mappings, and reasons for inclusion.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Preserve original users’ models unchanged.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">6</span>
+          
+                  <h4>Return reviewed feedback</h4>
+          
+                  <p>
+                    Explain limitations, invite corrections,
+                    and share only with the approved audience.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Derived outputs must not reveal unauthorized details.
+                  </p>
+                </article>
+              </div>
+          
+              <div class="fg-two">
+                <article class="fg-box">
+                  <h4>Expected outputs when implemented</h4>
+          
+                  <ul class="fg-list">
+                    <li>Topic-specific review and comments.</li>
+                    <li>A comparability matrix.</li>
+                    <li>A separate synthesis model.</li>
+                    <li>Source references and review history.</li>
+                  </ul>
+                </article>
+          
+                <article class="fg-box">
+                  <h4>Preserve differences</h4>
+          
+                  <p>
+                    Keep conflicting assumptions, priorities,
+                    and circumstances visible.
+                  </p>
+          
+                  <p>
+                    A pattern across selected cases does not
+                    automatically apply to each individual.
+                  </p>
+                </article>
+              </div>
+            </section>
+          
+            <!-- ADMINISTRATORS -->
+          
+            <section
+              id="fg-panel-administrators"
+              class="fg-panel"
+            >
+              <h3>Administrator guide</h3>
+          
+              <p class="fg-lead">
+                Keep identity management, participant eligibility,
+                advisor assignments, and access to private content separate.
+              </p>
+          
+              <div class="fg-steps">
+                <article class="fg-step">
+                  <span class="fg-number">1</span>
+          
+                  <h4>Manage identities and roles</h4>
+          
+                  <p>
+                    Designate privileged accounts through a
+                    protected administrative process.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Ordinary registration must not grant
+                    administrator access.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">2</span>
+          
+                  <h4>Configure access scopes</h4>
+          
+                  <p>
+                    Manage participant eligibility, advisor assignments,
+                    and explicit sharing permissions.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Hiding a menu item is not backend authorization.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">3</span>
+          
+                  <h4>Maintain context templates</h4>
+          
+                  <p>
+                    Version criterion definitions, units,
+                    required questions, and assessment scales.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Template updates must not silently rewrite old models.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">4</span>
+          
+                  <h4>Monitor model operations</h4>
+          
+                  <p>
+                    Track extraction errors, validation,
+                    source-link quality, reviews, and usage costs.
+                  </p>
+          
+                  <p class="fg-tip">
+                    A correctly formatted AI response can still be wrong.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">5</span>
+          
+                  <h4>Manage contact requests</h4>
+          
+                  <p>
+                    Use the planned private Inbox to review inquiries
+                    and monitor notification status.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Saving a request and delivering an email
+                    are separate outcomes.
+                  </p>
+                </article>
+          
+                <article class="fg-step">
+                  <span class="fg-number">6</span>
+          
+                  <h4>Maintain and audit</h4>
+          
+                  <p>
+                    Review privileged access, record changes,
+                    test recovery, and apply retention policies.
+                  </p>
+          
+                  <p class="fg-tip">
+                    Retention and deletion must consider derived models too.
+                  </p>
+                </article>
+              </div>
+          
+              <h4 class="fg-subheading">
+                Planned contact-request workflow
+              </h4>
+          
+              <ol class="fg-flow">
+                <li>
+                  <span>01 · VALIDATE</span>
+                  Check the public inquiry.
+                </li>
+          
+                <li>
+                  <span>02 · SAVE</span>
+                  Store the request and pending notification.
+                </li>
+          
+                <li>
+                  <span>03 · INBOX</span>
+                  Display the request to authorized administrators.
+                </li>
+          
+                <li>
+                  <span>04 · NOTIFY</span>
+                  Process the email notification separately.
+                </li>
+              </ol>
+          
+              <div class="fg-callout">
+                Email failure must not erase the stored request.
+                Provider acceptance does not guarantee inbox delivery.
+                This guide does not implement the Inbox or email worker.
+              </div>
+          
+              <ul class="fg-list">
+                <li>Keep privileged keys and email secrets off the browser.</li>
+                <li>Protect public submissions against spam and abuse.</li>
+                <li>Test access using separate accounts for each role.</li>
+                <li>Verify features before presenting them as available.</li>
+              </ul>
+            </section>
+          
+            <!-- SHARED CONTEXT -->
+          
+            <section
+              id="fg-panel-shared-context"
+              class="fg-panel"
+            >
+              <h3>Shared context and cross-user modeling</h3>
+          
+              <p class="fg-lead">
+                Use a common framework while preserving individual goals,
+                constraints, preferences, evidence, and uncertainty.
+              </p>
+          
+              <ol class="fg-flow">
+                <li>
+                  <span>01 · SOURCES</span>
+                  Separate topic-model versions.
+                </li>
+          
+                <li>
+                  <span>02 · PERMISSIONS</span>
+                  Check access and approved sharing scope.
+                </li>
+          
+                <li>
+                  <span>03 · COMPARISON</span>
+                  Align definitions and flag differences.
+                </li>
+          
+                <li>
+                  <span>04 · SYNTHESIS</span>
+                  Create a separate, traceable model.
+                </li>
+              </ol>
+          
+              <div class="fg-two">
+                <article class="fg-box">
+                  <h4>Shared definitions</h4>
+          
+                  <p>
+                    A context template defines a decision family,
+                    criteria, units, assessment scales,
+                    and required context questions.
+                  </p>
+                </article>
+          
+                <article class="fg-box">
+                  <h4>Individual circumstances</h4>
+          
+                  <p>
+                    Each topic retains its own assumptions, constraints,
+                    priorities, evidence, and unresolved questions.
+                  </p>
+                </article>
+              </div>
+          
+              <div class="fg-callout">
+                <h4>Example: product-launch decisions</h4>
+          
+                <p>
+                  Two users may share demand evidence, readiness,
+                  cost, and learning value as criteria.
+                </p>
+          
+                <p>
+                  One prioritizes learning before committing;
+                  another prioritizes speed. Their recommendations
+                  can legitimately differ.
+                </p>
+              </div>
+          
+              <div class="fg-table-wrap">
+                <table>
+                  <caption>Three distinct advisor actions</caption>
+          
+                  <thead>
+                    <tr>
+                      <th>Action</th>
+                      <th>Purpose</th>
+                      <th>Protection</th>
+                    </tr>
+                  </thead>
+          
+                  <tbody>
+                    <tr>
+                      <td>Compare</td>
+                      <td>Display compatible dimensions side by side.</td>
+                      <td>Do not modify source models.</td>
+                    </tr>
+          
+                    <tr>
+                      <td>Reuse</td>
+                      <td>Propose a criterion, question, or template.</td>
+                      <td>Stay within authorized scope and request review.</td>
+                    </tr>
+          
+                    <tr>
+                      <td>Synthesize</td>
+                      <td>Create a separate model from selected elements.</td>
+                      <td>Retain source versions, mappings, and permissions.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+          
+              <h4 class="fg-subheading">
+                Review and versioning
+              </h4>
+          
+              <ol class="fg-flow">
+                <li>
+                  <span>CURRENT</span>
+                  Existing model version.
+                </li>
+          
+                <li>
+                  <span>INPUT</span>
+                  New information or a hypothetical scenario.
+                </li>
+          
+                <li>
+                  <span>REVIEW</span>
+                  Proposed change and human review.
+                </li>
+          
+                <li>
+                  <span>NEXT</span>
+                  New model version or separate scenario.
+                </li>
+              </ol>
+          
+              <div class="fg-two">
+                <article class="fg-box">
+                  <h4>Record the origin</h4>
+          
+                  <span class="fg-status">User statement</span>
+                  <span class="fg-status">AI proposal</span>
+                  <span class="fg-status">Advisor assessment</span>
+                  <span class="fg-status">External source</span>
+          
+                  <p>
+                    Keep source references for important items.
+                  </p>
+                </article>
+          
+                <article class="fg-box">
+                  <h4>Record review status</h4>
+          
+                  <span class="fg-status">Draft</span>
+                  <span class="fg-status">User-confirmed</span>
+                  <span class="fg-status">Advisor-reviewed</span>
+                  <span class="fg-status">Disputed</span>
+          
+                  <p>
+                    Review status does not automatically establish
+                    factual accuracy.
+                  </p>
+                </article>
+              </div>
+            </section>
+          
+            <!-- ACCESS RULES -->
+          
+            <section
+              id="fg-panel-access-rules"
+              class="fg-panel"
+            >
+              <h3>Proposed access rules</h3>
+          
+              <p class="fg-lead">
+                Permissions must apply to records, searches, exports,
+                and derived outputs—not just navigation links.
+              </p>
+          
+              <div class="fg-table-wrap">
+                <table>
+                  <caption>Policy requirements for implementation</caption>
+          
+                  <thead>
+                    <tr>
+                      <th>Resource or action</th>
+                      <th>User</th>
+                      <th>Advisor</th>
+                      <th>Administrator</th>
+                    </tr>
+                  </thead>
+          
+                  <tbody>
+                    <tr>
+                      <td>Topics and models</td>
+                      <td>Own records and proposed edits.</td>
+                      <td>Assigned or explicitly shared records.</td>
+                      <td>Separately granted, justified content access.</td>
+                    </tr>
+          
+                    <tr>
+                      <td>Confirm preferences</td>
+                      <td>Confirm their own interpretation.</td>
+                      <td>Recommend changes; do not impersonate confirmation.</td>
+                      <td>Do not substitute admin authority for confirmation.</td>
+                    </tr>
+          
+                    <tr>
+                      <td>Cross-user synthesis</td>
+                      <td>Approved shared outputs only.</td>
+                      <td>Authorized sources and purpose only.</td>
+                      <td>Manage policy; no unrestricted synthesis by role alone.</td>
+                    </tr>
+          
+                    <tr>
+                      <td>Roles and assignments</td>
+                      <td>Cannot self-assign privileged roles.</td>
+                      <td>Cannot expand their own access.</td>
+                      <td>Manage through a protected process.</td>
+                    </tr>
+          
+                    <tr>
+                      <td>Contact-request Inbox</td>
+                      <td>No listing of other people’s requests.</td>
+                      <td>No access by default.</td>
+                      <td>Designated Inbox administrators only.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+          
+              <div class="fg-callout">
+                Selecting a role tab displays instructions only.
+                It does not grant account privileges.
+                All visitors can read these guide sections.
+              </div>
+          
+              <ul class="fg-list">
+                <li>Enforce permissions in the backend.</li>
+                <li>Scope semantic search to authorized records.</li>
+                <li>Review consent and purpose before cross-user processing.</li>
+                <li>Protect summaries, embeddings, exports, and synthesis outputs.</li>
+              </ul>
+            </section>
+          
+            <!-- QUESTIONS -->
+          
+            <section
+              id="fg-panel-questions"
+              class="fg-panel"
+            >
+              <h3>Questions and important boundaries</h3>
+          
+              <p class="fg-lead">
+                Open a question to read its explanation.
+              </p>
+          
+              <details>
+                <summary>Does the AI make the final decision?</summary>
+          
+                <p>
+                  No. The proposed workflow organizes options, evidence,
+                  uncertainty, and trade-offs. Users retain judgment and
+                  may seek suitable professional advice for consequential
+                  decisions.
+                </p>
+              </details>
+          
+              <details>
+                <summary>Can advisors see every conversation?</summary>
+          
+                <p>
+                  Not under this proposed policy. Access should be
+                  restricted by assignments and explicit sharing rules.
+                  Check the implemented policy before entering
+                  confidential information.
+                </p>
+              </details>
+          
+              <details>
+                <summary>Does similarity allow topics to be merged?</summary>
+          
+                <p>
+                  No. Similarity may identify comparison candidates.
+                  Permission and compatibility must be checked before
+                  creating a separate synthesis.
+                </p>
+              </details>
+          
+              <details>
+                <summary>What if the model gets something wrong?</summary>
+          
+                <p>
+                  Flag the item, inspect its source, and propose a
+                  correction. Save a reviewed version rather than
+                  silently rewriting history.
+                </p>
+              </details>
+          
+              <details>
+                <summary>What does a score of 75 out of 100 mean?</summary>
+          
+                <p>
+                  Only what the defined scoring method says.
+                  It is not a 75% chance of success.
+                  Criteria, scales, weights, and assumptions should be visible.
+                </p>
+              </details>
+          
+              <details>
+                <summary>Does this guide connect to Supabase?</summary>
+          
+                <p>
+                  No. This component displays instructions and switches tabs.
+                  It does not sign users in, change roles, save models,
+                  or send email.
+                </p>
+              </details>
+          
+              <details>
+                <summary>Are all described features available now?</summary>
+          
+                <p>
+                  No. Topic-model extraction, versioning,
+                  cross-user synthesis, and the private contact Inbox
+                  are planned until implemented and tested.
+                </p>
+              </details>
+            </section>
+          
+            <p class="fg-footer">
+              AI supports your judgment—it does not replace it.
+            </p>
+          </section>
+          
+          <script>
+            (() => {
+              "use strict";
+          
+              function initializeForentureGuide() {
+                const root = document.getElementById("forenture-guide");
+          
+                if (!root || root.dataset.initialized === "true") {
+                  return;
+                }
+          
+                root.dataset.initialized = "true";
+          
+                const tabList = root.querySelector(".fg-tabs");
+          
+                const tabs = [
+                  ...tabList.querySelectorAll("button")
+                ];
+          
+                const panels = [
+                  ...root.querySelectorAll(".fg-panel")
+                ];
+          
+                tabList.setAttribute("role", "tablist");
+          
+                tabList.setAttribute(
+                  "aria-orientation",
+                  "horizontal"
+                );
+          
+                function activatePanel(panelId, moveFocus = false) {
+                  const panelExists = panels.some(
+                    panel => panel.id === panelId
+                  );
+          
+                  if (!panelExists) {
+                    panelId = "fg-panel-overview";
+                  }
+          
+                  tabs.forEach(tab => {
+                    const active = tab.dataset.panel === panelId;
+          
+                    tab.setAttribute(
+                      "aria-selected",
+                      String(active)
+                    );
+          
+                    tab.tabIndex = active ? 0 : -1;
+          
+                    if (active && moveFocus) {
+                      tab.focus();
+          
+                      tab.scrollIntoView({
+                        block: "nearest",
+                        inline: "nearest"
+                      });
+                    }
+                  });
+          
+                  panels.forEach(panel => {
+                    panel.hidden = panel.id !== panelId;
+                  });
+                }
+          
+                tabs.forEach((tab, index) => {
+                  tab.setAttribute("role", "tab");
+          
+                  tab.setAttribute(
+                    "aria-controls",
+                    tab.dataset.panel
+                  );
+          
+                  tab.addEventListener("click", () => {
+                    activatePanel(tab.dataset.panel);
+                  });
+          
+                  tab.addEventListener("keydown", event => {
+                    let targetIndex;
+          
+                    switch (event.key) {
+                      case "ArrowRight":
+                        targetIndex = (index + 1) % tabs.length;
+                        break;
+          
+                      case "ArrowLeft":
+                        targetIndex =
+                          (index - 1 + tabs.length) % tabs.length;
+                        break;
+          
+                      case "Home":
+                        targetIndex = 0;
+                        break;
+          
+                      case "End":
+                        targetIndex = tabs.length - 1;
+                        break;
+          
+                      default:
+                        return;
+                    }
+          
+                    event.preventDefault();
+          
+                    activatePanel(
+                      tabs[targetIndex].dataset.panel,
+                      true
+                    );
+                  });
+                });
+          
+                panels.forEach(panel => {
+                  panel.setAttribute("role", "tabpanel");
+          
+                  panel.setAttribute(
+                    "aria-labelledby",
+                    panel.id.replace(
+                      "fg-panel-",
+                      "fg-tab-"
+                    )
+                  );
+          
+                  panel.tabIndex = 0;
+                });
+          
+                activatePanel("fg-panel-overview");
+              }
+          
+              if (document.readyState === "loading") {
+                document.addEventListener(
+                  "DOMContentLoaded",
+                  initializeForentureGuide,
+                  { once: true }
+                );
+              } else {
+                initializeForentureGuide();
+              }
+            })();
+          </script>
+          
+          <!-- END FORENTURE PLATFORM GUIDE -->
 
 
 
