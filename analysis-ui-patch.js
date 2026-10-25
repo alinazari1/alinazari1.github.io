@@ -1,3 +1,8 @@
+import {
+  mountAnalysisUI as mountConversationConceptsUI
+} from './conversation-concepts-ui.js?v=concept-model-1';
+
+
 export function mountAnalysisUI({
   getDb,
   getSession,
