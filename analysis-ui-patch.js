@@ -516,8 +516,7 @@ export function mountAnalysisUI({
       requestClose();
     });
 
-    document.body.append(dialog);
-    dialog.showModal();
+    showInlineAnalysisPanel(dialog);
 
     const token = ++generation;
     running = true;
