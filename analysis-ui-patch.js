@@ -8,6 +8,11 @@ export function mountAnalysisUI({
   getSession,
   isLocked
 }) {
+  const conceptUI = mountConversationConceptsUI({
+    getDb,
+    getSession,
+    isLocked
+  });
   let dialog = null;
   let running = false;
   let generation = 0;
@@ -131,6 +136,7 @@ export function mountAnalysisUI({
   }
 
   function sync() {
+    conceptUI.sync();
     if (dialog && currentUser() !== activeUserId) {
       close();
       return;
@@ -463,6 +469,28 @@ export function mountAnalysisUI({
     downloadButton.type = 'button';
     downloadButton.onclick = downloadModel;
 
+
+    const conceptButton = element(
+      'button',
+      'Concept model',
+      actions
+    );
+    
+    conceptButton.type = 'button';
+    
+    conceptButton.onclick = async () => {
+      try {
+        await conceptUI.analyze(conversationId);
+      } catch (error) {
+        console.error('Concept analysis failed:', error);
+    
+        window.alert(
+          'Concept analysis failed: ' +
+          (error?.message || String(error))
+        );
+      }
+    };
+    
     const closeButton = element('button', 'Close', actions);
     closeButton.type = 'button';
 
