@@ -1,3 +1,6 @@
+import { showInlineAnalysisPanel } from
+  './inline-analysis-panels.js?v=inline-1';
+
 export function mountAnalysisUI({getDb,getSession,isLocked}) {
   let dialog=null, activeUser=null, epoch=0, working=false, result=null;
   const el=(tag,text,parent)=>{const n=document.createElement(tag); if(text!==undefined)n.textContent=text; if(parent)parent.append(n); return n;};
@@ -20,7 +23,8 @@ export function mountAnalysisUI({getDb,getSession,isLocked}) {
     download.onclick=()=>{if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='conversation-concepts-'+conversationId+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);};
     const dismiss=el('button','Close',dialog);dismiss.onclick=close;
     dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
-    document.body.append(dialog);dialog.showModal();
+    
+    showInlineAnalysisPanel(dialog);
     const current=()=>token===epoch&&getSession()?.user.id===uid;
     function render(snapshot){
       const card=el('details',undefined,body);card.open=true;
