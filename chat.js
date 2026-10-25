@@ -288,8 +288,8 @@ function history() {
     );
 
     addAction(
-      'Rename',
-      () => renameTopic(topic.id)
+      'Analyze',
+      () => analysisUI.analyze(topic.id)
     );
     addAction(
       'Rename',
