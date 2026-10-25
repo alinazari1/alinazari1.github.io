@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Forenture AI Research Assistant">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>AI Research Assistant | Forenture</title>
+  <link rel="stylesheet" href="./chat.css?v=4">
+  <style>
+    :root {
+      --app-bg: #fbfaf7;
+      --sidebar-bg: #f0efea;
+      --surface: #ffffff;
+      --text: #242826;
+      --muted: #686f6b;
+      --border: #dedfd8;
+      --accent: #167c80;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--app-bg);
+      line-height: 1.6;
+    }
+    .site-header {
+      display: block;
+      padding: 0;
+      background: var(--app-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .site-header .site-brand {
+      color: var(--text);
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-decoration: none;
+    }
+    .site-header nav { display: flex; flex-wrap: wrap; gap: 22px; }
+    .site-header nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .95rem;
+    }
+    .site-header nav a:hover { color: var(--accent); text-decoration: underline; }
+    .page-banner {
+      background: linear-gradient(120deg, #102d43 0%, #1b4864 60%, #176c65 100%);
+      color: #ffffff;
+    }
+    .page-banner-inner { max-width: 1200px; margin: 0 auto; padding: 46px 20px; }
+    .banner-label {
+      margin: 0 0 10px;
+      color: #b9e2df;
+      font-size: .85rem;
+      font-weight: 650;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .page-banner h1 {
+      margin: 0 0 14px;
+      color: #ffffff;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+    }
+    .banner-description { max-width: 720px; margin: 0; color: #e0ebf4; font-size: 1.05rem; }
+    main { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
+    .card {
+      padding: 24px;
+      margin-bottom: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: none;
+    }
+    .card h2 { margin-top: 0; }
+    label { display: block; margin: 12px 0 6px; }
+    input:not([type="checkbox"]), textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font: inherit;
+    }
+    textarea { min-height: 130px; resize: vertical; }
+    .check { display: flex; align-items: flex-start; gap: 10px; }
+    .check input { flex-shrink: 0; margin-top: 6px; }
+    button {
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #ffffff;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    button.secondary { background: transparent; color: var(--text); border-color: var(--border); }
+    input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 3px solid #80c8ca;
+      outline-offset: 3px;
+    }
+    #loginButton { margin-top: 0px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    .workspace {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .workspace > * { min-width: 0; }
+    #history { display: grid; gap: 6px; margin: 16px 0; }
+    .history-item {
+      width: 100%;
+      padding: 10px 12px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-size: .88rem;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .history-item:hover, .history-item.active { background: #e2e5de; }
+    #title { margin-bottom: 28px; font-size: 1.65rem; line-height: 1.3; }
+    #messages { min-height: 28vh; overflow-wrap: anywhere; }
+    .msg { margin: 0 0 30px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+    .msg .meta { margin-bottom: 10px; color: var(--muted); font-size: .78rem; }
+    .msg.user .body { padding: 14px 18px; border-radius: 16px; background: #eeefea; white-space: pre-wrap; }
+    .msg.assistant .body { color: var(--text); font-size: 1rem; line-height: 1.8; }
+    .formatted h1, .formatted h2, .formatted h3 { margin: 26px 0 12px; line-height: 1.35; }
+    .formatted p { margin: 0 0 16px; }
+    .formatted pre {
+      padding: 16px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f0f1ec;
+    }
+    .formatted table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+    .formatted th, .formatted td { padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+    #composer > label { margin: 0 0 8px; color: var(--muted); font-size: .85rem; }
+    #composer textarea { min-height: 82px; max-height: 240px; padding: 8px; border: 0; background: transparent; }
+    #composer .row { justify-content: flex-end; margin: 8px 0 0; }
+    #send { border-radius: 12px; }
+    .small { color: #526577; font-size: .88rem; }
+    #status { padding: 12px 20px; color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
+    footer {
+      padding: 22px 20px;
+      text-align: center;
+      color: #526577;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    #voice[aria-pressed="true"] { background: #a52b36; color: #ffffff; border-color: #a52b36; }
+    #voiceStatus { min-height: 1.5em; margin-bottom: 6px; }
+    #voicePrivacy { margin-top: 6px; }
+    #prompt[readonly] { background: #f2f6f7; }
+    body.signed-in .page-banner, body.signed-in > footer { display: none; }
+    body.signed-in .site-header { position: sticky; top: 0; z-index: 20; }
+    body.signed-in .site-header-inner { max-width: none; }
+    body.signed-in main { max-width: none; padding: 0; }
+    body.signed-in .workspace {
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 0;
+      align-items: stretch;
+      min-height: calc(100dvh - 75px);
+    }
+    body.signed-in .workspace > aside.card {
+      position: sticky;
+      top: 75px;
+      align-self: start;
+      height: calc(100dvh - 75px);
+      overflow-y: auto;
+      margin: 0;
+      padding: 22px 16px;
+      border: 0;
+      border-right: 1px solid var(--border);
+      border-radius: 0;
+      background: var(--sidebar-bg);
+    }
+    body.signed-in .workspace > section.card {
+      width: 100%;
+      max-width: 860px;
+      min-width: 0;
+      margin: 0 auto;
+      padding: 36px 36px 20px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    body.signed-in #composer {
+      position: sticky;
+      bottom: 12px;
+      z-index: 10;
+      margin-top: 28px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: 0 6px 24px rgb(0 0 0 / 7%);
+    }
+    @media (max-width: 760px) {
+      .site-header-inner { flex-direction: column; align-items: flex-start; }
+      .site-header nav { gap: 16px; }
+      .page-banner-inner { padding: 32px 20px; }
+      .workspace { grid-template-columns: 1fr; }
+      .card { padding: 18px; }
+      body.signed-in .site-header-inner { flex-direction: row; align-items: center; flex-wrap: wrap; padding: 14px 16px; }
+      body.signed-in .site-header nav { gap: 12px; }
+      body.signed-in .workspace { grid-template-columns: 1fr; min-height: auto; }
+      body.signed-in .workspace > aside.card {
+        position: static;
+        height: auto;
+        max-height: 280px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      body.signed-in .workspace > section.card { padding: 24px 16px; }
+      body.signed-in #composer { bottom: 8px; }
+    }
+
+
+    /* Topic list */
+    body.signed-in #history {
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      align-content: start;
+    }
+    
+    body.signed-in .workspace > aside.card {
+      overflow-y: auto;
+    }
+    
+    /* Topic title and dots button */
+    .topic-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    
+    .topic-row > .history-item {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+    }
+    
+    .topic-row > .topic-menu-trigger {
+      flex: 0 0 32px;
+    
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    
+      width: 32px;
+      height: 32px;
+      margin: 0;
+      padding: 0;
+    
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+    
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1;
+    }
+    
+    .topic-row > .topic-menu-trigger:hover {
+      background: #e2e5de;
+      color: var(--text);
+    }
+    
+    /* Floating popover menu */
+    .floating-topic-menu {
+      position: fixed;
+      inset: auto;
+    
+      width: 160px;
+      max-width: calc(100vw - 16px);
+      max-height: calc(100dvh - 16px);
+    
+      margin: 0;
+      padding: 6px;
+      overflow-y: auto;
+    
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    
+      box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+    }
+    
+    .floating-topic-menu:popover-open {
+      display: grid;
+      gap: 2px;
+    }
+    
+    /* Menu actions */
+    .floating-topic-menu .floating-topic-action {
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 9px 12px;
+    
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      border-radius: 6px;
+    
+      font-size: 0.88rem;
+      text-align: left;
+    }
+    
+    .floating-topic-menu .floating-topic-action:hover {
+      background: #eeefea;
+    }
+    
+    .floating-topic-menu .floating-topic-delete {
+      color: #a52b36;
+    }
+    
+    .floating-topic-menu .floating-topic-delete:hover {
+      background: #fff1f2;
+    }
+
+    /* Sidebar width controls the first column.
+   The chat area takes the remaining space. */
+    @media (min-width: 761px) {
+      body.signed-in .workspace {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+    
+      body.signed-in .workspace > aside.card {
+        width: 260px;
+        min-width: 200px;
+        max-width: min(600px, 50vw);
+    
+        resize: horizontal;
+        overflow: auto;
+    
+        height: calc(100dvh - 75px);
+        min-height: 0;
+        max-height: none;
+    
+        padding-bottom: 24px;
+      }
+    }
+    
+    /* Keep the normal stacked layout on smaller screens. */
+    @media (max-width: 760px) {
+      body.signed-in .workspace {
+        grid-template-columns: 1fr;
+      }
+    
+      body.signed-in .workspace > aside.card {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        resize: none;
+    
+        height: auto;
+        min-height: 0;
+        max-height: 280px;
+        overflow-y: auto;
+      }
+    }
+
+
+    /* Compact personal topic list. */
+    body.signed-in #history {
+      display: flex !important;
+      flex-direction: column;
+      gap: 2px !important;
+    
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 6px 0 10px !important;
+      padding: 0 !important;
+    }
+    
+    /* Remove extra spacing or minimum height on each row. */
+    body.signed-in #history > .topic-row {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+    
+      height: 30px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    /* Topic title button. */
+    body.signed-in #history .history-item {
+      height: 28px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 4px 8px !important;
+    
+      font-size: 13px;
+      line-height: 18px !important;
+    }
+    
+    /* Dots menu button. */
+    body.signed-in #history .topic-menu-trigger {
+      height: 28px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    
+      font-size: 21px;
+      line-height: 1 !important;
+    }
+    
+    /* Reduce space below the heading. */
+    body.signed-in #myTopicsHeading {
+      margin-bottom: 6px;
+    }
+    
+    /* Compact assigned-user topic buttons too. */
+    body.signed-in #advisorUsersList .history-item {
+      min-height: 0 !important;
+      height: auto !important;
+      margin: 2px 0 !important;
+      padding: 5px 8px !important;
+      line-height: 18px !important;
+    }
+
+    /* Font for topic titles only. */
+    body.signed-in #history .history-item,
+    body.signed-in #advisorUsersList .history-item {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    /* Soft background for secondary buttons:
+   Refresh, Analysis, Manage advisors, Export, Close, etc. */
+    button.secondary {
+      background: #e8efed;
+      color: #244b49;
+      border-color: #cbdad6;
+      transition: background-color 150ms ease;
+    }
+    
+    button.secondary:not(:disabled):hover {
+      background: #dce8e4;
+      border-color: #a9c5bc;
+    }
+    
+    /* Light background for personal and assigned topic titles. */
+    body.signed-in #history .history-item,
+    body.signed-in #advisorUsersList .history-item {
+      background: #e8efed;
+      color: var(--text);
+      border-color: #d6e1dc;
+      border-radius: 6px;
+    }
+    
+    body.signed-in #history .history-item:not(:disabled):hover,
+    body.signed-in #advisorUsersList .history-item:not(:disabled):hover {
+      background: #dce8e4;
+    }
+    
+    /* Clearly identify the selected personal topic. */
+    body.signed-in #history .history-item.active {
+      background: #cfe3dc;
+      border-color: #86b4a4;
+    }
+    
+    /* Subtle background for the dots-menu buttons. */
+    body.signed-in #history .topic-menu-trigger {
+      background: #e8efed;
+      color: #526b64;
+    }
+    
+    body.signed-in #history .topic-menu-trigger:not(:disabled):hover {
+      background: #dce8e4;
+    }
+
+
+
+    /* Topic titles: no background or visible border. */
+      body.signed-in #history .history-item,
+      body.signed-in #advisorUsersList .history-item {
+        background: transparent;
+        border-color: transparent;
+      }
+      
+      /* Gentle highlight only while hovering. */
+      body.signed-in #history .history-item:not(:disabled):hover,
+      body.signed-in #advisorUsersList .history-item:not(:disabled):hover {
+        background: #e2e5de;
+      }
+      
+      /* Keep the selected personal topic identifiable. */
+      body.signed-in #history .history-item.active {
+        background: #e2e5de;
+        border-color: transparent;
+      }
+      
+      /* Dots-menu buttons: transparent until hovered. */
+      body.signed-in #history .topic-menu-trigger {
+        background: transparent;
+      }
+      
+      body.signed-in #history .topic-menu-trigger:not(:disabled):hover {
+        background: #e2e5de;
+      }
+
+      /* Heading and compact analysis action on the same line. */
+      #myTopicsHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 12px 0 6px;
+      }
+      
+      body.signed-in #myTopicsHeader #myTopicsHeading {
+        min-width: 0;
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.3;
+      }
+      
+      /* Small Analyze button beside the heading. */
+      #myTopicsHeader .compact-analyze {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        flex: 0 0 auto;
+      
+        width: auto;
+        min-height: 28px;
+        margin: 0;
+        padding: 3px 8px;
+      
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      
+      .compact-analyze svg {
+        flex-shrink: 0;
+      }
+      
+      /* Compact sidebar toolbar actions. */
+      body.signed-in #new,
+      body.signed-in #refresh {
+        min-height: 32px;
+        padding: 5px 10px;
+        font-size: 0.82rem;
+        line-height: 1.25;
+      }
+
+      /* Assigned-users heading and refresh icon. */
+      .assigned-users-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 12px 0 6px;
+      }
+      
+      .assigned-users-header h3 {
+        min-width: 0;
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.3;
+      }
+      
+      body.signed-in .workspace > aside.card
+      .assigned-users-header .assigned-refresh {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 28px;
+      
+        width: 28px;
+        height: 28px;
+        min-height: 28px;
+        margin: 0;
+        padding: 0;
+      
+        border-radius: 6px;
+      }
+      
+      .assigned-refresh svg {
+        display: block;
+        flex-shrink: 0;
+      }
+
+    .sidebar-export-label {
+      margin: 12px 0 6px;
+    }
+    
+    .sidebar-export-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 6px;
+    }
+    
+    body.signed-in .workspace > aside.card .sidebar-small-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    
+      width: auto;
+      min-height: 28px;
+      margin: 0;
+      padding: 4px 8px;
+    
+      border-radius: 6px;
+      font-size: 0.75rem;
+      line-height: 1.2;
+    }
+    
+    .sidebar-small-action svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+
+
+    /* Assigned user name, count, and analysis action. */
+    #advisorUsersList > details > summary {
+      cursor: pointer;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
+    
+    .assigned-user-name {
+      font-size: 0.82rem;
+    }
+    
+    .assigned-user-count {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    
+    body.signed-in .workspace > aside.card
+    #advisorUsersList .advisorAnalyzeUser {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      vertical-align: middle;
+    
+      width: auto;
+      min-height: 24px;
+      margin: 0 0 0 6px;
+      padding: 2px 6px;
+    
+      border-radius: 5px;
+      font-size: 0.72rem;
+      line-height: 18px;
+    }
+
+    /* Microphone / stop icon button. */
+    body.signed-in #composer #voice {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
+      padding: 0;
+    
+      border-radius: 10px;
+      flex: 0 0 36px;
+    }
+    
+    #voice svg {
+      display: block;
+      flex-shrink: 0;
+    }
+    
+    /* Clearly show when voice input is active. */
+    body.signed-in #composer #voice[aria-pressed="true"] {
+      background: #a52b36;
+      border-color: #a52b36;
+      color: #ffffff;
+    }
+    
+    #voiceStatus {
+      margin-top: 8px;
+      font-size: 0.8rem;
+    }
+
+    /* Compact sidebar search boxes. */
+    body.signed-in #search,
+    body.signed-in #advisorTopicSearch {
+      width: 100%;
+      max-width: 180px;
+      min-width: 0;
+    
+      height: 32px;
+      padding: 5px 8px;
+    
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 20px;
+    }
+
+
+      /* Clear analysis scope at the top of the main area. */
+      #analysisScopeLabel {
+        margin: 12px 0 20px;
+        padding: 12px 14px;
+      
+        background: #edf4f1;
+        border: 1px solid #d2e1da;
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+      
+        color: #244b49;
+        font-size: 0.85rem;
+        line-height: 1.7;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+      }
+
+    
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="/" aria-label="Forenture Home">
+        <img src="./Images/FORENTURE.png" alt="FORENTURE" class="brand-logo-img" style="height: 38px; width: auto; max-width: 220px; object-fit: contain; display: block;">
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/research.html">Research</a>
+        <a href="/teaching.html">Teaching</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-banner" aria-labelledby="page-title">
+    <div class="page-banner-inner">
+      <p class="banner-label">AI Foresight &amp; Venture Lab</p>
+      <h1 id="page-title">AI Research Assistant</h1>
+      <p class="banner-description">
+        Explore business challenges, develop ideas, and make informed decisions
+        through a conversation with AI.
+      </p>
+    </div>
+  </section>
+
+  <main>
+    <p id="setup" class="notice" hidden>
+      The assistant is not configured yet. Please contact the site administrator.
+    </p>
+
+    
+
+    <section id="auth" class="card auth-card">
+      <div class="login-video-box">
+        <video
+          id="brandVideo"
+          autoplay
+          playsinline
+          preload="auto"
+          poster="./Images/FORENTURE.png"
+          aria-label="Forenture logo animation"
+        >
+          <source src="./Images/forenture-logo-build.mp4" type="video/mp4">
+        </video>
+      </div>
+    <div class="auth-details">
+      <h2>Sign in</h2>
+     
+      <p>Sign in to access your AI conversations.</p>
+      <section id="study-panel" class="card">
+          <h2>Study information and privacy</h2>
+          <p id="study"></p>
+          <label class="check">
+            <input type="checkbox" id="consent">
+            <span>
+              I have read the privacy notice and agree to the described recording
+              and use of my conversations.
+            </span>
+          </label>
+      </section>
+    
+      
+      <form id="login">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <div class="row">
+          <button id="loginButton" type="submit">Sign in</button>
+          <button
+            id="signupButton"
+            type="button"
+            class="secondary"
+            hidden
+            style="display: none !important;"
+          >
+            Sign up
+          </button>
+        </div>
+      </form>
+      </div>
+    </section>
+    
+    <section id="workspace" class="workspace" hidden>
+      <aside class="card">
+        <div class="row">
+          <button
+            id="new"
+            type="button"
+            title="Start a new conversation"
+            aria-label="Start a new conversation"
+          >
+            <span aria-hidden="true">＋</span> New
+          </button>
+          
+          <button id="refresh" type="button" class="secondary">Refresh</button>
+        </div>
+        <label for="search">Search history</label>
+        <input id="search" type="search" placeholder="Search titles, prompts, responses">
+        <p id="count" class="small"></p>
+        <div id="history"></div>
+        <hr>
+
+        <p class="small sidebar-export-label">Export my chats</p>
+        
+        <div class="sidebar-export-actions">
+          <button
+            id="json"
+            type="button"
+            class="secondary sidebar-small-action"
+            title="Export all your saved chats as JSON"
+            aria-label="Export all your saved chats as JSON"
+          >
+            <span aria-hidden="true">↓</span>
+            <span>JSON</span>
+          </button>
+        
+          <button
+            id="csv"
+            type="button"
+            class="secondary sidebar-small-action"
+            title="Export all your saved chats as CSV"
+            aria-label="Export all your saved chats as CSV"
+          >
+            <span aria-hidden="true">↓</span>
+            <span>CSV</span>
+          </button>
+        </div>
+        
+        <p class="small">
+          Your records only, including hidden topics.
+          Search does not restrict exports.
+        </p>
+        
+        <button
+          id="logout"
+          type="button"
+          class="secondary sidebar-small-action"
+          title="Sign out"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M9 4H4v16h5"/>
+            <path d="M10 12h11"/>
+            <path d="m17 8 4 4-4 4"/>
+          </svg>
+          <span>Sign out</span>
+        </button>
+        
+       
+      </aside>
+
+      <section class="card">
+        <h2 id="title">New conversation</h2>
+        <div id="messages" role="log" aria-live="polite"></div>
+        <form id="composer">
+          <label for="prompt">Your message</label>
+          <textarea
+            id="prompt"
+            maxlength="6000"
+            placeholder="Ask a question or describe a business challenge…"
+            required
+          ></textarea>
+          <div class="row">
+            <button
+              id="voice"
+              type="button"
+              class="secondary"
+              aria-label="Start voice input"
+              aria-pressed="false"
+              aria-describedby="voicePrivacy voiceStatus"
+              title="Start voice input"
+              disabled
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect x="9" y="2" width="6" height="12" rx="3"/>
+                <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+                <path d="M12 19v3M8 22h8"/>
+              </svg>
+            </button>
+            
+            <button id="send" type="submit">Send</button>
+            <button id="check" type="button" class="secondary" hidden>
+              Check uncertain request
+            </button>
+          </div>
+        </form>
+        <p id="voiceStatus" class="small" role="status" aria-live="polite"></p>
+        <p id="voicePrivacy" class="small">
+          Optional voice input may send audio to your browser's speech-recognition
+          provider. Do not dictate confidential or sensitive information.
+          Review the text before sending.
+        </p>
+        <p class="small">
+          Starting a new chat or signing out does not delete saved conversations.
+          Verify important AI claims. This assistant does not provide live web search.
+        </p>
+      </section>
+    </section>
+
+    <p id="status" role="status" aria-live="polite"></p>
+    <noscript>JavaScript must be enabled to sign in and use the assistant.</noscript>
+  </main>
+
+  <footer>Forenture · AI Foresight &amp; Venture Lab</footer>
+  <script type="module" src="./chat.js?v=scope-header-1"></script>
+    
+  <script>
+  const brandVideo = document.getElementById("brandVideo");
+
+  // brandVideo.muted = true;
+
+  brandVideo.play().catch((error) => {
+    console.error("Logo video could not play:", error);
+    brandVideo.controls = true;
+  });
+</script>
+<script>
+(() => {
+  function pauseLoginVideo() {
+    if (!document.body.classList.contains('signed-in')) {
+      return;
+    }
+
+    const video = document.getElementById('brandVideo');
+
+    if (video) {
+      video.autoplay = false;
+      video.pause();
+    }
+  }
+
+  const video = document.getElementById('brandVideo');
+
+  if (video) {
+    video.addEventListener('play', pauseLoginVideo);
+    video.addEventListener('playing', pauseLoginVideo);
+  }
+
+  const observer = new MutationObserver(pauseLoginVideo);
+
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['class']
+  });
+
+  pauseLoginVideo();
+})();
+</script>
+</body>
+</html>
