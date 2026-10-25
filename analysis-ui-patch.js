@@ -1,533 +1,69 @@
-export function mountAnalysisUI({
-  getDb,
-  getSession,
-  isLocked
-}) {
-  let dialog = null;
-  let running = false;
-  let generation = 0;
-  let model = null;
-  let editor = null;
-  let status = null;
-  let downloadButton = null;
-  let activeUserId = null;
-  let analyzeAgainButton = null;
-
-  /*
-   * These rules suggest categories only.
-   * Matching a keyword is not evidence of causation,
-   * importance, or completeness.
-   */
-  const rules = [
-    {
-      id: 'goals',
-      label: 'Goals and desired outcomes',
-      pattern:
-        /\b(goal|objective|aim|want|hope|achieve|success|target|intend)\b/i
-    },
-    {
-      id: 'financial',
-      label: 'Financial factors',
-      pattern:
-        /\b(budget|cost|costs|price|pricing|revenue|profit|funding|cash|money|financial|afford|investment)\b|[$€£]|\bCAD\b|\bUSD\b/i
-    },
-    {
-      id: 'timing',
-      label: 'Timing and deadlines',
-      pattern:
-        /\b(deadline|timeline|launch|delay|urgent|soon|month|months|week|weeks|year|years|time)\b/i
-    },
-    {
-      id: 'customers',
-      label: 'Customers and demand',
-      pattern:
-        /\b(customer|customers|client|clients|market|demand|buyer|buyers|sales|willingness|purchase|adoption)\b/i
-    },
-    {
-      id: 'resources',
-      label: 'Resources and capabilities',
-      pattern:
-        /\b(team|staff|skills|capacity|resource|resources|equipment|technology|supplier|suppliers|expertise|available)\b/i
-    },
-    {
-      id: 'constraints',
-      label: 'Constraints and requirements',
-      pattern:
-        /\b(must|cannot|can't|required|requirement|limit|limited|constraint|restriction|only|compliance|regulation|legal)\b/i
-    },
-    {
-      id: 'risks',
-      label: 'Risks and uncertainty',
-      pattern:
-        /\b(risk|uncertain|uncertainty|unknown|failure|fail|concern|worry|threat|might|may|could)\b/i
-    },
-    {
-      id: 'options',
-      label: 'Options and tradeoffs',
-      pattern:
-        /\b(option|alternative|choose|choice|versus|instead|either|whether|tradeoff|trade-off)\b/i
-    },
-    {
-      id: 'evidence',
-      label: 'Evidence and assumptions',
-      pattern:
-        /\b(evidence|data|interview|interviews|survey|research|tested|test|pilot|assume|assumption|believe|estimate)\b/i
-    },
-    {
-      id: 'stakeholders',
-      label: 'Stakeholders and dependencies',
-      pattern:
-        /\b(partner|partners|investor|investors|advisor|advisors|stakeholder|stakeholders|approval|depends|dependency)\b/i
-    }
-  ];
-
-  function element(tag, text, parent) {
-    const node = document.createElement(tag);
-
-    if (text !== undefined) {
-      node.textContent = text;
-    }
-
-    if (parent) parent.append(node);
-    return node;
-  }
-
-  function currentUser() {
-    return getSession()?.user?.id || null;
-  }
-
-  function setStatus(message) {
-    if (status) status.textContent = message;
-  }
-
-  function validRequest(token, userId) {
-    return (
-      token === generation &&
-      currentUser() === userId &&
-      dialog?.isConnected
-    );
-  }
-
-  function close() {
-    generation += 1;
-    running = false;
-    activeUserId = null;
-    model = null;
-    editor = null;
-    status = null;
-    downloadButton = null;
-    analyzeAgainButton = null;
-
-    if (dialog) {
-      if (dialog.open) dialog.close();
-      dialog.remove();
-      dialog = null;
-    }
-  }
-
-  function sync() {
-    if (dialog && currentUser() !== activeUserId) {
-      close();
-      return;
-    }
-
-    if (analyzeAgainButton) {
-      analyzeAgainButton.disabled =
-        running || !currentUser() || isLocked();
-    }
-
-    if (downloadButton) {
-      downloadButton.disabled = running || !model;
-    }
-  }
-
-  function splitPrompt(text) {
-    return String(text || '')
-      .split(/\n+|(?<=[.!?])\s+/u)
-      .map(value => value.trim())
-      .filter(Boolean);
-  }
-
-  function createModel(topic, turns) {
-    const sources = turns
-      .filter(turn => String(turn.prompt || '').trim())
-      .map(turn => ({
-        turn_id: turn.id,
-        created_at: turn.created_at,
-        prompt: String(turn.prompt)
-      }));
-
-    const passages = [];
-
-    for (const source of sources) {
-      splitPrompt(source.prompt).forEach((quote, index) => {
-        passages.push({
-          source_ref: `${source.turn_id}:p${index + 1}`,
-          turn_id: source.turn_id,
-          quote
-        });
-      });
-    }
-
-    const matched = new Set();
-
-    const candidates = rules.map(rule => {
-      const evidence = passages.filter(passage => {
-        const match = rule.pattern.test(passage.quote);
-
-        if (match) matched.add(passage.source_ref);
-        return match;
-      });
-
-      return {
-        category: rule.id,
-        label: rule.label,
-        review_status: 'unreviewed',
-        interpretation: '',
-        evidence
-      };
-    }).filter(candidate => candidate.evidence.length);
-
-    return {
-      schema_version: 'conversation-driver-review-v1',
-      method: 'local_keyword_assisted_review',
-      generated_at: new Date().toISOString(),
-      conversation_id: topic.id,
-      title: topic.title || 'Untitled conversation',
-      scope: 'User prompts only; assistant replies excluded.',
-      limitations: [
-        'Candidate categories are keyword matches, not validated drivers.',
-        'Relevant passages may be missed or categorized incorrectly.',
-        'No importance ranking or causal relationship is inferred.',
-        'Review original prompts before confirming interpretations.'
-      ],
-      decision_question: '',
-      candidate_drivers: candidates,
-      unmatched_passages: passages.filter(
-        passage => !matched.has(passage.source_ref)
-      ),
-      additional_drivers: [],
-      relationships: [],
-      review_questions: [
-        'What decision or question is this conversation addressing?',
-        'Which candidate drivers are actually relevant?',
-        'Which drivers are missing or incorrectly categorized?',
-        'Which statements are assumptions rather than observations?',
-        'What evidence supports any proposed relationship?'
-      ],
-      sources
-    };
-  }
-
-  function readEditedModel() {
-    const value = JSON.parse(editor.value);
-
-    if (
-      !value ||
-      typeof value !== 'object' ||
-      Array.isArray(value) ||
-      value.conversation_id !== model.conversation_id ||
-      !Array.isArray(value.candidate_drivers) ||
-      !Array.isArray(value.sources)
-    ) {
-      throw new Error(
-        'Keep conversation_id unchanged and retain ' +
-        'candidate_drivers and sources as arrays.'
-      );
-    }
-
-    return value;
-  }
-
-  function downloadModel() {
-    try {
-      const edited = readEditedModel();
-
-      const blob = new Blob(
-        [JSON.stringify(edited, null, 2)],
-        { type: 'application/json' }
-      );
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-
-      link.href = url;
-      link.download =
-        `topic-model-${model.conversation_id}.json`;
-
-      document.body.append(link);
-      link.click();
-      link.remove();
-
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-      setStatus(
-        'JSON downloaded. No model was saved to the database.'
-      );
-    } catch (error) {
-      setStatus('Cannot download: ' + error.message);
-    }
-  }
-
-  async function loadTurns(db, userId, conversationId) {
-    const result = [];
-
-    for (let start = 0; ; start += 500) {
-      const { data, error } = await db
-        .from('research_turns')
-        .select('id, conversation_id, user_id, created_at, prompt')
-        .eq('user_id', userId)
-        .eq('conversation_id', conversationId)
-        .order('created_at')
-        .order('id')
-        .range(start, start + 499);
-
-      if (error) throw new Error(error.message);
-
-      if (currentUser() !== userId) {
-        throw new Error('The signed-in account changed.');
+export function mountAnalysisUI({getDb,getSession,isLocked}) {
+  let dialog=null, activeUser=null, epoch=0, working=false, result=null;
+  const el=(tag,text,parent)=>{const n=document.createElement(tag); if(text!==undefined)n.textContent=text; if(parent)parent.append(n); return n;};
+  function close(){epoch++; working=false; result=null; activeUser=null; if(dialog){dialog.close();dialog.remove();dialog=null;}}
+  function sync(){if(dialog && getSession()?.user.id!==activeUser)close();}
+  async function analyze(conversationId){
+    if(isLocked())throw new Error('Finish the current chat or voice action first.');
+    if(working)throw new Error('An analysis is already running.');
+    const db=getDb(), uid=getSession()?.user.id;
+    if(!db||!uid)throw new Error('Please sign in.');
+    if(dialog&&!confirm('Replace the current analysis? Download it first if needed.'))return;
+    close(); activeUser=uid; const token=++epoch; working=true;
+    dialog=el('dialog'); dialog.style.cssText='width:min(1000px,94vw);max-height:90vh;overflow:auto;padding:24px;border-radius:12px';
+    dialog.setAttribute('aria-label','Evolving conversation concept model');
+    el('h2','Conversation concept model',dialog);
+    el('p','AI-proposed analysis, not verified business facts. Extraction scores are uncalibrated. Analysis is not saved to the database.',dialog);
+    const status=el('p','Loading…',dialog); status.setAttribute('role','status');
+    const body=el('section',undefined,dialog);
+    const download=el('button','Download model JSON',dialog); download.disabled=true;
+    download.onclick=()=>{if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='conversation-concepts-'+conversationId+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);};
+    const dismiss=el('button','Close',dialog);dismiss.onclick=close;
+    dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
+    document.body.append(dialog);dialog.showModal();
+    const current=()=>token===epoch&&getSession()?.user.id===uid;
+    function render(snapshot){
+      const card=el('details',undefined,body);card.open=true;
+      el('summary',`Turn ${snapshot.sequence} · ${new Date(snapshot.source.created_at).toLocaleString()}`,card);
+      const source=el('details',undefined,card);el('summary','Original prompt and response',source);
+      el('h4','User prompt',source);el('pre',snapshot.source.prompt,source).style.whiteSpace='pre-wrap';
+      el('h4','AI response',source);el('pre',snapshot.source.response,source).style.whiteSpace='pre-wrap';
+      el('h4','Concepts after this turn',card);
+      for(const c of snapshot.model.concepts){
+        const d=el('details',undefined,card);
+        el('summary',`${c.label} · ${c.role} · extraction score ${c.extraction_confidence}`,d);
+        el('p',c.definition,d);el('p','Review: '+c.review_status,d);
+        for(const s of c.evidence)el('blockquote',`${s.speaker}, turn ${s.turn_id}: “${s.quote}”`,d);
+        if(c.state_estimate)el('pre',JSON.stringify(c.state_estimate,null,2),d).style.whiteSpace='pre-wrap';
       }
-
-      result.push(...data);
-
-      if (data.length < 500) return result;
+      el('h4','Changes proposed in this turn',card);
+      for(const c of snapshot.model.changes)el('p',`${c.kind}: ${c.description} (concept ${c.concept_id})`,card);
+      el('h4','Proposed relationships',card);
+      for(const r of snapshot.model.relationships)el('p',`${r.from_id} → ${r.to_id}: ${r.description}. Score ${r.extraction_confidence}; not established causation.`,card);
+      el('h4','Unresolved questions',card);for(const q of snapshot.model.open_questions)el('p',q,card);
     }
+    try{
+      const t=await db.from('research_conversations').select('id,title,user_id,is_visible').eq('id',conversationId).eq('user_id',uid).single();
+      if(t.error)throw t.error;
+      let turns=[];
+      for(let start=0;;start+=500){const q=await db.from('research_turns').select('id,created_at,completed_at,status,prompt,response').eq('conversation_id',conversationId).eq('user_id',uid).order('created_at').order('id').range(start,start+499);if(q.error)throw q.error;if(!current())return;turns.push(...q.data);if(q.data.length<500)break;}
+      result={schema_version:'conversation-concepts-v1',conversation_id:conversationId,title:t.data.title,analyzed_at:new Date().toISOString(),method:'gemini_proposed_unreviewed',snapshots:[]};
+      const skipped=turns.filter(x=>x.status!=='completed'||!x.response).length;
+      turns=turns.filter(x=>x.status==='completed'&&x.response);
+      let previous=null;
+      for(let i=0;i<turns.length;i++){
+        if(!current())return;
+        status.textContent=`Analyzing turn ${i+1} of ${turns.length}. Each turn makes an AI request; do not restart unnecessarily.`;
+        const {data,error}=await db.functions.invoke('conversation-concepts',{body:{conversation_id:conversationId,turn_id:turns[i].id,previous_model:previous}});
+        if(!current())return;
+        if(error){let message=error.message;try{message=(await error.context.json()).error||message;}catch{}throw new Error(message);}
+        if(!data?.model)throw new Error('Backend returned no model.');
+        previous=data.model;
+        const snapshot={sequence:i+1,source:turns[i],model:previous};result.snapshots.push(snapshot);render(snapshot);download.disabled=false;
+      }
+      status.textContent=`Finished: ${result.snapshots.length} completed turns; ${skipped} incomplete turns skipped. Download to retain this analysis. Nothing was written to the database.`;
+    }catch(e){if(current())status.textContent='Analysis stopped: '+e.message+'. Any completed snapshots can still be downloaded.';}
+    finally{if(current())working=false;}
   }
-
-  function renderModel(container) {
-    container.replaceChildren();
-
-    element('h3', 'Candidate drivers', container);
-
-    element(
-      'p',
-      'These are suggested categories from user prompts. ' +
-      'Counts are not measures of importance.',
-      container
-    );
-
-    if (!model.candidate_drivers.length) {
-      element(
-        'p',
-        'No categories matched. Review the original prompts ' +
-        'and add drivers manually in the JSON editor.',
-        container
-      );
-    }
-
-    for (const driver of model.candidate_drivers) {
-      const details = element('details', undefined, container);
-
-      element(
-        'summary',
-        `${driver.label} — ${driver.evidence.length} passage(s)`,
-        details
-      );
-
-      for (const evidence of driver.evidence) {
-        element('blockquote', evidence.quote, details);
-
-        const reference = element(
-          'p',
-          `Source: ${evidence.source_ref}`,
-          details
-        );
-
-        reference.style.fontSize = '0.85em';
-      }
-    }
-
-    const unmatched = element('details', undefined, container);
-
-    element(
-      'summary',
-      `Uncategorized passages (${model.unmatched_passages.length})`,
-      unmatched
-    );
-
-    for (const passage of model.unmatched_passages) {
-      element('blockquote', passage.quote, unmatched);
-      element('p', `Source: ${passage.source_ref}`, unmatched);
-    }
-
-    const originals = element('details', undefined, container);
-
-    element(
-      'summary',
-      `All original user prompts (${model.sources.length})`,
-      originals
-    );
-
-    for (const source of model.sources) {
-      element('h4', `Turn ${source.turn_id}`, originals);
-
-      const prompt = element('p', source.prompt, originals);
-      prompt.style.whiteSpace = 'pre-wrap';
-    }
-
-    element('h3', 'Review and edit the model', container);
-
-    element(
-      'p',
-      'Add the decision question, correct candidate drivers, ' +
-      'and add missing drivers. Relationships are intentionally ' +
-      'empty: do not treat keyword matches as causal evidence. ' +
-      'Edits remain here only until you download or close.',
-      container
-    );
-
-    editor = element('textarea', undefined, container);
-    editor.setAttribute('aria-label', 'Editable topic model JSON');
-    editor.spellcheck = false;
-    editor.value = JSON.stringify(model, null, 2);
-
-    Object.assign(editor.style, {
-      boxSizing: 'border-box',
-      width: '100%',
-      minHeight: '360px',
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      padding: '12px'
-    });
-  }
-
-  async function analyze(conversationId) {
-    const db = getDb();
-    const userId = currentUser();
-
-    if (!db || !userId || isLocked() || running) return;
-
-    if (dialog) {
-      const confirmed = window.confirm(
-        'Replace this open analysis? ' +
-        'Any edits not downloaded will be lost.'
-      );
-
-      if (!confirmed) return;
-    }
-
-    close();
-    activeUserId = userId;
-
-    dialog = element('dialog');
-    dialog.setAttribute('aria-labelledby', 'topicAnalysisHeading');
-
-    Object.assign(dialog.style, {
-      boxSizing: 'border-box',
-      width: 'min(960px, calc(100vw - 24px))',
-      maxHeight: '90dvh',
-      overflowY: 'auto',
-      padding: '24px',
-      border: '1px solid #bbb',
-      borderRadius: '12px'
-    });
-
-    const heading = element('h2', 'Topic analysis', dialog);
-    heading.id = 'topicAnalysisHeading';
-
-    element(
-      'p',
-      'Local prompt analysis. No new topic is created and ' +
-      'no external AI request is made.',
-      dialog
-    );
-
-    status = element('p', '', dialog);
-    status.setAttribute('role', 'status');
-    status.setAttribute('aria-live', 'polite');
-
-    const content = element('section', undefined, dialog);
-    const actions = element('div', undefined, dialog);
-
-    Object.assign(actions.style, {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '10px',
-      marginTop: '20px'
-    });
-
-    analyzeAgainButton = element(
-      'button',
-      'Rebuild from current prompts',
-      actions
-    );
-    analyzeAgainButton.type = 'button';
-    analyzeAgainButton.onclick = () => analyze(conversationId);
-
-    downloadButton = element('button', 'Download model JSON', actions);
-    downloadButton.type = 'button';
-    downloadButton.onclick = downloadModel;
-
-    const closeButton = element('button', 'Close', actions);
-    closeButton.type = 'button';
-
-    function requestClose() {
-      if (
-        editor &&
-        model &&
-        editor.value !== JSON.stringify(model, null, 2) &&
-        !window.confirm('Close and discard your edited model?')
-      ) {
-        return;
-      }
-
-      close();
-    }
-
-    closeButton.onclick = requestClose;
-
-    dialog.addEventListener('cancel', event => {
-      event.preventDefault();
-      requestClose();
-    });
-
-    document.body.append(dialog);
-    dialog.showModal();
-
-    const token = ++generation;
-    running = true;
-    sync();
-    setStatus('Loading this conversation’s saved prompts…');
-
-    try {
-      const { data: topic, error } = await db
-        .from('research_conversations')
-        .select('id, title, user_id, is_visible')
-        .eq('id', conversationId)
-        .eq('user_id', userId)
-        .single();
-
-      if (error) throw new Error(error.message);
-
-      if (topic.is_visible === 0) {
-        throw new Error('This topic has been removed from history.');
-      }
-
-      const turns = await loadTurns(db, userId, conversationId);
-
-      if (!validRequest(token, userId)) return;
-
-      model = createModel(topic, turns);
-
-      heading.textContent = `Analyze: ${model.title}`;
-      renderModel(content);
-
-      setStatus(
-        `Reviewed ${model.sources.length} saved user prompt(s). ` +
-        `Found ${model.candidate_drivers.length} candidate categories. ` +
-        'Review required; nothing was saved to the database.'
-      );
-    } catch (error) {
-      if (validRequest(token, userId)) {
-        setStatus('Analysis failed: ' + error.message);
-      }
-    } finally {
-      if (validRequest(token, userId)) {
-        running = false;
-        sync();
-      }
-    }
-  }
-
-  return { sync, analyze, close };
+  return {sync,analyze,close};
 }
