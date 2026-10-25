@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 
 import { createAdvisorTopics } from './advisor-topics.js?v=formatted-review-1';
-import { mountAnalysisUI } from './analysis-ui-patch.js?v=scope-header-1';
+import { mountAnalysisUI } from './analysis-ui-patch.js?v=existing-topic-analysis-3';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
