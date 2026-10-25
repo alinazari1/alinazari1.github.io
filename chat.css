@@ -310,3 +310,35 @@
   }
 }
 
+#inlineAnalysisPanels {
+  width: 100%;
+  min-width: 0;
+}
+
+#inlineAnalysisPanels:empty {
+  display: none;
+}
+
+#inlineAnalysisPanels .inline-analysis-panel[open] {
+  display: block;
+  position: static;
+  overflow-wrap: anywhere;
+}
+
+#inlineAnalysisPanels .inline-analysis-panel textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+#inlineAnalysisPanels .inline-analysis-panel pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#inlineAnalysisPanels .inline-analysis-panel button {
+  margin: 6px 6px 0 0;
+}
+
+#inlineAnalysisPanels .inline-analysis-panel details {
+  margin: 12px 0;
+}
