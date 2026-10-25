@@ -2,6 +2,8 @@ import {
   mountAnalysisUI as mountConversationConceptsUI
 } from './conversation-concepts-ui.js?v=concept-model-1';
 
+import { showInlineAnalysisPanel } from
+  './inline-analysis-panels.js?v=inline-1';
 
 export function mountAnalysisUI({
   getDb,
