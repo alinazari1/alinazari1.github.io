@@ -291,6 +291,10 @@ function history() {
       'Rename',
       () => renameTopic(topic.id)
     );
+    addAction(
+      'Rename',
+      () => renameTopic(topic.id)
+    );
 
     addAction(
       'Delete',
