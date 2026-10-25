@@ -1,7 +1,8 @@
 import { CONFIG } from './config.js';
 
 import { createAdvisorTopics } from './advisor-topics.js?v=formatted-review-1';
-import { mountAnalysisUI } from './analysis-ui-patch.js?v=existing-topic-analysis-3';
+
+import { mountAnalysisUI } from './analysis-ui-patch.js?v=concept-model-1';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
@@ -287,10 +288,16 @@ function history() {
       () => togglePin(topic.id)
     );
 
-    addAction(
-      'Analyze',
-      () => analysisUI.analyze(topic.id)
-    );
+    addAction('Analyze', async () => {
+      try {
+        await analysisUI.analyze(topic.id);
+      } catch (error) {
+        say('Analysis failed: ' + error.message);
+        window.alert('Analysis failed: ' + error.message);
+      }
+    });
+
+    
     addAction(
       'Rename',
       () => renameTopic(topic.id)
