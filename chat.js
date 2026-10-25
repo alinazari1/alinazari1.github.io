@@ -1,8 +1,8 @@
 import { CONFIG } from './config.js';
 
 import { createAdvisorTopics } from './advisor-topics.js?v=formatted-review-1';
-
-import { mountAnalysisUI } from './analysis-ui-patch.js?v=both-analysis-1';
+import { mountAnalysisUI } from
+  './analysis-ui-patch.js?v=inline-1';
 
 
 import { marked } from
