@@ -59,9 +59,54 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
   for(const r of rows){const n=r.source_state?.turns?.length;const option=el('option',`${new Date(r.requested_at).toLocaleString()} · through exchange ${n||'?'} · revision ${r.revision}`,selector);option.value=r.id;}selector.value=choice;
   const row=selectedRow();status.textContent=message||(loading?'Loading saved report pairs…':row?`Saved pair: requested ${new Date(row.requested_at).toLocaleString()}, completed ${new Date(row.generation_completed_at).toLocaleString()}. All three tabs use the same captured source.`:rows.length?'No pair saved for the current conversation state. Select Quick summary or Conversation insights to generate both, or choose an earlier snapshot.':'No report pair yet. Select Quick summary or Conversation insights to generate both reports.');
   if(!row){if(active==='concepts_network')el('p','No saved network for this selection. Choose an earlier saved snapshot, or select Quick summary or Conversation insights to generate a report pair. This tab does not make AI requests.',panel);sync();return;}
-  if(active==='concepts_network'){
-   try{networkView=renderConceptsNetwork(row,panel);}catch(e){disposeNetwork();panel.replaceChildren();el('p','Could not display the concepts network: '+e.message,panel);}sync();return;
+  if (active === 'concepts_network') {
+    const placeholder = el(
+      'p',
+      'Loading concepts network…',
+      panel
+    );
+  
+    const stillCurrent = () =>
+      active === 'concepts_network' &&
+      panel.contains(placeholder);
+  
+    import('./concepts-network.js?v=1')
+      .then(module => {
+        if (!stillCurrent()) return;
+  
+        if (typeof module.renderConceptsNetwork !== 'function') {
+          throw new Error(
+            'concepts-network.js does not export renderConceptsNetwork.'
+          );
+        }
+  
+        try {
+          networkView = module.renderConceptsNetwork(row, panel);
+        } catch (error) {
+          disposeNetwork();
+          panel.replaceChildren();
+  
+          el(
+            'p',
+            'Could not display the concepts network: ' +
+              error.message,
+            panel
+          );
+        }
+      })
+      .catch(error => {
+        if (!stillCurrent()) return;
+  
+        placeholder.textContent =
+          'Could not load the concepts network: ' +
+          error.message +
+          '. The other report tabs remain available.';
+      });
+  
+    sync();
+    return;
   }
+  
   if(active==='quick_summary'){const q=row.quick_summary;el('h3','What you mentioned',panel);el('p',`Based on ${q.prompt_count} user prompts in completed exchanges. Keyword-assisted overview; assistant responses are excluded from this summary.`,panel);
    for(const g of q.groups||[]){const d=el('details',undefined,panel);el('summary',g.label,d);for(const e of g.evidence)el('blockquote',e.quote,d);}if(!(q.groups||[]).length)el('p','No predefined categories matched. This is not evidence that the conversation lacks relevant concepts.',panel);
    const other=el('details',undefined,panel);el('summary','Other passages to review',other);for(const e of q.unmatched||[])el('blockquote',e.quote,other);
