@@ -1,568 +1,104 @@
-import {
-  mountAnalysisUI as mountConversationConceptsUI
-} from './conversation-concepts-ui.js?v=inline-1';
-
-import { showInlineAnalysisPanel } from
-  './inline-analysis-panels.js?v=inline-1';
-
-
-export function mountAnalysisUI({
-  getDb,
-  getSession,
-  isLocked
-}) {
-  const conceptUI = mountConversationConceptsUI({
-    getDb,
-    getSession,
-    isLocked
-  });
-  let dialog = null;
-  let running = false;
-  let generation = 0;
-  let model = null;
-  let editor = null;
-  let status = null;
-  let downloadButton = null;
-  let activeUserId = null;
-  let analyzeAgainButton = null;
-
-  /*
-   * These rules suggest categories only.
-   * Matching a keyword is not evidence of causation,
-   * importance, or completeness.
-   */
-  const rules = [
-    {
-      id: 'goals',
-      label: 'Goals and desired outcomes',
-      pattern:
-        /\b(goal|objective|aim|want|hope|achieve|success|target|intend)\b/i
-    },
-    {
-      id: 'financial',
-      label: 'Financial factors',
-      pattern:
-        /\b(budget|cost|costs|price|pricing|revenue|profit|funding|cash|money|financial|afford|investment)\b|[$€£]|\bCAD\b|\bUSD\b/i
-    },
-    {
-      id: 'timing',
-      label: 'Timing and deadlines',
-      pattern:
-        /\b(deadline|timeline|launch|delay|urgent|soon|month|months|week|weeks|year|years|time)\b/i
-    },
-    {
-      id: 'customers',
-      label: 'Customers and demand',
-      pattern:
-        /\b(customer|customers|client|clients|market|demand|buyer|buyers|sales|willingness|purchase|adoption)\b/i
-    },
-    {
-      id: 'resources',
-      label: 'Resources and capabilities',
-      pattern:
-        /\b(team|staff|skills|capacity|resource|resources|equipment|technology|supplier|suppliers|expertise|available)\b/i
-    },
-    {
-      id: 'constraints',
-      label: 'Constraints and requirements',
-      pattern:
-        /\b(must|cannot|can't|required|requirement|limit|limited|constraint|restriction|only|compliance|regulation|legal)\b/i
-    },
-    {
-      id: 'risks',
-      label: 'Risks and uncertainty',
-      pattern:
-        /\b(risk|uncertain|uncertainty|unknown|failure|fail|concern|worry|threat|might|may|could)\b/i
-    },
-    {
-      id: 'options',
-      label: 'Options and tradeoffs',
-      pattern:
-        /\b(option|alternative|choose|choice|versus|instead|either|whether|tradeoff|trade-off)\b/i
-    },
-    {
-      id: 'evidence',
-      label: 'Evidence and assumptions',
-      pattern:
-        /\b(evidence|data|interview|interviews|survey|research|tested|test|pilot|assume|assumption|believe|estimate)\b/i
-    },
-    {
-      id: 'stakeholders',
-      label: 'Stakeholders and dependencies',
-      pattern:
-        /\b(partner|partners|investor|investors|advisor|advisors|stakeholder|stakeholders|approval|depends|dependency)\b/i
-    }
-  ];
-
-  function element(tag, text, parent) {
-    const node = document.createElement(tag);
-
-    if (text !== undefined) {
-      node.textContent = text;
-    }
-
-    if (parent) parent.append(node);
-    return node;
-  }
-
-  function currentUser() {
-    return getSession()?.user?.id || null;
-  }
-
-  function setStatus(message) {
-    if (status) status.textContent = message;
-  }
-
-  function validRequest(token, userId) {
-    return (
-      token === generation &&
-      currentUser() === userId &&
-      dialog?.isConnected
-    );
-  }
-
-  function close() {
-    generation += 1;
-    running = false;
-    activeUserId = null;
-    model = null;
-    editor = null;
-    status = null;
-    downloadButton = null;
-    analyzeAgainButton = null;
-
-    if (dialog) {
-      if (dialog.open) dialog.close();
-      dialog.remove();
-      dialog = null;
-    }
-  }
-
-  function sync() {
-    conceptUI.sync();
-    if (dialog && currentUser() !== activeUserId) {
-      close();
-      return;
-    }
-
-    if (analyzeAgainButton) {
-      analyzeAgainButton.disabled =
-        running || !currentUser() || isLocked();
-    }
-
-    if (downloadButton) {
-      downloadButton.disabled = running || !model;
-    }
-  }
-
-  function splitPrompt(text) {
-    return String(text || '')
-      .split(/\n+|(?<=[.!?])\s+/u)
-      .map(value => value.trim())
-      .filter(Boolean);
-  }
-
-  function createModel(topic, turns) {
-    const sources = turns
-      .filter(turn => String(turn.prompt || '').trim())
-      .map(turn => ({
-        turn_id: turn.id,
-        created_at: turn.created_at,
-        prompt: String(turn.prompt)
-      }));
-
-    const passages = [];
-
-    for (const source of sources) {
-      splitPrompt(source.prompt).forEach((quote, index) => {
-        passages.push({
-          source_ref: `${source.turn_id}:p${index + 1}`,
-          turn_id: source.turn_id,
-          quote
-        });
-      });
-    }
-
-    const matched = new Set();
-
-    const candidates = rules.map(rule => {
-      const evidence = passages.filter(passage => {
-        const match = rule.pattern.test(passage.quote);
-
-        if (match) matched.add(passage.source_ref);
-        return match;
-      });
-
-      return {
-        category: rule.id,
-        label: rule.label,
-        review_status: 'unreviewed',
-        interpretation: '',
-        evidence
-      };
-    }).filter(candidate => candidate.evidence.length);
-
-    return {
-      schema_version: 'conversation-driver-review-v1',
-      method: 'local_keyword_assisted_review',
-      generated_at: new Date().toISOString(),
-      conversation_id: topic.id,
-      title: topic.title || 'Untitled conversation',
-      scope: 'User prompts only; assistant replies excluded.',
-      limitations: [
-        'Candidate categories are keyword matches, not validated drivers.',
-        'Relevant passages may be missed or categorized incorrectly.',
-        'No importance ranking or causal relationship is inferred.',
-        'Review original prompts before confirming interpretations.'
-      ],
-      decision_question: '',
-      candidate_drivers: candidates,
-      unmatched_passages: passages.filter(
-        passage => !matched.has(passage.source_ref)
-      ),
-      additional_drivers: [],
-      relationships: [],
-      review_questions: [
-        'What decision or question is this conversation addressing?',
-        'Which candidate drivers are actually relevant?',
-        'Which drivers are missing or incorrectly categorized?',
-        'Which statements are assumptions rather than observations?',
-        'What evidence supports any proposed relationship?'
-      ],
-      sources
-    };
-  }
-
-  function readEditedModel() {
-    const value = JSON.parse(editor.value);
-
-    if (
-      !value ||
-      typeof value !== 'object' ||
-      Array.isArray(value) ||
-      value.conversation_id !== model.conversation_id ||
-      !Array.isArray(value.candidate_drivers) ||
-      !Array.isArray(value.sources)
-    ) {
-      throw new Error(
-        'Keep conversation_id unchanged and retain ' +
-        'candidate_drivers and sources as arrays.'
-      );
-    }
-
-    return value;
-  }
-
-  function downloadModel() {
-    try {
-      const edited = readEditedModel();
-
-      const blob = new Blob(
-        [JSON.stringify(edited, null, 2)],
-        { type: 'application/json' }
-      );
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-
-      link.href = url;
-      link.download =
-        `topic-model-${model.conversation_id}.json`;
-
-      document.body.append(link);
-      link.click();
-      link.remove();
-
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-      setStatus(
-        'JSON downloaded. No model was saved to the database.'
-      );
-    } catch (error) {
-      setStatus('Cannot download: ' + error.message);
-    }
-  }
-
-  async function loadTurns(db, userId, conversationId) {
-    const result = [];
-
-    for (let start = 0; ; start += 500) {
-      const { data, error } = await db
-        .from('research_turns')
-        .select('id, conversation_id, user_id, created_at, prompt')
-        .eq('user_id', userId)
-        .eq('conversation_id', conversationId)
-        .order('created_at')
-        .order('id')
-        .range(start, start + 499);
-
-      if (error) throw new Error(error.message);
-
-      if (currentUser() !== userId) {
-        throw new Error('The signed-in account changed.');
-      }
-
-      result.push(...data);
-
-      if (data.length < 500) return result;
-    }
-  }
-
-  function renderModel(container) {
-    container.replaceChildren();
-
-    element('h3', 'Candidate drivers', container);
-
-    element(
-      'p',
-      'These are suggested categories from user prompts. ' +
-      'Counts are not measures of importance.',
-      container
-    );
-
-    if (!model.candidate_drivers.length) {
-      element(
-        'p',
-        'No categories matched. Review the original prompts ' +
-        'and add drivers manually in the JSON editor.',
-        container
-      );
-    }
-
-    for (const driver of model.candidate_drivers) {
-      const details = element('details', undefined, container);
-
-      element(
-        'summary',
-        `${driver.label} — ${driver.evidence.length} passage(s)`,
-        details
-      );
-
-      for (const evidence of driver.evidence) {
-        element('blockquote', evidence.quote, details);
-
-        const reference = element(
-          'p',
-          `Source: ${evidence.source_ref}`,
-          details
-        );
-
-        reference.style.fontSize = '0.85em';
-      }
-    }
-
-    const unmatched = element('details', undefined, container);
-
-    element(
-      'summary',
-      `Uncategorized passages (${model.unmatched_passages.length})`,
-      unmatched
-    );
-
-    for (const passage of model.unmatched_passages) {
-      element('blockquote', passage.quote, unmatched);
-      element('p', `Source: ${passage.source_ref}`, unmatched);
-    }
-
-    const originals = element('details', undefined, container);
-
-    element(
-      'summary',
-      `All original user prompts (${model.sources.length})`,
-      originals
-    );
-
-    for (const source of model.sources) {
-      element('h4', `Turn ${source.turn_id}`, originals);
-
-      const prompt = element('p', source.prompt, originals);
-      prompt.style.whiteSpace = 'pre-wrap';
-    }
-
-    element('h3', 'Review and edit the model', container);
-
-    element(
-      'p',
-      'Add the decision question, correct candidate drivers, ' +
-      'and add missing drivers. Relationships are intentionally ' +
-      'empty: do not treat keyword matches as causal evidence. ' +
-      'Edits remain here only until you download or close.',
-      container
-    );
-
-    editor = element('textarea', undefined, container);
-    editor.setAttribute('aria-label', 'Editable topic model JSON');
-    editor.spellcheck = false;
-    editor.value = JSON.stringify(model, null, 2);
-
-    Object.assign(editor.style, {
-      boxSizing: 'border-box',
-      width: '100%',
-      minHeight: '360px',
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      padding: '12px'
-    });
-  }
-
-  async function analyze(conversationId) {
-    const db = getDb();
-    const userId = currentUser();
-
-    if (!db || !userId || isLocked() || running) return;
-
-    if (dialog) {
-      const confirmed = window.confirm(
-        'Replace this open analysis? ' +
-        'Any edits not downloaded will be lost.'
-      );
-
-      if (!confirmed) return;
-    }
-
-    close();
-    activeUserId = userId;
-
-    dialog = element('dialog');
-    dialog.setAttribute('aria-labelledby', 'topicAnalysisHeading');
-
-    Object.assign(dialog.style, {
-      boxSizing: 'border-box',
-      width: 'min(960px, calc(100vw - 24px))',
-      maxHeight: '90dvh',
-      overflowY: 'auto',
-      padding: '24px',
-      border: '1px solid #bbb',
-      borderRadius: '12px'
-    });
-
-    const heading = element('h2', 'Topic analysis', dialog);
-    heading.id = 'topicAnalysisHeading';
-
-    element(
-      'p',
-      'Local prompt analysis. No new topic is created and ' +
-      'no external AI request is made.',
-      dialog
-    );
-
-    status = element('p', '', dialog);
-    status.setAttribute('role', 'status');
-    status.setAttribute('aria-live', 'polite');
-
-    const content = element('section', undefined, dialog);
-    const actions = element('div', undefined, dialog);
-
-    Object.assign(actions.style, {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '10px',
-      marginTop: '20px'
-    });
-
-    analyzeAgainButton = element(
-      'button',
-      'Rebuild from current prompts',
-      actions
-    );
-    analyzeAgainButton.type = 'button';
-    analyzeAgainButton.onclick = () => analyze(conversationId);
-
-    downloadButton = element('button', 'Download model JSON', actions);
-    downloadButton.type = 'button';
-    downloadButton.onclick = downloadModel;
-
-
-    const conceptButton = element(
-      'button',
-      'Concept model',
-      actions
-    );
-    
-    conceptButton.type = 'button';
-    
-    conceptButton.onclick = async () => {
-      try {
-        await conceptUI.analyze(conversationId);
-      } catch (error) {
-        console.error('Concept analysis failed:', error);
-    
-        window.alert(
-          'Concept analysis failed: ' +
-          (error?.message || String(error))
-        );
-      }
-    };
-    
-    const closeButton = element('button', 'Close', actions);
-    closeButton.type = 'button';
-
-    function requestClose() {
-      if (
-        editor &&
-        model &&
-        editor.value !== JSON.stringify(model, null, 2) &&
-        !window.confirm('Close and discard your edited model?')
-      ) {
-        return;
-      }
-
-      close();
-    }
-
-    closeButton.onclick = requestClose;
-
-    dialog.addEventListener('cancel', event => {
-      event.preventDefault();
-      requestClose();
-    });
-
-    showInlineAnalysisPanel(dialog);
-
-    const token = ++generation;
-    running = true;
-    sync();
-    setStatus('Loading this conversation’s saved prompts…');
-
-    try {
-      const { data: topic, error } = await db
-        .from('research_conversations')
-        .select('id, title, user_id, is_visible')
-        .eq('id', conversationId)
-        .eq('user_id', userId)
-        .single();
-
-      if (error) throw new Error(error.message);
-
-      if (topic.is_visible === 0) {
-        throw new Error('This topic has been removed from history.');
-      }
-
-      const turns = await loadTurns(db, userId, conversationId);
-
-      if (!validRequest(token, userId)) return;
-
-      model = createModel(topic, turns);
-
-      heading.textContent = `Analyze: ${model.title}`;
-      renderModel(content);
-
-      setStatus(
-        `Reviewed ${model.sources.length} saved user prompt(s). ` +
-        `Found ${model.candidate_drivers.length} candidate categories. ` +
-        'Review required; nothing was saved to the database.'
-      );
-    } catch (error) {
-      if (validRequest(token, userId)) {
-        setStatus('Analysis failed: ' + error.message);
-      }
-    } finally {
-      if (validRequest(token, userId)) {
-        running = false;
-        sync();
-      }
-    }
-  }
-
-  return { sync, analyze, close };
+const TYPES=['quick_summary','conversation_insights'];
+const LABELS={quick_summary:'Quick summary',conversation_insights:'Conversation insights'};
+const RULES=[
+ ['Goals',/\b(goal|objective|aim|want|hope|achieve|success|target|intend)\b/i],
+ ['Money and pricing',/\b(budget|cost|costs|price|pricing|revenue|profit|funding|cash|money|financial|afford|investment)\b|[$€£]|\b(CAD|USD)\b/i],
+ ['Timing',/\b(deadline|timeline|launch|delay|urgent|soon|months?|weeks?|years?|time)\b/i],
+ ['Customers',/\b(customers?|clients?|market|demand|buyers?|sales|willingness|purchase|adoption)\b/i],
+ ['Resources',/\b(team|staff|skills|capacity|resources?|equipment|technology|suppliers?|expertise|available)\b/i],
+ ['Limits and requirements',/\b(must|cannot|can.t|required|requirement|limit|limited|constraint|restriction|only|compliance|regulation|legal)\b/i],
+ ['Risks',/\b(risk|uncertain|uncertainty|unknown|failure|fail|concern|worry|threat|might|may|could)\b/i],
+ ['Options',/\b(option|alternative|choose|choice|versus|instead|either|whether|tradeoff|trade-off)\b/i],
+ ['Evidence and assumptions',/\b(evidence|data|interviews?|survey|research|tested|test|pilot|assume|assumption|believe|estimate)\b/i],
+ ['People and dependencies',/\b(partners?|investors?|advisors?|stakeholders?|approval|depends|dependency)\b/i]
+];
+function el(tag,text,parent){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(parent)parent.append(n);return n;}
+function normalize(turns){return turns.slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at))||String(a.id).localeCompare(String(b.id))).map(t=>({id:String(t.id),created_at:t.created_at,completed_at:t.completed_at||null,status:t.status,prompt:t.prompt||'',response:t.response||''}));}
+function completed(turns){return normalize(turns).filter(t=>t.status==='completed'&&String(t.response).trim());}
+async function hashSource(source){const bytes=new TextEncoder().encode(JSON.stringify({title:source.title,turns:normalize(source.turns)}));const digest=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');}
+function quickReport(turns){const passages=turns.flatMap(t=>String(t.prompt).split(/\n+|(?<=[.!?])\s+/u).map(s=>s.trim()).filter(Boolean).map(quote=>({turn_id:t.id,quote})));const used=new Set();return {format_version:2,prompt_count:turns.length,groups:RULES.map(([label,re])=>({label,evidence:passages.filter((e,i)=>{if(re.test(e.quote)){used.add(i);return true;}return false;})})).filter(g=>g.evidence.length),unmatched:passages.filter((_,i)=>!used.has(i))};}
+export function mountAnalysisUI({getDb,getSession,isLocked}){
+ let root,tabs={},panel,status,selector,context=null,key='',epoch=0,active='quick_summary',choice='current',rows=[],sourceHash='',currentSource=null,loading=false,message='';
+ const running=new Set();const user=()=>getSession()?.user?.id||null;
+ const valid=(token,k)=>token===epoch&&k===key&&user()===context?.user_id;
+ function mount(){if(root)return;const composer=document.getElementById('composer');if(!composer)throw new Error('Message composer not found');
+  root=el('section');root.id='conversationReports';root.hidden=true;el('h3','Your conversation reports',root);
+  const bar=el('div',undefined,root);bar.setAttribute('role','tablist');bar.setAttribute('aria-label','Conversation reports');
+  for(const type of TYPES){const b=el('button',LABELS[type],bar);b.type='button';b.id='paired-tab-'+type;b.setAttribute('role','tab');b.setAttribute('aria-controls','paired-report-content');b.onclick=()=>activate(type);tabs[type]=b;
+   b.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const index=e.key==='Home'?0:e.key==='End'?1:(TYPES.indexOf(type)+1)%2;tabs[TYPES[index]].focus();activate(TYPES[index],true);};}
+  el('p','Select a tab to view. Select the active tab again to refresh BOTH reports. A missing pair is generated when either tab is selected.',root).className='report-help';
+  const label=el('label','Report snapshot',root);label.htmlFor='reportSnapshotSelect';selector=el('select',undefined,root);selector.id='reportSnapshotSelect';selector.onchange=()=>{choice=selector.value;message='';render();};
+  status=el('p','',root);status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel=el('div',undefined,root);panel.id='paired-report-content';panel.setAttribute('role','tabpanel');panel.tabIndex=0;composer.before(root);
+ }
+ function clear(){epoch++;context=null;key='';rows=[];sourceHash='';currentSource=null;message='';loading=false;if(root){root.hidden=true;panel.replaceChildren();status.textContent='';}}
+ function sync(){if(context&&user()!==context.user_id){clear();return;}if(!root)return;const locked=loading||isLocked()||running.has(key);for(const b of Object.values(tabs))b.disabled=locked;selector.disabled=loading||running.has(key);}
+ async function listSnapshots(db,uid,id){const all=[];for(let start=0;;start+=100){const q=await db.from('research_report_snapshots').select('id,user_id,conversation_id,last_turn_id,source_fingerprint,requested_at,generation_completed_at,created_at,updated_at,revision,source_state,quick_summary,conversation_insights').eq('user_id',uid).eq('conversation_id',id).order('created_at',{ascending:false}).order('id').range(start,start+99);if(q.error)throw q.error;all.push(...q.data);if(q.data.length<100)return all;}}
+ async function setContext(topic,turns=[]){mount();if(!topic||!user()){clear();return;}
+  const nextKey=user()+'|'+topic.id;const next={id:String(topic.id),title:topic.title||'Untitled conversation',user_id:user()};const source={title:next.title,turns:completed(turns)};
+  if(nextKey===key){const token=epoch;const h=await hashSource(source);if(valid(token,nextKey)){context=next;currentSource=source;sourceHash=h;render();}return;}
+  epoch++;key=nextKey;context=next;rows=[];active='quick_summary';choice='current';sourceHash='';currentSource=source;loading=true;message='';render();
+  const token=epoch;
+  try{const h=await hashSource(source);const loaded=await listSnapshots(getDb(),next.user_id,next.id);if(!valid(token,nextKey))return;sourceHash=h;rows=loaded;}
+  catch(e){if(valid(token,nextKey))message='Could not load saved snapshots: '+e.message;}
+  finally{if(valid(token,nextKey)){loading=false;render();}}
+ }
+ function selectedRow(){return choice==='current'?rows.find(r=>r.source_fingerprint===sourceHash):rows.find(r=>r.id===choice);}
+ function section(title,items,parent){el('h4',title,parent);if(!items.length){el('p','Not identified in this report.',parent);return;}const ul=el('ul',undefined,parent);for(const text of items)el('li',text,ul);}
+ function concept(c,parent){const d=el('details',undefined,parent);el('summary',c.label,d);el('p',c.definition,d);const speakers=new Set((c.evidence||[]).map(e=>e.speaker));el('p',speakers.size===2?'Discussed by you and the assistant':speakers.has('user')?'Mentioned by you':'Introduced by the assistant',d);
+  if(c.state_estimate){const s=c.state_estimate;el('p',`Recorded user estimate: ${Math.round(s.probability*100)}% — ${s.proposition}. Check the source before relying on this interpretation.`,d);}
+  const refs=el('details',undefined,d);el('summary','Source passages',refs);for(const e of c.evidence||[])el('blockquote',`${e.speaker==='user'?'You':'Assistant'}: ${e.quote}`,refs);
+  const technical=el('details',undefined,d);el('summary','Technical details',technical);el('p',`Extraction score: ${c.extraction_confidence}. Uncalibrated, not a business probability. Status: ${c.review_status}.`,technical);
+ }
+ function render(){if(!root||!context)return;root.hidden=false;panel.replaceChildren();
+  for(const t of TYPES){tabs[t].setAttribute('aria-selected',String(active===t));tabs[t].tabIndex=active===t?0:-1;tabs[t].textContent=LABELS[t]+(running.has(key)?' — Updating pair…':'');}panel.setAttribute('aria-labelledby','paired-tab-'+active);
+  selector.replaceChildren();const now=el('option','Current conversation — latest completed exchange',selector);now.value='current';
+  for(const r of rows){const n=r.source_state?.turns?.length;const option=el('option',`${new Date(r.requested_at).toLocaleString()} · through exchange ${n||'?'} · revision ${r.revision}`,selector);option.value=r.id;}selector.value=choice;
+  const row=selectedRow();status.textContent=message||(loading?'Loading saved report pairs…':row?`Saved pair: requested ${new Date(row.requested_at).toLocaleString()}, completed ${new Date(row.generation_completed_at).toLocaleString()}. Both reports cover the same captured source.`:rows.length?'No pair saved for the current conversation state. Select either tab to generate both, or choose an earlier snapshot.':'No report pair yet. Select either tab to generate both reports.');
+  if(!row){sync();return;}
+  if(active==='quick_summary'){const q=row.quick_summary;el('h3','What you mentioned',panel);el('p',`Based on ${q.prompt_count} user prompts in completed exchanges. Keyword-assisted overview; assistant responses are excluded from this summary.`,panel);
+   for(const g of q.groups||[]){const d=el('details',undefined,panel);el('summary',g.label,d);for(const e of g.evidence)el('blockquote',e.quote,d);}if(!(q.groups||[]).length)el('p','No predefined categories matched. This is not evidence that the conversation lacks relevant concepts.',panel);
+   const other=el('details',undefined,panel);el('summary','Other passages to review',other);for(const e of q.unmatched||[])el('blockquote',e.quote,other);
+  }else{const report=row.conversation_insights;const snapshots=report.snapshots||[];const model=snapshots.at(-1)?.model;el('h3','Conversation insights',panel);el('p','AI-proposed interpretations, not verified business facts. Assistant suggestions are not user decisions.',panel);
+   if(model){section('Your situation',model.concepts.filter(c=>c.role==='concept'&&(c.evidence||[]).some(e=>e.speaker==='user')).map(c=>c.definition),panel);
+    for(const [title,roles] of [['Goals and limits',['goal','constraint']],['Factors discussed',['concept','driver','outcome']],['Directions and options',['direction']]]){el('h4',title,panel);const found=model.concepts.filter(c=>roles.includes(c.role));if(!found.length)el('p','Not yet identified.',panel);for(const c of found)concept(c,panel);}
+    const names=new Map(model.concepts.map(c=>[c.id,c.label]));section('Possible connections — not established causes',(model.relationships||[]).map(r=>`${names.get(r.from_id)||r.from_id} → ${names.get(r.to_id)||r.to_id}: ${r.description}`),panel);
+    el('h4','How the discussion developed',panel);if(snapshots.length===1)el('p','One completed exchange is available; there is no between-exchange change to compare.',panel);
+    for(const s of snapshots){const d=el('details',undefined,panel);el('summary',`Exchange ${s.sequence} · ${new Date(s.created_at).toLocaleString()}`,d);const changes=(s.model.changes||[]).filter(c=>c.kind!=='unchanged');if(!changes.length)el('p','No substantive changes identified.',d);for(const c of changes)el('p',c.description,d);}
+    section('Questions still open',model.open_questions||[],panel);
+   }else el('p','No concept snapshots were returned.',panel);
+  }sync();
+ }
+ async function fetchSource(db,uid,id,boundary=null){const q=await db.from('research_conversations').select('id,title,user_id').eq('id',id).eq('user_id',uid).single();if(q.error)throw q.error;let all=[];
+  for(let start=0;;start+=500){const batch=await db.from('research_turns').select('id,created_at,completed_at,status,prompt,response').eq('conversation_id',id).eq('user_id',uid).order('created_at').order('id').range(start,start+499);if(batch.error)throw batch.error;all.push(...batch.data);if(batch.data.length<500)break;}
+  let turns=completed(all);if(boundary){const index=turns.findIndex(t=>t.id===String(boundary));if(index<0)throw new Error('The snapshot boundary turn is no longer available');turns=turns.slice(0,index+1);}return {title:q.data.title||'Untitled conversation',turns};
+ }
+ async function activate(type,navigateOnly=false){if(!context||loading||isLocked()||running.has(key))return;const wasActive=active===type;active=type;message='';render();if(navigateOnly)return;if(selectedRow()&&!wasActive)return;await generatePair();}
+ async function generatePair(){const token=epoch,k=key,captured={...context},db=getDb();const selected=selectedRow();const oldChoice=choice;running.add(k);message='Capturing the conversation…';render();
+  try{
+   // Browser request time is sent to SQL; keep device clock accurate.
+   const requestedAt=new Date().toISOString();
+   const source=oldChoice==='current'?await fetchSource(db,captured.user_id,captured.id):structuredClone(selected.source_state);
+   if(!valid(token,k))return;if(!source.turns?.length)throw new Error('A completed prompt and response are required before generating reports');
+   const fingerprint=await hashSource(source);if(!valid(token,k))return;
+   const boundary=source.turns.at(-1).id;
+   // Historical refresh must not silently use edited historical messages.
+   if(oldChoice!=='current'){const verified=await fetchSource(db,captured.user_id,captured.id,boundary);if(await hashSource(verified)!==fingerprint)throw new Error('Historical source changed. Keep the saved snapshot and generate a current one instead.');}
+   const existing=rows.find(r=>r.source_fingerprint===fingerprint);const quick=quickReport(source.turns);const snapshots=[];let previous=null;
+   for(let i=0;i<source.turns.length;i++){
+    if(!valid(token,k))return;message=`Generating both reports: analyzing exchange ${i+1} of ${source.turns.length}…`;render();const t=source.turns[i];
+    const response=await db.functions.invoke('conversation-concepts',{body:{conversation_id:captured.id,turn_id:t.id,previous_model:previous}});
+    if(!valid(token,k))return;if(response.error){let text=response.error.message;try{text=(await response.error.context.json()).error||text;}catch{}throw new Error(text);}if(!response.data?.model)throw new Error('Concept extraction returned no model');
+    previous=response.data.model;snapshots.push({sequence:i+1,turn_id:t.id,created_at:t.created_at,model:previous});
+   }
+   // Existing backend reads saved messages, not arbitrary client text.
+   // Abort if any captured source changed while those requests ran.
+   const verified=await fetchSource(db,captured.user_id,captured.id,boundary);if(!valid(token,k))return;if(await hashSource(verified)!==fingerprint)throw new Error('Conversation content changed during generation. No new pair was saved; select the active tab to retry.');
+   const insights={format_version:2,method:'gemini_proposed_unreviewed',snapshots};
+   const save=await db.rpc('save_report_snapshot_pair',{p_conversation_id:captured.id,p_last_turn_id:boundary,p_source_fingerprint:fingerprint,p_source_state:source,p_quick_summary:quick,p_conversation_insights:insights,p_requested_at:requestedAt,p_expected_revision:existing?.revision||0});
+   if(!valid(token,k))return;if(save.error)throw save.error;if(!save.data?.[0])throw new Error('No saved snapshot returned');const row=save.data[0];rows=[row,...rows.filter(r=>r.id!==row.id)].sort((a,b)=>b.created_at.localeCompare(a.created_at));choice=row.id;message='Both reports were saved together. Switch tabs to view the other report. Choose Current conversation to report on newer exchanges.';
+  }catch(e){if(valid(token,k))message='Could not update the report pair: '+e.message+'. Earlier saved pairs have not been replaced.';}
+  finally{running.delete(k);if(valid(token,k))render();}
+ }
+ function analyze(id){if(!context||context.id!==String(id))throw new Error('Open this topic first');root.scrollIntoView({behavior:'smooth',block:'start'});}
+ return {setContext:(topic,turns)=>{setContext(topic,turns).catch(e=>{if(root){message='Report setup failed: '+e.message;loading=false;render();}});},sync,analyze,close:clear};
 }
