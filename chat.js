@@ -607,6 +607,13 @@ function conversation() {
 
   $('messages').replaceChildren();
 
+  analysisUI.setContext(
+    current || null,
+    current
+      ? turns.filter(t => t.conversation_id === current.id)
+      : []
+  );
+  
   if (!current) return;
 
   const messages = turns
