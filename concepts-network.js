@@ -123,7 +123,7 @@ export function renderConceptsNetwork(row,container){
       const number=svg('text',{'text-anchor':'middle',y:5,'font-size':12,fill:n.firstIndex===index?'white':'#183c2b'},g);number.textContent=n.weight==null?'?':n.weight.toFixed(2);
       const label=svg('text',{'text-anchor':'middle',y:r+19,'font-size':12,fill:'#183c2b','paint-order':'stroke',stroke:'#f5f9f6','stroke-width':3},g);label.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
       if(n.firstIndex===index||changed){const badge=svg('text',{'text-anchor':'middle',y:r+34,'font-size':10,fill:'#17643b'},g);badge.textContent=n.firstIndex===index?'NEW':'UPDATED';}
-      svg('title',{},g).textContent=n.label;g.onclick=()=>{if(!moved)inspect('node',n.id);};g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect('node',n.id);}};
+      svg('title',{},g).textContent=n.label;g.onclick = null;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect('node',n.id);}};
     }
     transform();tables.replaceChildren();addTable('Concepts',['Concept','Weight','First recorded'],f.nodes,'node');addTable('Relationships',['Connection','Weight','Relationship'],f.edges,'edge');
     if(selected)inspect(selected.kind,selected.id);else{drawer.replaceChildren();el('h4','Explore the topic',drawer);el('p','Select a concept or connection to see its weight, changes, and saved evidence. Use the timeline to move between turns.',drawer);}
@@ -223,23 +223,35 @@ export function renderConceptsNetwork(row,container){
     }
   };
   
-  const end = event => {
-    if (!drag) return;
-  
-    if (
-      event?.pointerId !== undefined &&
-      event.pointerId !== drag.pointerId
-    ) {
-      return;
-    }
-  
-    const pointerId = drag.pointerId;
-    drag = null;
-  
-    if (drawing.hasPointerCapture(pointerId)) {
-      drawing.releasePointerCapture(pointerId);
-    }
-  };
+    const end = event => {
+      if (!drag) return;
+    
+      if (
+        event?.pointerId !== undefined &&
+        event.pointerId !== drag.pointerId
+      ) {
+        return;
+      }
+    
+      const finished = drag;
+    
+      // Only a normal release without dragging opens details.
+      // Cancellation or lost capture must not open anything.
+      const openDetails =
+        event?.type === 'pointerup' &&
+        finished.kind === 'node' &&
+        !moved;
+    
+      drag = null;
+    
+      if (drawing.hasPointerCapture(finished.pointerId)) {
+        drawing.releasePointerCapture(finished.pointerId);
+      }
+    
+      if (openDetails) {
+        inspect('node', finished.conceptId);
+      }
+    };
   
   window.addEventListener('pointerup', end);
   drawing.onpointercancel = end;
