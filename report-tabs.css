@@ -1,0 +1,8 @@
+#conversationReports{margin:24px 0;padding:20px;border:1px solid var(--border,#dedfd8);border-radius:12px;background:var(--surface,#fff);min-width:0;overflow-wrap:anywhere}
+#conversationReports [role=tablist]{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border,#ddd);padding-bottom:8px}
+#conversationReports [role=tab]{background:#edf1ee;color:var(--text,#242826);border:1px solid transparent;padding:9px 12px}
+#conversationReports [role=tab][aria-selected=true]{background:#d8eae3;border-color:var(--accent,#167c80)}
+#conversationReports .report-help,#conversationReports [role=status]{font-size:.82rem;color:var(--muted,#686f6b)}
+#conversationReports select{max-width:100%;width:100%;padding:10px;font:inherit;background:var(--surface,#fff);color:var(--text,#242826);border:1px solid var(--border,#ddd);border-radius:6px}
+#conversationReports details{margin:12px 0}#conversationReports blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #8aafa2;background:#f4f7f5;white-space:pre-wrap}
+#conversationReports h4{margin:20px 0 8px}
