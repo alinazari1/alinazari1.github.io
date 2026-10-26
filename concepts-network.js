@@ -105,7 +105,13 @@ export function renderConceptsNetwork(row,container){
     }
     for(const n of f.nodes){const p=positions.get(n.id),r=radius(n),old=oldNodes.get(n.id);const changed=comparison&&old&&(old.weight!==n.weight||old.definition!==n.definition||f.changes.some(c=>c.concept_id===n.id&&c.kind!=='unchanged'));
       const g=svg('g',{transform:`translate(${p.x} ${p.y})`,tabindex:0,role:'button','aria-label':`${n.label}, weight ${fmt(n.weight)}, first recorded exchange ${frames[n.firstIndex].sequence}`,'class':'cn-node'},world);
+
+      g.setAttribute('data-concept-id', n.id);
+      g.style.cursor = 'grab';
       if(changed)svg('circle',{r:r+5,fill:'none',stroke:'#17643b','stroke-width':2},g);
+
+
+                            
       svg('circle',{r,fill:nodeColor(n),stroke:'#52785e','stroke-width':1.5,...(n.weight==null?{'stroke-dasharray':'4 3'}:{})},g);
       const number=svg('text',{'text-anchor':'middle',y:5,'font-size':12,fill:n.firstIndex===index?'white':'#183c2b'},g);number.textContent=n.weight==null?'?':n.weight.toFixed(2);
       const label=svg('text',{'text-anchor':'middle',y:r+19,'font-size':12,fill:'#183c2b','paint-order':'stroke',stroke:'#f5f9f6','stroke-width':3},g);label.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
@@ -117,9 +123,116 @@ export function renderConceptsNetwork(row,container){
   }
   function goto(i){index=Math.max(0,Math.min(frames.length-1,i));draw();}
   prev.onclick=()=>goto(index-1);next.onclick=()=>goto(index+1);timeline.oninput=()=>goto(Number(timeline.value));checkbox.onchange=()=>{comparison=checkbox.checked;draw();};
-  drawing.onpointerdown=e=>{if(e.button!==0)return;moved=false;drag={x:e.clientX,y:e.clientY,px:panX,py:panY};};
-  drawing.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;if(moved){const rect=drawing.getBoundingClientRect();const scale=Math.max(880/rect.width,570/rect.height);panX=drag.px+dx*scale;panY=drag.py+dy*scale;transform();}};
-  const end=()=>{drag=null;};window.addEventListener('pointerup',end);drawing.onpointerleave=end;
+  
+  // Convert screen coordinates into SVG coordinates.
+  // Using the inverse transform keeps dragging accurate after zoom/pan.
+  function pointerPosition(event, element) {
+    const matrix = element.getScreenCTM();
+  
+    if (!matrix) return null;
+  
+    const point = drawing.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+  
+    return point.matrixTransform(matrix.inverse());
+  }
+  
+  drawing.onpointerdown = event => {
+    if (event.button !== 0 || drag) return;
+  
+    const node = event.target.closest?.('.cn-node');
+    const conceptId = node?.getAttribute('data-concept-id');
+    const position = conceptId ? positions.get(conceptId) : null;
+  
+    const point = pointerPosition(
+      event,
+      position ? world : drawing
+    );
+  
+    if (!point) return;
+  
+    moved = false;
+  
+    drag = {
+      pointerId: event.pointerId,
+      kind: position ? 'node' : 'background',
+      conceptId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: point.x,
+      startY: point.y,
+      originalX: position ? position.x : panX,
+      originalY: position ? position.y : panY
+    };
+  
+    // Keep receiving movement even if the pointer leaves a circle.
+    drawing.setPointerCapture(event.pointerId);
+  };
+  
+  drawing.onpointermove = event => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+  
+    const distance =
+      Math.abs(event.clientX - drag.startClientX) +
+      Math.abs(event.clientY - drag.startClientY);
+  
+    // A small movement still counts as a click.
+    if (!moved && distance <= 5) return;
+  
+    moved = true;
+    event.preventDefault();
+  
+    const point = pointerPosition(
+      event,
+      drag.kind === 'node' ? world : drawing
+    );
+  
+    if (!point) return;
+  
+    const dx = point.x - drag.startX;
+    const dy = point.y - drag.startY;
+  
+    if (drag.kind === 'node') {
+      const position = positions.get(drag.conceptId);
+  
+      if (!position) return;
+  
+      position.x = drag.originalX + dx;
+      position.y = drag.originalY + dy;
+  
+      // Redraw circles, labels, and their connections together.
+      draw();
+    } else {
+      panX = drag.originalX + dx;
+      panY = drag.originalY + dy;
+      transform();
+    }
+  };
+  
+  const end = event => {
+    if (!drag) return;
+  
+    if (
+      event?.pointerId !== undefined &&
+      event.pointerId !== drag.pointerId
+    ) {
+      return;
+    }
+  
+    const pointerId = drag.pointerId;
+    drag = null;
+  
+    if (drawing.hasPointerCapture(pointerId)) {
+      drawing.releasePointerCapture(pointerId);
+    }
+  };
+  
+  window.addEventListener('pointerup', end);
+  drawing.onpointercancel = end;
+  drawing.onlostpointercapture = end;
+
+  
   draw();return {destroy(){window.removeEventListener('pointerup',end);root.remove();}};
 }
 /** Mount beside a shared report panel. Call update(row) whenever the selected report changes. */
