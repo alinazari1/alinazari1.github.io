@@ -69,7 +69,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=gray-lines-2')
+    import('./concepts-network.js?v=pointer-details-3')
       .then(module => {
         if (!stillCurrent()) return;
   
