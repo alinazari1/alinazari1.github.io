@@ -1,6 +1,10 @@
 import { renderLatestDevelopment } from
   './latest-development.js?v=latest-1';
 
+import { renderConceptsNetwork } from
+  './concepts-network.js?v=1';
+
+
 const TYPES=['quick_summary','conversation_insights'];
 const LABELS={quick_summary:'Quick summary',conversation_insights:'Conversation insights'};
 const RULES=[
