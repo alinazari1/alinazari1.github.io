@@ -758,6 +758,49 @@
     rel="stylesheet"
     href="./report-tabs.css?v=paired-book-1"
   >
+
+  <style>
+  /* All three report tabs use the available chat-column width. */
+  body.signed-in #conversationReports {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
+  /* Shared results panel: summary, insights, and network. */
+  body.signed-in #conversationReports #paired-report-content {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
+  /* Remove reading-width limits on report text and sections. */
+  body.signed-in #paired-report-content
+    :is(h3, h4, p, ul, ol, details, blockquote, section) {
+    max-width: none;
+  }
+
+  /* Let the graph component fill the results panel. */
+  body.signed-in #paired-report-content .cn {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
+  /* Preserve the graph's canvas/detail-panel grid layout. */
+  body.signed-in #paired-report-content .cn-stage,
+  body.signed-in #paired-report-content .cn-canvas {
+    max-width: none;
+    min-width: 0;
+  }
+    
+</style>
 </head>
 <body>
   <header class="site-header">
