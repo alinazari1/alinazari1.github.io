@@ -342,3 +342,29 @@
 #inlineAnalysisPanels .inline-analysis-panel details {
   margin: 12px 0;
 }
+
+/* Shared width for the AI-chat page */
+main {
+  box-sizing: border-box;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin-inline: 0;
+  padding-inline: clamp(12px, 2vw, 32px);
+}
+
+/* Let the reports fill their available container */
+#conversationReports {
+  box-sizing: border-box;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+}
+
+/* Keep the report content and graph flexible */
+#paired-report-content,
+#conversationReports .cn,
+#conversationReports .cn-stage,
+#conversationReports .cn-canvas {
+  min-width: 0;
+}
