@@ -62,7 +62,8 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
    for(const g of q.groups||[]){const d=el('details',undefined,panel);el('summary',g.label,d);for(const e of g.evidence)el('blockquote',e.quote,d);}if(!(q.groups||[]).length)el('p','No predefined categories matched. This is not evidence that the conversation lacks relevant concepts.',panel);
    const other=el('details',undefined,panel);el('summary','Other passages to review',other);for(const e of q.unmatched||[])el('blockquote',e.quote,other);
   }else{const report=row.conversation_insights;const snapshots=report.snapshots||[];const model=snapshots.at(-1)?.model;el('h3','Conversation insights',panel);el('p','AI-proposed interpretations, not verified business facts. Assistant suggestions are not user decisions.',panel);
-   if(model){section('Your situation',model.concepts.filter(c=>c.role==='concept'&&(c.evidence||[]).some(e=>e.speaker==='user')).map(c=>c.definition),panel);
+   if(model){
+     renderLatestDevelopment(row,panel);section('Your situation',model.concepts.filter(c=>c.role==='concept'&&(c.evidence||[]).some(e=>e.speaker==='user')).map(c=>c.definition),panel);
     for(const [title,roles] of [['Goals and limits',['goal','constraint']],['Factors discussed',['concept','driver','outcome']],['Directions and options',['direction']]]){el('h4',title,panel);const found=model.concepts.filter(c=>roles.includes(c.role));if(!found.length)el('p','Not yet identified.',panel);for(const c of found)concept(c,panel);}
     const names=new Map(model.concepts.map(c=>[c.id,c.label]));section('Possible connections — not established causes',(model.relationships||[]).map(r=>`${names.get(r.from_id)||r.from_id} → ${names.get(r.to_id)||r.to_id}: ${r.description}`),panel);
     el('h4','How the discussion developed',panel);if(snapshots.length===1)el('p','One completed exchange is available; there is no between-exchange change to compare.',panel);
