@@ -289,17 +289,7 @@ function history() {
       topic.is_pinned ? 'Unpin' : 'Pin',
       () => togglePin(topic.id)
     );
-
-    addAction('Analyze', async () => {
-      try {
-        await analysisUI.analyze(topic.id);
-      } catch (error) {
-        say('Analysis failed: ' + error.message);
-        window.alert('Analysis failed: ' + error.message);
-      }
-    });
-
-    
+   
     addAction(
       'Rename',
       () => renameTopic(topic.id)
