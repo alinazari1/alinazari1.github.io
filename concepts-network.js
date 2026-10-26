@@ -1,3 +1,12 @@
+import { mountConceptsNetwork } from
+  './concepts-network.js?v=1';
+
+const conceptsUI = mountConceptsNetwork({
+  tabBar: existingTabButtonContainer,
+  existingPanel: existingSharedReportPanel,
+  getRow: () => currentlySelectedSavedReport
+});
+
 const SVG='http://www.w3.org/2000/svg';
 const array=x=>Array.isArray(x)?x:[];
 const text=x=>typeof x==='string'?x:'';
