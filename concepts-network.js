@@ -174,7 +174,7 @@ export function renderConceptsNetwork(row,container){
     };
   
     // Keep receiving movement even if the pointer leaves a circle.
-    drawing.setPointerCapture(event.pointerId);
+    //drawing.setPointerCapture(event.pointerId);
   };
   
   drawing.onpointermove = event => {
@@ -186,10 +186,16 @@ export function renderConceptsNetwork(row,container){
   
     // A small movement still counts as a click.
     if (!moved && distance <= 5) return;
-  
+    
+    // Capture only after movement passes the drag threshold.
+    // A normal click remains targeted at the circle.
+    if (!moved) {
+      drawing.setPointerCapture(event.pointerId);
+    }
+    
     moved = true;
     event.preventDefault();
-  
+    
     const point = pointerPosition(
       event,
       drag.kind === 'node' ? world : drawing
