@@ -44,7 +44,7 @@ export function renderConceptsNetwork(row,container){
   const summary=el('p','',root);summary.className='cn-note';summary.setAttribute('aria-live','polite');
   const stage=el('div',null,root);stage.className='cn-stage';const canvas=el('div',null,stage);canvas.className='cn-canvas';
   const drawing=svg('svg',{viewBox:'0 0 880 570',role:'img','aria-label':'Concept relationship network. Equivalent concept and relationship tables follow.'},canvas);
-  const uid='cn-arrow-'+(++count);const defs=svg('defs',{},drawing),marker=svg('marker',{id:uid,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'},defs);svg('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#6a8d77'},marker);
+  const uid='cn-arrow-'+(++count);const defs=svg('defs',{},drawing),marker=svg('marker',{id:uid,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'},defs);svg('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#a3aaa6'},marker);
   const world=svg('g',{},drawing);const drawer=el('aside',null,stage);drawer.className='cn-drawer';drawer.setAttribute('aria-label','Selected concept or relationship');drawer.setAttribute('aria-live','polite');
   const tools=el('div',null,root);tools.className='cn-controls';
   for(const [name,fn] of [['Zoom in',()=>{zoom=Math.min(3,zoom*1.2);transform();}],['Zoom out',()=>{zoom=Math.max(.45,zoom/1.2);transform();}],['Reset view',()=>{zoom=1;panX=panY=0;transform();}]]){const b=el('button',name,tools);b.type='button';b.onclick=fn;}
@@ -93,7 +93,14 @@ export function renderConceptsNetwork(row,container){
     world.replaceChildren();const nodesById=new Map(f.nodes.map(n=>[n.id,n]));
     for(const e of f.edges){
       const a=positions.get(e.from_id),b=positions.get(e.to_id),g=svg('g',{'class':'cn-edge'},world),old=oldEdges.get(e.id),fresh=comparison&&before&&!old;
-      const attrs={stroke:fresh?'#17643b':'#6a8d77','stroke-width':e.weight==null?1.5:1+7*e.weight,fill:'none'};
+     
+      const attrs = {
+        stroke: '#a3aaa6',
+        'stroke-width': e.weight == null
+          ? 0.8
+          : 0.6 + 1.4 * e.weight,
+        fill: 'none'
+      };
       if(e.weight==null)attrs['stroke-dasharray']='5 5';
       if(e.directed===true)attrs['marker-end']=`url(#${uid})`;
       const self=e.from_id===e.to_id;let line;
