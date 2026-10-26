@@ -6,3 +6,116 @@
 #conversationReports select{max-width:100%;width:100%;padding:10px;font:inherit;background:var(--surface,#fff);color:var(--text,#242826);border:1px solid var(--border,#ddd);border-radius:6px}
 #conversationReports details{margin:12px 0}#conversationReports blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #8aafa2;background:#f4f7f5;white-space:pre-wrap}
 #conversationReports h4{margin:20px 0 8px}
+
+/* Book-style report page */
+#conversationReports {
+  background: #fffefa;
+  color: #292923;
+  padding: clamp(18px, 4vw, 40px);
+}
+
+/* Keep the tabs and controls in the application font. */
+#conversationReports [role="tablist"],
+#conversationReports .report-help,
+#conversationReports [role="status"],
+#conversationReports label,
+#conversationReports select {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Report content */
+#conversationReports [role="tabpanel"] {
+  max-width: 68ch;
+  margin: 28px auto 0;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.85;
+
+  overflow-wrap: break-word;
+}
+
+/* Consistent paragraph spacing and aligned edges */
+#conversationReports [role="tabpanel"] p {
+  margin: 0 0 1.1em;
+
+  text-align: justify;
+  text-align-last: left;
+
+  hyphens: auto;
+}
+
+/* Clear heading hierarchy */
+#conversationReports [role="tabpanel"] h3 {
+  margin: 0 0 1em;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5em;
+  line-height: 1.3;
+
+  text-align: left;
+}
+
+#conversationReports [role="tabpanel"] h4 {
+  margin: 1.7em 0 0.65em;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12em;
+  line-height: 1.4;
+
+  text-align: left;
+}
+
+/* Lists keep the same line spacing. */
+#conversationReports [role="tabpanel"] ul,
+#conversationReports [role="tabpanel"] ol {
+  margin: 0 0 1.2em;
+  padding-left: 1.5em;
+
+  line-height: inherit;
+}
+
+#conversationReports [role="tabpanel"] li {
+  margin-bottom: 0.55em;
+  text-align: left;
+}
+
+/* Expandable headings */
+#conversationReports [role="tabpanel"] summary {
+  padding: 6px 0;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1em;
+  line-height: 1.6;
+
+  text-align: left;
+}
+
+/* Quoted source passages */
+#conversationReports [role="tabpanel"] blockquote {
+  margin: 1em 0;
+  padding: 12px 18px;
+
+  border-left: 3px solid #9eada2;
+  background: #f4f4ed;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95em;
+  line-height: 1.85;
+
+  /* Preserve source line breaks without uneven justification. */
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+/* Avoid stretched word spacing on narrow screens. */
+@media (max-width: 600px) {
+  #conversationReports [role="tabpanel"] {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  #conversationReports [role="tabpanel"] p {
+    text-align: left;
+  }
+}
