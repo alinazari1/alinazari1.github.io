@@ -3,7 +3,7 @@ import { CONFIG } from './config.js';
 import { createAdvisorTopics } from './advisor-topics.js?v=formatted-review-1';
 
 import { mountAnalysisUI } from
-  './analysis-ui-patch.js?v=paired-latest-1';
+  './analysis-ui-patch.js?v=concept-network-2';
 
 
 import { marked } from
