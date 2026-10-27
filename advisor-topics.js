@@ -518,5 +518,9 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
     syncButtons();
   }
 
-  return { sync, refresh };
+  return {
+    sync,
+    refresh,
+    close: closeReview
+  };
 }
