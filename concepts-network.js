@@ -116,7 +116,7 @@ s.textContent=`
       align-items: flex-start;
       gap: 8px;
       font-size: 12px;
-      color: #526459;
+      color: #000000;
     }
     
     .cn-role-pill {
@@ -126,7 +126,7 @@ s.textContent=`
       border: 1px solid #b9cebf;
       border-radius: 999px;
       background: #e5f0e8;
-      color: #315a40;
+      color: #000000;
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.03em;
