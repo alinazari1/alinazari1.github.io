@@ -87,6 +87,15 @@ export function createSharedTopics({
     $('new').addEventListener('click', () => {
       if (!isLocked()) close();
     }, true);
+    
+    $('advisorUsersList')?.addEventListener('click', event => {
+      if (
+        event.target.closest('.history-item') &&
+        !isLocked()
+      ) {
+        close();
+      }
+    }, true);
   }
 
   async function rpc(name, args = {}) {
