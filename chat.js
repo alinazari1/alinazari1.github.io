@@ -150,16 +150,49 @@ async function rows(table) {
   }
 }
 
+async function loadSharedTopicIds() {
+  const userId = session?.user.id;
+
+  if (!db || !userId) return new Set();
+
+  const ids = new Set();
+
+  for (let start = 0; ; start += 500) {
+    const batch = must(
+      await db
+        .from('research_topic_shares')
+        .select('conversation_id, recipient_id')
+        .eq('shared_by', userId)
+        .order('conversation_id')
+        .order('recipient_id')
+        .range(start, start + 499)
+    );
+
+    if (session?.user.id !== userId) {
+      return new Set();
+    }
+
+    for (const row of batch) {
+      ids.add(row.conversation_id);
+    }
+
+    if (batch.length < 500) {
+      return ids;
+    }
+  }
+}
+
 async function load() {
   const userId = session?.user.id;
 
   if (!db || !userId) return;
 
-  const [conversations, messages] = await Promise.all([
+   const [conversations, messages, sharedIds] = await Promise.all([
     rows('research_conversations'),
-    rows('research_turns')
+    rows('research_turns'),
+    loadSharedTopicIds()
   ]);
-
+  
   if (session?.user.id !== userId) return;
 
   chats = conversations.sort((a, b) =>
@@ -167,7 +200,8 @@ async function load() {
   );
 
   turns = messages;
-
+  sharedTopicIds = sharedIds;
+  
   if (
     selected &&
     !chats.some(c =>
@@ -233,13 +267,24 @@ function history() {
       'history-item' +
       (selected === topic.id ? ' active' : '');
 
+    const isShared = sharedTopicIds.has(topic.id);
+
     open.textContent =
-      (topic.is_pinned ? '📌 ' : '') + title;
+      (topic.is_pinned ? '📌 ' : '') +
+      (isShared ? '↗ ' : '') +
+      title;
 
     open.title =
-      title + ' · ' +
+      title +
+      (isShared ? ' · Shared with other users' : '') +
+      ' · ' +
       new Date(topic.created_at).toLocaleDateString();
 
+    open.setAttribute(
+      'aria-label',
+      title + (isShared ? ', shared with other users' : '')
+    );
+    
     open.disabled = locked;
 
     open.onclick = () => {
