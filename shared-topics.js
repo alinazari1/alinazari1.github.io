@@ -406,8 +406,11 @@ export function createSharedTopics({
 
     const notice = el(
       'p',
-      'Shared original — read-only. A personal copy is independent ' +
-        'of the original and may be edited by you.',
+      topic.is_case_sample
+        ? 'Case sample — read-only. Create a personal copy to ' +
+          'continue or modify this case without changing the original.'
+        : 'Shared original — read-only. A personal copy is independent ' +
+          'of the original and may be edited by you.',
       view
     );
     notice.className = 'small';
@@ -622,5 +625,5 @@ export function createSharedTopics({
     }
   }
 
-  return { sync, refresh, close };
+  return { sync, refresh, close, open };
 }
