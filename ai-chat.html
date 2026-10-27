@@ -1,12 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="auth-loading">
 <head>
+  <style>
+  /* Do not show the login form before session restoration finishes. */
+  html.auth-loading #auth,
+  html.auth-loading #workspace,
+  html.auth-loading #study-panel {
+    display: none !important;
+  }
+
+  html.auth-loading body::before {
+    content: "Loading your workspace…";
+    display: block;
+    padding: 32px 20px;
+    text-align: center;
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    color: #777;
+  }
+</style>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Forenture AI Research Assistant">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>AI Research Assistant | Forenture</title>
   <link rel="stylesheet" href="./chat.css?v=4">
+  
   <style>
     :root {
       --app-bg: #fbfaf7;
