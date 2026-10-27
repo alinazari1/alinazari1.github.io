@@ -377,7 +377,7 @@ export function renderConceptsNetwork(row,container){
 
       letter.textContent = circleLabel;
       
-      const label=svg('text',{'text-anchor':'middle',y:r+19,'font-size':12,fill:'#183c2b','paint-order':'stroke',stroke:'#f5f9f6','stroke-width':3},g);label.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
+      const label=svg('text',{'text-anchor':'middle',y:r+19,'font-size':12,fill:'#000000','paint-order':'stroke',stroke:'#f5f9f6','stroke-width':3},g);label.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
       
       const role = roleInfo(n.role);
       const roleWidth = role.label.length * 6 + 16;
@@ -404,7 +404,7 @@ export function renderConceptsNetwork(row,container){
         'dominant-baseline': 'central',
         'font-size': 9,
         'font-weight': 600,
-        fill: '#315a40'
+        fill: '#000000'
       }, roleBadge);
 
       roleText.textContent = role.label;
