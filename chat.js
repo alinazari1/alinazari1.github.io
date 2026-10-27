@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 
-import { createAdvisorTopics } from './advisor-topics.js?v=sidebar-layout-6';
+import { createAdvisorTopics } from './advisor-topics.js?v=direct-switch-1';
 
 import { mountAnalysisUI } from
   './analysis-ui-patch.js?v=concept-network-2';
@@ -413,6 +413,9 @@ function history() {
 
     open.onclick = () => {
       if (historyLocked()) return;
+
+      // Close the assigned-topic viewer and restore my chat panel.
+      advisorTopics.close();
 
       selected = topic.id;
       history();
@@ -1058,6 +1061,8 @@ $('logout').onclick = async () => {
 
 $('new').onclick = () => {
   if (busy || voiceActive) return;
+
+  advisorTopics.close();
 
   selected = null;
   $('prompt').value = '';
