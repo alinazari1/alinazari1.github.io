@@ -43,6 +43,7 @@ let busy = false;
 let uncertain = null;
 let sharedTopicIds = new Set();
 let inheritedTurnIds = new Set();
+let authInitialized = false;
 
 const SpeechRecognitionAPI =
   window.SpeechRecognition ||
