@@ -897,17 +897,31 @@
           >
             <span aria-hidden="true">＋</span> New
           </button>
-          
-          <button id="refresh" type="button" class="secondary">Refresh</button>
+      
+          <button id="refresh" type="button" class="secondary">
+            Refresh
+          </button>
         </div>
-        <label for="search">Search history</label>
-        <input id="search" type="search" placeholder="Search titles, prompts, responses">
+      
+        <div class="sidebar-search-row">
+          <label for="search">Search history</label>
+      
+          <input
+            id="search"
+            type="search"
+            placeholder="Search…"
+            title="Search titles, prompts, and responses"
+          >
+        </div>
+      
         <p id="count" class="small"></p>
+      
         <div id="history"></div>
+      
         <hr>
-
+      
         <p class="small sidebar-export-label">Export my chats</p>
-        
+      
         <div class="sidebar-export-actions">
           <button
             id="json"
@@ -919,7 +933,7 @@
             <span aria-hidden="true">↓</span>
             <span>JSON</span>
           </button>
-        
+      
           <button
             id="csv"
             type="button"
@@ -931,12 +945,7 @@
             <span>CSV</span>
           </button>
         </div>
-        
-        <p class="small">
-          Your records only, including hidden topics.
-          Search does not restrict exports.
-        </p>
-        
+      
         <button
           id="logout"
           type="button"
@@ -959,10 +968,9 @@
             <path d="M10 12h11"/>
             <path d="m17 8 4 4-4 4"/>
           </svg>
+      
           <span>Sign out</span>
         </button>
-        
-       
       </aside>
 
       <section class="card">
