@@ -114,7 +114,29 @@ export function renderConceptsNetwork(row,container){
     }
     
     el('p',text(item.definition)||text(item.description)||'No description saved.',drawer);
-    const dl=el('dl',null,drawer);stat(dl,'Current weight',fmt(item.weight));
+        const dl = el('dl', null, drawer);
+
+    if (kind === 'node') {
+      const roleNames = {
+        concept: 'General concept',
+        driver: 'Driver',
+        goal: 'Goal',
+        constraint: 'Constraint',
+        direction: 'Direction / option',
+        outcome: 'Outcome'
+      };
+
+      stat(
+        dl,
+        'Concept type',
+        roleNames[item.role] ||
+          text(item.role) ||
+          'Not recorded'
+      );
+    }
+
+    stat(dl, 'Current weight', fmt(item.weight));
+    
     const old=(kind==='node'?before?.nodes:before?.edges)?.find(x=>x.id===id);
     if(comparison&&before){stat(dl,'Previous weight',fmt(old?.weight));if(old?.weight!=null&&item.weight!=null){const delta=item.weight-old.weight;stat(dl,'Change',(delta>=0?'+':'')+delta.toFixed(2));}}
     if(kind==='node')stat(dl,'First recorded appearance',`Exchange ${frames[item.firstIndex].sequence}`);
