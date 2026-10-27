@@ -145,24 +145,35 @@ function historyLocked() {
 }
 
 function controls() {
+  const signedIn = authInitialized && Boolean(session);
+
   document.body.classList.toggle(
     'signed-in',
-    Boolean(session)
+    signedIn
   );
-  // Stop the login video after signing in.
-  const loginVideo = $('brandVideo');
 
-  if (session && loginVideo) {
-    loginVideo.pause();
-  }
+  // Keep both views hidden until the session check finishes.
+  $('auth').hidden = !authInitialized || signedIn;
+  $('workspace').hidden = !authInitialized || !signedIn;
+
   const studyPanel = $('study-panel');
 
   if (studyPanel) {
-    studyPanel.hidden = Boolean(session);
+    studyPanel.hidden = !authInitialized || signedIn;
   }
 
-  $('auth').hidden = !!session;
-  $('workspace').hidden = !session;
+  // Stop the login animation while checking or when signed in.
+  const loginVideo = $('brandVideo');
+
+  if (loginVideo && (!authInitialized || signedIn)) {
+    loginVideo.pause();
+  }
+
+  // Reveal the selected view before syncing optional modules.
+  document.documentElement.classList.toggle(
+    'auth-initializing',
+    !authInitialized
+  );
   $('loginButton').disabled = !db || busy;
 
   $('send').disabled =
@@ -878,8 +889,13 @@ if (ready) {
       }
     );
 
+    
     db.auth.onAuthStateChange((event, newSession) => {
       session = newSession;
+    
+      if (event === 'INITIAL_SESSION') {
+        authInitialized = true;
+      }
 
       if (!newSession) {
         chats = [];
