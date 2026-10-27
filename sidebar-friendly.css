@@ -674,3 +674,8 @@ body.signed-in .workspace > aside.card
 #manageAdvisors[hidden] {
   display: none !important;
 }
+/* Do not leave a blank gap when the status has no message. */
+body.signed-in .workspace > aside.card
+#advisorTopicsStatus:empty {
+  display: none;
+}
