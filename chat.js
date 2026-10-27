@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 
-import { createAdvisorTopics } from './advisor-topics.js?v=review-fix-2';
+import { createAdvisorTopics } from './advisor-topics.js?v=sidebar-layout-6';
 
 import { mountAnalysisUI } from
   './analysis-ui-patch.js?v=concept-network-2';
