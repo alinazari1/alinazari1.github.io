@@ -1,28 +1,43 @@
 <!doctype html>
-<html lang="en" class="auth-loading">
+<html lang="en">
 <head>
-  <style>
-  /* Do not show the login form before session restoration finishes. */
-  html.auth-loading #auth,
-  html.auth-loading #workspace,
-  html.auth-loading #study-panel {
-    display: none !important;
-  }
-
-  html.auth-loading body::before {
-    content: "Loading your workspace…";
-    display: block;
-    padding: 32px 20px;
-    text-align: center;
-    font-family: system-ui, sans-serif;
-    font-size: 14px;
-    color: #777;
-  }
-</style>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Forenture AI Research Assistant">
   <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <script>
+    document.documentElement.classList.add('auth-pending');
+  </script>
+
+  <style>
+    /* Hide the page until the initial session check finishes. */
+    html.auth-pending body {
+      visibility: hidden !important;
+    }
+
+    html.auth-pending {
+      min-height: 100%;
+      background: #f5f5f3;
+    }
+
+    html.auth-pending::before {
+      content: "Loading your workspace…";
+      position: fixed;
+      inset: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+      box-sizing: border-box;
+
+      color: #73746e;
+      font: 14px/1.5 system-ui, sans-serif;
+      text-align: center;
+    }
+  </style>
   <title>AI Research Assistant | Forenture</title>
   <link rel="stylesheet" href="./chat.css?v=4">
   
