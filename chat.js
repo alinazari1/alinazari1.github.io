@@ -897,7 +897,12 @@ if (ready) {
       }
 
       controls();
-
+     // The first session check has finished.
+      // controls() has now selected the correct view.
+      if (event === 'INITIAL_SESSION') {
+        document.documentElement.classList.remove('auth-loading');
+      }
+      
       // Restore personal history after a page reload.
       // Keep database calls outside the auth callback itself.
       if (event === 'INITIAL_SESSION' && newSession) {
@@ -926,6 +931,8 @@ if (ready) {
 
     controls();
   } catch {
+    document.documentElement.classList.remove('auth-loading');
+
     say(
       'Unable to load the sign-in service. ' +
       'Check config.js and your network.'
@@ -1634,6 +1641,10 @@ function initializeVoice() {
 /* ---------- Initial page state ---------- */
 
 controls();
+
+if (!ready) {
+  document.documentElement.classList.remove('auth-loading');
+}
 initializeVoice();
 
 function closeFloatingTopicMenus(event) {
