@@ -37,6 +37,7 @@ let turns = [];
 let selected = null;
 let busy = false;
 let uncertain = null;
+let sharedTopicIds = new Set();
 
 const SpeechRecognitionAPI =
   window.SpeechRecognition ||
