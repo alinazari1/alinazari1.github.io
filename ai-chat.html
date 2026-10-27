@@ -1,40 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="auth-initializing">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Forenture AI Research Assistant">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
-
   <style>
-    /* Hide the page until the initial session check finishes. */
-    html.auth-pending body {
-      visibility: hidden !important;
-    }
+  /* Hide only authentication-dependent panels during startup. */
+  html.auth-initializing #auth,
+  html.auth-initializing #workspace,
+  html.auth-initializing #study-panel {
+    display: none !important;
+  }
 
-    html.auth-pending {
-      min-height: 100%;
-      background: #f5f5f3;
-    }
-
-    html.auth-pending::before {
-      content: "Loading your workspace…";
-      position: fixed;
-      inset: 0;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      padding: 24px;
-      box-sizing: border-box;
-
-      color: #73746e;
-      font: 14px/1.5 system-ui, sans-serif;
-      text-align: center;
-    }
-  </style>
+  /* Ensure layout rules do not override the hidden attribute. */
+  #auth[hidden],
+  #workspace[hidden],
+  #study-panel[hidden] {
+    display: none !important;
+  }
+</style>
   <title>AI Research Assistant | Forenture</title>
   <link rel="stylesheet" href="./chat.css?v=4">
   
@@ -1071,7 +1057,7 @@
   
 <script
   type="module"
-  src="./chat.js?v=auth-loading-1">
+  src="./chat.js?v=auth-state-2">
 </script>
   
   <script>
