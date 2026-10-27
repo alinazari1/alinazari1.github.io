@@ -61,7 +61,17 @@ const analysisUI = mountAnalysisUI({
 const topicSharing = createTopicSharing({
   getDb: () => db,
   getSession: () => session,
-  isLocked: () => historyLocked()
+  isLocked: () => historyLocked(),
+
+  onSharingChange: (topicId, recipientCount) => {
+    if (recipientCount > 0) {
+      sharedTopicIds.add(topicId);
+    } else {
+      sharedTopicIds.delete(topicId);
+    }
+
+    history();
+  }
 });
 /* ---------- Shared controls ---------- */
 
