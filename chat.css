@@ -368,3 +368,15 @@ main {
 #conversationReports .cn-canvas {
   min-width: 0;
 }
+
+/* AI responses only: no background, border, or shadow. */
+body.signed-in .msg.assistant {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any background applied to the response body itself. */
+body.signed-in .msg.assistant > .body {
+  background: transparent !important;
+}
