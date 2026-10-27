@@ -57,6 +57,11 @@ const analysisUI = mountAnalysisUI({
   getSession: () => session,
   isLocked: () => historyLocked()
 });
+const topicSharing = createTopicSharing({
+  getDb: () => db,
+  getSession: () => session,
+  isLocked: () => historyLocked()
+});
 /* ---------- Shared controls ---------- */
 
 function historyLocked() {
@@ -87,7 +92,7 @@ function controls() {
   $('send').disabled =
     busy ||
     voiceActive ||
-    !session ||
+    !session ||addAction(
     !$('consent').checked ||
     !!uncertain;
 
@@ -102,6 +107,7 @@ function controls() {
   syncAdvisorAdminUI();
   advisorTopics.sync();
   analysisUI.sync();
+  topicSharing.sync();
 }
 
 function must(result) {
@@ -289,7 +295,12 @@ function history() {
       topic.is_pinned ? 'Unpin' : 'Pin',
       () => togglePin(topic.id)
     );
-   
+
+    addAction(
+      'Share',
+      () => topicSharing.open(topic)
+    );
+    
     addAction(
       'Rename',
       () => renameTopic(topic.id)
