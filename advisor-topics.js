@@ -8,6 +8,7 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
   let reviewRequest = 0;
   let panel = null;
   let dialog = null;
+  let personalChatPanel = null;
   let assignments = [];
   let reloadTimer = null;
 
@@ -37,21 +38,17 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
 
   function closeReview() {
     reviewRequest++;
-  
-    const wasVisible = dialog && !dialog.hidden;
-  
+
     if (dialog) {
       dialog.remove();
       dialog = null;
+
+      if (personalChatPanel?.isConnected) {
+        personalChatPanel.hidden = false;
+      }
     }
-  
-    if (wasVisible) {
-      const chat = $('personalChatView');
-      const analysis = $('mainAnalysisView');
-  
-      if (chat) chat.hidden = false;
-      if (analysis) analysis.hidden = true;
-    }
+
+    personalChatPanel = null;
   }
 
   function ensurePanel() {
@@ -226,23 +223,23 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
 
   async function openTopic(assignment, topic) {
     if (isLocked()) return;
-  
-    const chat = $('personalChatView');
-    const analysis = $('mainAnalysisView');
-  
-    if (!chat || !analysis) {
+
+    closeReview();
+
+    const chat = $('composer')?.closest('section.card');
+
+    if (!chat) {
       const status = $('status');
-  
+
       if (status) {
         status.textContent =
-          'The main-page analysis interface must be loaded first. ' +
-          'Check analysis-ui-patch.js and refresh the page.';
+          'Could not locate the main conversation panel.';
       }
-  
+
       return;
     }
-  
-    closeReview();
+
+    personalChatPanel = chat;
   
     const request = reviewRequest;
     const version = generation;
@@ -300,7 +297,6 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
     chat.parentElement.append(viewer);
   
     chat.hidden = true;
-    analysis.hidden = true;
     viewer.hidden = false;
   
     heading.focus({ preventScroll: true });
