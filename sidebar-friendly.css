@@ -1,0 +1,338 @@
+/* Sidebar-only visual refresh. */
+body.signed-in .workspace > aside.card {
+  --sidebar-ink: #2c3936;
+  --sidebar-muted: #6b7973;
+  --sidebar-line: #dfe6df;
+  --sidebar-hover: #e8eeE7;
+  --sidebar-selected: #dcece4;
+  --sidebar-teal: #28786f;
+
+  background: #f3f5f0;
+  color: var(--sidebar-ink);
+  border-right: 1px solid var(--sidebar-line);
+
+  padding: 22px 16px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1c7 transparent;
+}
+
+/* Consistent typography throughout the sidebar. */
+body.signed-in .workspace > aside.card,
+body.signed-in .workspace > aside.card button,
+body.signed-in .workspace > aside.card input {
+  font-family:
+    -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Arial, sans-serif;
+}
+
+/* Top action row. */
+body.signed-in .workspace > aside.card > .row {
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+/* Main action: clear but not overly bright. */
+body.signed-in .workspace > aside.card #new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  min-height: 36px;
+  padding: 7px 13px;
+
+  background: var(--sidebar-teal);
+  color: #ffffff;
+  border: 1px solid var(--sidebar-teal);
+  border-radius: 11px;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+  box-shadow: 0 2px 5px rgb(35 83 65 / 8%);
+}
+
+/* Quiet secondary actions. */
+body.signed-in .workspace > aside.card button.secondary {
+  background: #eaf0e9;
+  color: #45645b;
+  border: 1px solid #d8e3d8;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+body.signed-in .workspace > aside.card
+button.secondary:not(:disabled):hover {
+  background: #dfeade;
+  border-color: #c3d5c4;
+}
+
+body.signed-in .workspace > aside.card
+#new:not(:disabled):hover {
+  background: #22695f;
+  border-color: #22695f;
+}
+
+/* Consistent interaction feedback. */
+body.signed-in .workspace > aside.card button {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+body.signed-in .workspace > aside.card
+:is(button, input, summary):focus-visible {
+  outline: 2px solid #6eaaa0;
+  outline-offset: 3px;
+}
+
+/* Search fields fill the available sidebar width. */
+body.signed-in .workspace > aside.card
+:is(#search, #advisorTopicSearch) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+
+  height: 35px;
+  padding: 7px 11px;
+
+  background: #ffffff;
+  color: var(--sidebar-ink);
+  border: 1px solid #dce4db;
+  border-radius: 10px;
+
+  font-size: 0.79rem;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgb(30 55 35 / 3%);
+}
+
+body.signed-in .workspace > aside.card
+:is(#search, #advisorTopicSearch)::placeholder {
+  color: #87918a;
+}
+
+body.signed-in .workspace > aside.card
+:is(#search, #advisorTopicSearch):focus {
+  border-color: #84b4a5;
+}
+
+/* Labels and supporting text remain readable but quiet. */
+body.signed-in .workspace > aside.card > label,
+body.signed-in .workspace > aside.card
+#advisorTopicsPanel > label:not(.check) {
+  margin: 10px 0 6px;
+  color: var(--sidebar-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+body.signed-in .workspace > aside.card .small {
+  color: var(--sidebar-muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+body.signed-in .workspace > aside.card #count {
+  margin: 7px 0 12px;
+  font-size: 0.72rem;
+}
+
+/* Section headings: consistent and softly emphasized. */
+body.signed-in .workspace > aside.card
+:is(
+  #myTopicsHeading,
+  .assigned-users-header h3
+) {
+  color: #40584c;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+body.signed-in .workspace > aside.card #myTopicsHeading {
+  margin: 16px 0 7px;
+}
+
+body.signed-in .workspace > aside.card
+.assigned-users-header {
+  min-height: 28px;
+  margin: 12px 0 7px;
+  gap: 8px;
+}
+
+/* Topic titles: clean, compact, and background-free. */
+body.signed-in .workspace > aside.card
+:is(
+  #history,
+  #advisorUsersList,
+  #sharedTopicsPanel,
+  #caseSamplesPanel
+) .history-item {
+  display: block;
+  width: 100%;
+  min-width: 0;
+
+  padding: 5px 9px !important;
+  margin: 2px 0 !important;
+
+  background: transparent;
+  color: var(--sidebar-ink);
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  font-family:
+    -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px !important;
+
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  box-shadow: none;
+}
+
+body.signed-in .workspace > aside.card
+:is(
+  #history,
+  #advisorUsersList,
+  #sharedTopicsPanel,
+  #caseSamplesPanel
+) .history-item:not(:disabled):hover {
+  background: var(--sidebar-hover);
+  color: #234d40;
+}
+
+/* Selected personal topic. */
+body.signed-in .workspace > aside.card
+#history .history-item.active {
+  background: var(--sidebar-selected);
+  color: #225c48;
+  border-color: transparent;
+  box-shadow: inset 3px 0 0 #6b9d86;
+  font-weight: 600;
+}
+
+/* Preserve the compact title-and-menu row. */
+body.signed-in .workspace > aside.card #history .topic-row {
+  gap: 3px;
+}
+
+body.signed-in .workspace > aside.card
+#history .topic-row > .history-item {
+  flex: 1;
+  width: auto;
+  margin: 0 !important;
+}
+
+/* Dots menus: visible, but visually secondary. */
+body.signed-in .workspace > aside.card
+#history .topic-menu-trigger {
+  background: transparent;
+  color: #7b8b80;
+  border: 0;
+  border-radius: 8px;
+}
+
+body.signed-in .workspace > aside.card
+#history .topic-menu-trigger:not(:disabled):hover {
+  background: #e0e9df;
+  color: #375e49;
+}
+
+/* Compact refresh controls beside section headings. */
+body.signed-in .workspace > aside.card
+.assigned-users-header .assigned-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  min-height: 27px;
+  padding: 0;
+
+  background: transparent;
+  border-color: transparent;
+  border-radius: 8px;
+  color: #7a8c7f;
+  font-size: 17px;
+}
+
+/* Advisor user headings. */
+body.signed-in .workspace > aside.card
+#advisorUsersList > details > summary {
+  padding: 4px 2px;
+  color: #435d4d;
+  border-radius: 6px;
+}
+
+body.signed-in .workspace > aside.card .assigned-user-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+body.signed-in .workspace > aside.card .assigned-user-count {
+  color: #8a968d;
+  font-size: 0.72rem;
+}
+
+/* Gentler separators and spacing between groups. */
+body.signed-in .workspace > aside.card hr {
+  height: 0;
+  margin: 18px 0 13px;
+  border: 0;
+  border-top: 1px solid var(--sidebar-line);
+}
+
+body.signed-in .workspace > aside.card
+:is(
+  #sharedTopicsPanel,
+  #caseSamplesPanel,
+  #advisorTopicsPanel
+) {
+  margin-bottom: 6px;
+}
+
+/* Footer actions. */
+body.signed-in .workspace > aside.card
+.sidebar-export-actions {
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+body.signed-in .workspace > aside.card
+.sidebar-small-action {
+  min-height: 29px;
+  padding: 5px 9px;
+  font-size: 0.75rem;
+}
+
+body.signed-in .workspace > aside.card #manageAdvisors {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+body.signed-in .workspace > aside.card #logout {
+  margin-top: 5px;
+  background: transparent;
+  border-color: transparent;
+  color: #66796b;
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  body.signed-in .workspace > aside.card button {
+    transition: none;
+  }
+}
