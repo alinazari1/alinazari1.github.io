@@ -679,3 +679,50 @@ body.signed-in .workspace > aside.card
 #advisorTopicsStatus:empty {
   display: none;
 }
+
+/* Search history: label and input on one aligned row. */
+body.signed-in .workspace > aside.card .sidebar-search-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
+
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+body.signed-in .workspace > aside.card
+.sidebar-search-row > label {
+  display: block;
+  flex: 0 0 auto;
+
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+body.signed-in .workspace > aside.card
+.sidebar-search-row > input#search {
+  box-sizing: border-box;
+  display: block;
+  flex: 1 1 0;
+
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  height: 37px;
+  margin: 0 !important;
+  padding: 7px 10px;
+
+  font-size: 14px;
+  line-height: 21px;
+}
