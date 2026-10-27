@@ -53,9 +53,11 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
 
   function ensurePanel() {
     if (panel) return;
-    const heading = element('h3', 'My topics');
-    heading.id = 'myTopicsHeading';
-    $('history').before(heading);
+    if (!$('myTopicsHeading')) {
+      const heading = element('h3', 'My topics');
+      heading.id = 'myTopicsHeading';
+      $('history').before(heading);
+    }
     panel = element('section');
     panel.id = 'advisorTopicsPanel';
     panel.hidden = true;
@@ -63,7 +65,7 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
       <hr>
       
     <div class="assigned-users-header">
-      <h3>Assigned users</h3>
+        <h3 id="assignedUsersHeading">Assigned users (0)</h3>
     
       <button
         id="advisorTopicsRefresh"
@@ -93,8 +95,12 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
     </div>
       
       <p class="small">Open a user to see their topics. Conversations are read-only.</p>
-      <label for="advisorTopicSearch">Search users and topic titles</label>
-      <input id="advisorTopicSearch" type="search" placeholder="Search assigned users or titles">
+      <input
+        id="advisorTopicSearch"
+        type="search"
+        placeholder="Search users or topics…"
+        aria-label="Search assigned users and topic titles"
+      >
       <label class="check">
         <input id="advisorIncludeHidden" type="checkbox">
         <span>Include hidden conversations</span>
@@ -216,7 +222,15 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
         }
       });
     }
-    if (!seen.size) list.append(element('p', 'No users assigned yet.', 'small'));
+    $('assignedUsersHeading').textContent =
+      `Assigned users (${seen.size})`;
+
+    if (!seen.size) {
+      list.append(
+        element('p', 'No users assigned yet.', 'small')
+      );
+    }
+
     filterTree();
     syncButtons();
   }
@@ -474,7 +488,7 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
       if (!current(version)) return;
       assignments = rows;
       panel.hidden = !role.data && rows.length === 0;
-      $('advisorTopicsStatus').textContent = rows.length + ' assignment(s).';
+      $('advisorTopicsStatus').textContent = '';
       renderUsers();
     } catch (error) {
       if (!current(version)) return;
