@@ -856,14 +856,14 @@ if (ready) {
       CONFIG.supabasePublishableKey,
       {
         auth: {
-          persistSession: false,
+          persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false
         }
       }
     );
 
-    db.auth.onAuthStateChange((_event, newSession) => {
+    db.auth.onAuthStateChange((event, newSession) => {
       session = newSession;
 
       if (!newSession) {
@@ -872,6 +872,9 @@ if (ready) {
         selected = null;
         uncertain = null;
 
+        sharedTopicIds = new Set();
+        inheritedTurnIds = new Set();
+
         $('prompt').value = '';
 
         history();
@@ -879,6 +882,31 @@ if (ready) {
       }
 
       controls();
+
+      // Restore personal history after a page reload.
+      // Keep database calls outside the auth callback itself.
+      if (event === 'INITIAL_SESSION' && newSession) {
+        const restoredUserId = newSession.user.id;
+
+        setTimeout(async () => {
+          if (session?.user.id !== restoredUserId) return;
+
+          try {
+            await load();
+
+            if (session?.user.id === restoredUserId) {
+              say('Session restored. Saved history loaded.');
+            }
+          } catch (error) {
+            if (session?.user.id === restoredUserId) {
+              say(
+                'Signed in, but history could not load: ' +
+                error.message
+              );
+            }
+          }
+        }, 0);
+      }
     });
 
     controls();
