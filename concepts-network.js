@@ -46,7 +46,15 @@ function styles(){if(document.getElementById('cn-styles'))return;const s=el('sty
 export function renderConceptsNetwork(row,container){
   styles();container.replaceChildren();const frames=normalizeNetwork(row);const root=el('section',null,container);root.className='cn';
   el('h3','Concepts network',root);
-  el('p','Circle size = concept prominence. Line thickness = expressed relationship strength. Color = first appearance in the saved history. Weights are not probabilities.',root).className='cn-note';
+    el(
+    'p',
+    'Letters identify concepts and stay the same across the ' +
+    'saved timeline. Circle size = concept prominence. ' +
+    'Line thickness = expressed relationship strength. ' +
+    'Color = first appearance in the saved history. ' +
+    'Weights are not probabilities.',
+    root
+  ).className = 'cn-note';
   if(!frames.length){el('p','No concept snapshots are available for this saved report.',root);return {destroy(){root.remove();}};}
   let index=frames.length-1,comparison=true,selected=null,zoom=1,panX=0,panY=0,drag=null,moved=false;
   const positions=new Map();const allIds=[...new Set(frames.flatMap(f=>f.nodes.map(n=>n.id)))];
@@ -204,6 +212,11 @@ export function renderConceptsNetwork(row,container){
       const g=svg('g',{transform:`translate(${p.x} ${p.y})`,tabindex:0,role:'button','aria-label':`${n.label}, weight ${fmt(n.weight)}, first recorded exchange ${frames[n.firstIndex].sequence}`,'class':'cn-node'},world);
 
       g.setAttribute('data-concept-id', n.id);
+      g.setAttribute(
+        'aria-label',
+        `${conceptName(n)}, weight ${fmt(n.weight)}, ` +
+        `first recorded exchange ${frames[n.firstIndex].sequence}`
+      );
       g.style.cursor = 'grab';
       if(changed)svg('circle',{r:r+5,fill:'none',stroke:'#17643b','stroke-width':2},g);
 
@@ -228,7 +241,8 @@ export function renderConceptsNetwork(row,container){
       
       const label=svg('text',{'text-anchor':'middle',y:r+19,'font-size':12,fill:'#183c2b','paint-order':'stroke',stroke:'#f5f9f6','stroke-width':3},g);label.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
       if(n.firstIndex===index||changed){const badge=svg('text',{'text-anchor':'middle',y:r+34,'font-size':10,fill:'#17643b'},g);badge.textContent=n.firstIndex===index?'NEW':'UPDATED';}
-      svg('title',{},g).textContent=n.label;g.onclick = null;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect('node',n.id);}};
+      svg('title', {}, g).textContent = conceptName(n);
+      g.onclick = null;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect('node',n.id);}};
     }
     transform();tables.replaceChildren();addTable('Concepts',['Concept','Weight','First recorded'],f.nodes,'node');addTable('Relationships',['Connection','Weight','Relationship'],f.edges,'edge');
     if(selected)inspect(selected.kind,selected.id);else{drawer.replaceChildren();el('h4','Explore the topic',drawer);el('p','Select a concept or connection to see its weight, changes, and saved evidence. Use the timeline to move between turns.',drawer);}
