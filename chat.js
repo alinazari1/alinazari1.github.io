@@ -360,9 +360,21 @@ function history() {
     );
 
   $('history').replaceChildren();
+  
+  // Use the existing heading, or create it if not yet mounted.
+  let heading = $('myTopicsHeading');
 
-  $('count').textContent =
-    matches.length + ' conversation(s)';
+  if (!heading) {
+    heading = document.createElement('h3');
+    heading.id = 'myTopicsHeading';
+    $('history').before(heading);
+  }
+
+  heading.textContent = `My topics (${matches.length})`;
+
+  // Keep the element for compatibility, but remove the old count.
+  $('count').textContent = '';
+  $('count').hidden = true;
 
   const locked = historyLocked();
 
@@ -1663,14 +1675,23 @@ function syncAdvisorAdminUI() {
     button = document.createElement('button');
     button.id = 'manageAdvisors';
     button.type = 'button';
-    button.className = 'secondary';
-    button.textContent = 'Manage advisors';
-    button.style.marginBottom = '12px';
-    button.style.width = '100%';
-
-    $('logout').before(button);
-
     button.onclick = openAdvisorAdmin;
+  }
+
+  button.className = 'secondary sidebar-small-action';
+  button.textContent = 'Manage adviser';
+  button.title = 'Manage advisers and assigned users';
+
+  // Remove the previous full-width inline styling.
+  button.style.removeProperty('width');
+  button.style.removeProperty('margin-bottom');
+
+  const exportRow = document.querySelector(
+    '#workspace aside.card .sidebar-export-actions'
+  );
+
+  if (exportRow && button.parentElement !== exportRow) {
+    exportRow.append(button);
   }
 
   button.hidden = !isAdmin;
