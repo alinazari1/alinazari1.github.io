@@ -297,6 +297,7 @@ export function createAdvisorTopics({ getDb, getSession, isLocked }) {
     chat.parentElement.append(viewer);
   
     chat.hidden = true;
+    viewer.classList.add('card', 'advisor-review-panel');
     viewer.hidden = false;
   
     heading.focus({ preventScroll: true });
