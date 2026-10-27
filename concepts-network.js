@@ -1,6 +1,25 @@
 const SVG='http://www.w3.org/2000/svg';
 const array=x=>Array.isArray(x)?x:[];
 const text=x=>typeof x==='string'?x:'';
+function conceptLetter(index) {
+  let value = index + 1;
+  let result = '';
+
+  while (value > 0) {
+    value--;
+    result =
+      String.fromCharCode(65 + (value % 26)) +
+      result;
+    value = Math.floor(value / 26);
+  }
+
+  return result;
+}
+
+function conceptName(node) {
+  return `${conceptLetter(node.layoutIndex)} — ${node.label}`;
+}
+
 export function validWeight(x){return typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1?x:null;}
 const key=e=>JSON.stringify([text(e.from_id),text(e.to_id),text(e.type)||text(e.description)]);
 export function normalizeNetwork(row){
@@ -65,8 +84,27 @@ export function renderConceptsNetwork(row,container){
   function inspect(kind,id){
     selected={kind,id};drawer.replaceChildren();const f=frames[index],before=frames[index-1];
     const item=(kind==='node'?f.nodes:f.edges).find(x=>x.id===id);if(!item){el('p','This item is not present in the selected turn.',drawer);return;}
-    el('h4',kind==='node'?item.label:(text(item.type)||'Relationship'),drawer);
-    if(kind==='edge'){const names=new Map(f.nodes.map(n=>[n.id,n.label]));el('p',`${names.get(item.from_id)} → ${names.get(item.to_id)}`,drawer);}
+    
+    el(
+      'h4',
+      kind === 'node'
+        ? conceptName(item)
+        : (text(item.type) || 'Relationship'),
+      drawer
+    );
+    
+    if (kind === 'edge') {
+      const names = new Map(
+        f.nodes.map(n => [n.id, conceptName(n)])
+      );
+
+      el(
+        'p',
+        `${names.get(item.from_id)} → ${names.get(item.to_id)}`,
+        drawer
+      );
+    }
+    
     el('p',text(item.definition)||text(item.description)||'No description saved.',drawer);
     const dl=el('dl',null,drawer);stat(dl,'Current weight',fmt(item.weight));
     const old=(kind==='node'?before?.nodes:before?.edges)?.find(x=>x.id===id);
@@ -80,10 +118,62 @@ export function renderConceptsNetwork(row,container){
     for(const c of f.changes.filter(c=>c.concept_id===id)){el('p',`${c.kind||'Change'}: ${c.description||''}`,drawer);}
     showEvidence(item);
   }
-  function addTable(title,headers,items,kind){el('h4',title,tables);const table=el('table',null,tables);const head=el('tr',null,el('thead',null,table));headers.forEach(h=>el('th',h,head).scope='col');const body=el('tbody',null,table);
-    const names=new Map(frames[index].nodes.map(n=>[n.id,n.label]));
-    items.forEach(item=>{const tr=el('tr',null,body),td=el('td',null,tr);const b=el('button',kind==='node'?item.label:`${names.get(item.from_id)} → ${names.get(item.to_id)}`,td);b.className='cn-listbutton';b.type='button';b.onclick=()=>inspect(kind,item.id);el('td',fmt(item.weight),tr);el('td',kind==='node'?`Exchange ${frames[item.firstIndex].sequence}`:text(item.type)||text(item.description)||'Unspecified',tr);});
+  
+  function addTable(title, headers, items, kind) {
+    el('h4', title, tables);
+
+    const table = el('table', null, tables);
+    const head = el(
+      'tr',
+      null,
+      el('thead', null, table)
+    );
+
+    headers.forEach(header => {
+      el('th', header, head).scope = 'col';
+    });
+
+    const body = el('tbody', null, table);
+
+    const names = new Map(
+      frames[index].nodes.map(n => [
+        n.id,
+        conceptName(n)
+      ])
+    );
+
+    items.forEach(item => {
+      const tr = el('tr', null, body);
+      const td = el('td', null, tr);
+
+      const name = kind === 'node'
+        ? conceptName(item)
+        : `${names.get(item.from_id)} → ${names.get(item.to_id)}`;
+
+      const button = el('button', name, td);
+      button.className = 'cn-listbutton';
+      button.type = 'button';
+      button.onclick = () => inspect(kind, item.id);
+
+      el('td', fmt(item.weight), tr);
+
+      el(
+        'td',
+        kind === 'node'
+          ? `Exchange ${frames[item.firstIndex].sequence}`
+          : (
+              text(item.type) ||
+              text(item.description) ||
+              'Unspecified'
+            ),
+        tr
+      );
+    });
   }
+
+
+
+  
   function draw(){
     timeline.value=String(index);prev.disabled=index===0;next.disabled=index===frames.length-1;checkbox.disabled=index===0;turnLabel.textContent=`Exchange ${frames[index].sequence} of ${frames.length} saved slices`;
     const f=frames[index],before=frames[index-1],oldNodes=new Map((before?.nodes||[]).map(n=>[n.id,n])),oldEdges=new Map((before?.edges||[]).map(e=>[e.id,e]));
@@ -120,7 +210,22 @@ export function renderConceptsNetwork(row,container){
 
                             
       svg('circle',{r,fill:nodeColor(n),stroke:'#52785e','stroke-width':1.5,...(n.weight==null?{'stroke-dasharray':'4 3'}:{})},g);
-      const number=svg('text',{'text-anchor':'middle',y:5,'font-size':12,fill:n.firstIndex===index?'white':'#183c2b'},g);number.textContent=n.weight==null?'?':n.weight.toFixed(2);
+
+      const circleLabel = conceptLetter(n.layoutIndex);
+      const letter = svg('text', {
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        y: 0,
+        'font-size': circleLabel.length > 2 ? 11 : 14,
+        'font-weight': 600,
+        'pointer-events': 'none',
+        fill: n.firstIndex === index
+          ? 'white'
+          : '#183c2b'
+      }, g);
+
+      letter.textContent = circleLabel;
+      
       const label=svg('text',{'text-anchor':'middle',y:r+19,'font-size':12,fill:'#183c2b','paint-order':'stroke',stroke:'#f5f9f6','stroke-width':3},g);label.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
       if(n.firstIndex===index||changed){const badge=svg('text',{'text-anchor':'middle',y:r+34,'font-size':10,fill:'#17643b'},g);badge.textContent=n.firstIndex===index?'NEW':'UPDATED';}
       svg('title',{},g).textContent=n.label;g.onclick = null;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect('node',n.id);}};
