@@ -6,7 +6,8 @@ import { mountAnalysisUI } from
   './analysis-ui-patch.js?v=concept-network-2';
 
 import { createTopicSharing } from './topic-sharing.js?v=2';
-import { createSharedTopics } from './shared-topics.js?v=1';
+
+import { createSharedTopics } from './shared-topics.js?v=2';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
