@@ -1,5 +1,6 @@
 import { renderLatestDevelopment } from './latest-development.js?v=latest-1';
 
+
 const TYPES=['quick_summary','conversation_insights','concepts_network'];
 const LABELS={quick_summary:'Quick summary',conversation_insights:'Conversation insights',concepts_network:'Concepts network'};
 const RULES=[
@@ -69,7 +70,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=pointer-details-3')
+    import('./concepts-network.js?v=letter-labels-1')
       .then(module => {
         if (!stillCurrent()) return;
   
