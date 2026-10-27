@@ -527,3 +527,146 @@ body.signed-in .workspace > aside.card button {
     transition: none;
   }
 }
+
+/* Sidebar refinement: larger text and inline search. */
+
+body.signed-in .workspace > aside.card {
+  font-size: 16px;
+}
+
+/* Search label and input on one line. */
+body.signed-in .workspace > aside.card .sidebar-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+
+body.signed-in .workspace > aside.card
+.sidebar-search-row > label {
+  flex: 0 0 auto;
+  margin: 0;
+  color: var(--side-heading, #73746e);
+  font-size: 13px;
+  line-height: 19px;
+  white-space: nowrap;
+}
+
+body.signed-in .workspace > aside.card
+.sidebar-search-row > #search {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+}
+
+/* Search fields: previously 12px. */
+body.signed-in .workspace > aside.card
+:is(#search, #advisorTopicSearch) {
+  height: 37px;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+/* Primary and secondary top actions. */
+body.signed-in .workspace > aside.card #new {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+body.signed-in .workspace > aside.card #refresh {
+  font-size: 14px;
+}
+
+/* Supporting text: previously 11px. */
+body.signed-in .workspace > aside.card
+:is(.small, #count, .sidebar-export-label, .check) {
+  font-size: 13px;
+  line-height: 19px;
+}
+
+/* Section titles: previously 12px. */
+body.signed-in .workspace > aside.card
+:is(
+  #myTopicsHeading,
+  #myTopicsHeader #myTopicsHeading,
+  .assigned-users-header h3
+) {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Topic titles: previously 13px.
+   Slightly taller rows accommodate the larger text. */
+body.signed-in .workspace > aside.card
+:is(
+  #history,
+  #advisorUsersList,
+  #sharedTopicsPanel,
+  #caseSamplesPanel
+) .history-item {
+  box-sizing: border-box;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 7px 10px !important;
+
+  font-size: 15px;
+  line-height: 20px !important;
+}
+
+body.signed-in .workspace > aside.card
+#history > .topic-row {
+  height: 38px !important;
+  min-height: 38px !important;
+}
+
+/* Assigned-user labels and actions. */
+body.signed-in .workspace > aside.card
+#advisorUsersList > details > summary {
+  font-size: 14px;
+  line-height: 22px;
+}
+
+body.signed-in .workspace > aside.card .assigned-user-name {
+  font-size: 14px;
+}
+
+body.signed-in .workspace > aside.card .assigned-user-count {
+  font-size: 13px;
+}
+
+body.signed-in .workspace > aside.card
+#advisorUsersList .advisorAnalyzeUser {
+  font-size: 12px;
+  line-height: 19px;
+}
+
+body.signed-in .workspace > aside.card
+#myTopicsHeader .compact-analyze {
+  font-size: 13px;
+  line-height: 19px;
+}
+
+/* Export and adviser actions share a flexible row. */
+body.signed-in .workspace > aside.card
+.sidebar-export-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+body.signed-in .workspace > aside.card
+.sidebar-small-action {
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+body.signed-in .workspace > aside.card #manageAdvisors {
+  min-height: 32px;
+  margin: 0;
+  padding: 5px 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
