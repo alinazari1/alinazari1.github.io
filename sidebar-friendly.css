@@ -670,3 +670,7 @@ body.signed-in .workspace > aside.card #manageAdvisors {
   font-size: 14px;
   line-height: 20px;
 }
+body.signed-in .workspace > aside.card
+#manageAdvisors[hidden] {
+  display: none !important;
+}
