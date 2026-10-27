@@ -897,6 +897,9 @@ if (ready) {
       }
 
       controls();
+      if (event === 'INITIAL_SESSION') {
+        document.documentElement.classList.remove('auth-pending');
+      }
      // The first session check has finished.
       // controls() has now selected the correct view.
       if (event === 'INITIAL_SESSION') {
