@@ -1,6 +1,39 @@
 const SVG='http://www.w3.org/2000/svg';
 const array=x=>Array.isArray(x)?x:[];
 const text=x=>typeof x==='string'?x:'';
+const ROLE_INFO = {
+  concept: {
+    label: 'GENERAL',
+    meaning: 'A general topic or element of the situation'
+  },
+  driver: {
+    label: 'DRIVER',
+    meaning: 'A factor that may influence the decision'
+  },
+  goal: {
+    label: 'GOAL',
+    meaning: 'Something the user wants to achieve'
+  },
+  constraint: {
+    label: 'CONSTRAINT',
+    meaning: 'A limit or requirement'
+  },
+  direction: {
+    label: 'OPTION',
+    meaning: 'A possible course of action'
+  },
+  outcome: {
+    label: 'OUTCOME',
+    meaning: 'A possible, expected, or reported result'
+  }
+};
+
+function roleInfo(role) {
+  return ROLE_INFO[role] || {
+    label: 'UNCLASSIFIED',
+    meaning: 'No recognized role was recorded'
+  };
+}
 function conceptLetter(index) {
   let value = index + 1;
   let result = '';
@@ -68,7 +101,34 @@ export function renderConceptsNetwork(row,container){
   const label=el('label',null,controls);const checkbox=el('input',null,label);checkbox.type='checkbox';checkbox.checked=true;label.append(document.createTextNode(' Compare previous'));
   const legend=el('div',null,root);legend.className='cn-legend';
   for(const [color,name]of [['#e5f0e8','Earlier'],['#80b491','More recent'],['#17643b','New in selected turn'],['#e8e8e8','Weight unavailable (dashed)']]){const span=el('span',null,legend),dot=el('i',null,span);dot.className='cn-swatch';dot.style.background=color;span.append(document.createTextNode(name));}
+  
+    const roleLegend = el('div', null, root);
+  roleLegend.className = 'cn-role-legend';
+  roleLegend.setAttribute('aria-label', 'Concept role legend');
+
+  el('strong', 'Concept roles', roleLegend);
+
+  const roleItems = el('div', null, roleLegend);
+  roleItems.className = 'cn-role-items';
+
+  for (const info of Object.values(ROLE_INFO)) {
+    const item = el('div', null, roleItems);
+    item.className = 'cn-role-item';
+
+    const badge = el('span', info.label, item);
+    badge.className = 'cn-role-pill';
+
+    el('span', info.meaning, item);
+  }
+
+  el(
+    'p',
+    'Roles are AI-proposed interpretations. An option is not ' +
+    'necessarily a decision, and an outcome is not necessarily achieved.',
+    roleLegend
+  ).className = 'cn-note';
   const summary=el('p','',root);summary.className='cn-note';summary.setAttribute('aria-live','polite');
+  
   const stage=el('div',null,root);stage.className='cn-stage';const canvas=el('div',null,stage);canvas.className='cn-canvas';
   const drawing=svg('svg',{viewBox:'0 0 880 570',role:'img','aria-label':'Concept relationship network. Equivalent concept and relationship tables follow.'},canvas);
   const uid='cn-arrow-'+(++count);const defs=svg('defs',{},drawing),marker=svg('marker',{id:uid,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'},defs);svg('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#a3aaa6'},marker);
