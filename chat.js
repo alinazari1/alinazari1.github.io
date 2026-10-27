@@ -92,7 +92,7 @@ function controls() {
   $('send').disabled =
     busy ||
     voiceActive ||
-    !session ||addAction(
+    !session ||
     !$('consent').checked ||
     !!uncertain;
 
