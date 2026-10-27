@@ -1,7 +1,8 @@
 export function createTopicSharing({
   getDb,
   getSession,
-  isLocked
+  isLocked,
+  onSharingChange = () => {}
 }) {
   let dialog = null;
   let version = 0;
@@ -214,7 +215,7 @@ export function createTopicSharing({
 
       if (!active()) return;
 
-      recipients.replaceChildren();
+      onSharingChange(topicId, rows?.length || 0);
 
       if (!rows?.length) {
         const empty = element(
