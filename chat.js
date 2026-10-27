@@ -6,6 +6,7 @@ import { mountAnalysisUI } from
   './analysis-ui-patch.js?v=concept-network-2';
 
 import { createTopicSharing } from './topic-sharing.js?v=2';
+import { createSharedTopics } from './shared-topics.js?v=1';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
@@ -39,6 +40,7 @@ let selected = null;
 let busy = false;
 let uncertain = null;
 let sharedTopicIds = new Set();
+let inheritedTurnIds = new Set();
 
 const SpeechRecognitionAPI =
   window.SpeechRecognition ||
@@ -72,6 +74,32 @@ const topicSharing = createTopicSharing({
     }
 
     history();
+  }
+});
+
+const sharedTopics = createSharedTopics({
+  getDb: () => db,
+  getSession: () => session,
+  isLocked: () => historyLocked(),
+
+  onCopied: async conversationId => {
+    const userId = session?.user.id;
+    if (!userId) return;
+
+    await load();
+
+    if (session?.user.id !== userId) return;
+
+    selected = conversationId;
+    $('prompt').value = '';
+
+    history();
+    conversation();
+
+    say(
+      'Full-case copy created. Inherited messages are labelled; ' +
+      'new messages you send belong to your own continuation.'
+    );
   }
 });
 /* ---------- Shared controls ---------- */
@@ -120,6 +148,7 @@ function controls() {
   advisorTopics.sync();
   analysisUI.sync();
   topicSharing.sync();
+  sharedTopics.sync();
 }
 
 function must(result) {
@@ -193,15 +222,49 @@ async function loadSharedTopicIds() {
   }
 }
 
+async function loadInheritedTurnIds() {
+  const userId = session?.user.id;
+
+  if (!db || !userId) return new Set();
+
+  const ids = new Set();
+
+  for (let start = 0; ; start += 500) {
+    const batch = must(
+      await db
+        .from('research_case_copy_origins')
+        .select('copied_conversation_id, turn_id_map')
+        .eq('copied_by', userId)
+        .order('copied_conversation_id')
+        .range(start, start + 499)
+    );
+
+    if (session?.user.id !== userId) return new Set();
+
+    for (const row of batch) {
+      for (const newId of Object.values(row.turn_id_map || {})) {
+        ids.add(newId);
+      }
+    }
+
+    if (batch.length < 500) return ids;
+  }
+}
 async function load() {
   const userId = session?.user.id;
 
   if (!db || !userId) return;
-
-   const [conversations, messages, sharedIds] = await Promise.all([
+  
+  const [
+    conversations,
+    messages,
+    sharedIds,
+    inheritedIds
+  ] = await Promise.all([
     rows('research_conversations'),
     rows('research_turns'),
-    loadSharedTopicIds()
+    loadSharedTopicIds(),
+    loadInheritedTurnIds()
   ]);
   
   if (session?.user.id !== userId) return;
@@ -212,6 +275,7 @@ async function load() {
 
   turns = messages;
   sharedTopicIds = sharedIds;
+  inheritedTurnIds = inheritedIds;
   
   if (
     selected &&
@@ -586,7 +650,7 @@ async function deleteTopic(id) {
 
 /* ---------- Render messages ---------- */
 
-function add(role, text, time, sources = []) {
+function add(role, text, time, sources = [], inherited = false) {
   const box = document.createElement('article');
   box.className = 'msg ' + role;
 
@@ -594,7 +658,15 @@ function add(role, text, time, sources = []) {
   meta.className = 'meta';
 
   meta.textContent =
-    (role === 'user' ? 'You' : 'AI assistant') +
+    (
+      role === 'user'
+        ? inherited
+          ? 'Original author — copied message'
+          : 'You'
+        : inherited
+          ? 'AI assistant — copied response'
+          : 'AI assistant'
+    ) +
     ' · ' +
     new Date(time).toLocaleString();
 
@@ -682,14 +754,21 @@ function conversation() {
     );
 
   for (const turn of messages) {
-    add('user', turn.prompt, turn.created_at);
+    add(
+      'user',
+      turn.prompt,
+      turn.created_at,
+      [],
+      inheritedTurnIds.has(turn.id)
+    );
 
     if (turn.response) {
       add(
         'assistant',
         turn.response,
         turn.completed_at || turn.created_at,
-        turn.sources
+        turn.sources,
+        inheritedTurnIds.has(turn.id)
       );
     } else {
       const paragraph = document.createElement('p');
