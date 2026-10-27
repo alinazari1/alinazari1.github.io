@@ -8,6 +8,7 @@ import { mountAnalysisUI } from
 import { createTopicSharing } from './topic-sharing.js?v=2';
 
 import { createSharedTopics } from './shared-topics.js?v=2';
+import { createCaseSamples } from './case-samples.js?v=1';
 
 import { marked } from
   'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
@@ -103,6 +104,40 @@ const sharedTopics = createSharedTopics({
     );
   }
 });
+
+const caseSamples = createCaseSamples({
+  getDb: () => db,
+  getSession: () => session,
+  isLocked: () => historyLocked(),
+
+  openCase: topic => sharedTopics.open(topic),
+
+  onChange: () => {
+    history();
+    syncPublishedCaseComposer();
+  }
+});
+
+function syncPublishedCaseComposer() {
+  const locked = caseSamples.isPublished(selected);
+
+  $('composer').hidden = locked;
+
+  let notice = $('publishedCaseNotice');
+
+  if (!notice) {
+    notice = document.createElement('p');
+    notice.id = 'publishedCaseNotice';
+    notice.className = 'small';
+    $('title').after(notice);
+  }
+
+  notice.hidden = !locked;
+  notice.textContent =
+    'Published case sample — the original is locked. ' +
+    'Use the Case samples panel to view it. To edit the original, ' +
+    'withdraw it through this topic’s menu first.';
+}
 /* ---------- Shared controls ---------- */
 
 function historyLocked() {
@@ -150,6 +185,7 @@ function controls() {
   analysisUI.sync();
   topicSharing.sync();
   sharedTopics.sync();
+  caseSamples.sync();
 }
 
 function must(result) {
@@ -422,6 +458,19 @@ function history() {
       'Share',
       () => topicSharing.open(topic)
     );
+
+    const isAdmin =
+      session?.user.email?.trim().toLowerCase() ===
+      'infoforenture@gmail.com';
+
+    if (isAdmin) {
+      addAction(
+        caseSamples.isPublished(topic.id)
+          ? 'Withdraw case sample'
+          : 'Publish as case sample',
+        () => caseSamples.manage(topic)
+      );
+    }
     
     addAction(
       'Rename',
@@ -736,6 +785,7 @@ function conversation() {
   $('title').textContent =
     current?.title || 'New conversation';
 
+  syncPublishedCaseComposer();
   $('messages').replaceChildren();
 
   analysisUI.setContext(
