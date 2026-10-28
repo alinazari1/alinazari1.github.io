@@ -221,6 +221,11 @@ export function renderConceptsNetwork(row,container,options = {}) {
     let url=null;
     try {
       const frame=frames[index], clone=drawing.cloneNode(true);
+            // Change label outlines only in the exported copy.
+      clone.querySelectorAll('[paint-order="stroke"]')
+        .forEach(label => {
+          label.setAttribute('stroke', '#ffffff');
+        });
       const rect=drawing.getBoundingClientRect();
       const width=Math.max(1,Math.round(rect.width)), height=Math.max(1,Math.round(rect.height));
       clone.setAttributeNS('http://www.w3.org/2000/xmlns/','xmlns',SVG);clone.setAttribute('width',String(width));clone.setAttribute('height',String(height));
@@ -238,7 +243,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
       const scale=Math.min(2,4096/Math.max(width,height));
       output.width=Math.max(1,Math.round(width*scale));output.height=Math.max(1,Math.round(height*scale));
       const ctx=output.getContext('2d');if(!ctx) throw new Error('Image rendering is unavailable.');
-      ctx.fillStyle='#f5f9f6';ctx.fillRect(0,0,output.width,output.height);
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,output.width,output.height);
       ctx.drawImage(image,0,0,output.width,output.height);
       const png=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(new Error('PNG generation failed.')),'image/png'));
       if(destroyed) return;
