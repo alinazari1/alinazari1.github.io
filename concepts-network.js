@@ -132,8 +132,9 @@ export function renderConceptsNetwork(row,container,options = {}) {
   }
   let index=frames.length-1, comparison=true, selected=null;
   let zoom=1, panX=0, panY=0, destroyed=false, exporting=false;
-    let accountLayout = null;
-    let evolutionView = null;
+  let accountLayout = null;
+  let evolutionView = null;
+  let pdfCapturing = false;
   let drag=null, pinch=null, suppressTap=false;
   const pointers=new Map(), positions=new Map();
   const allIds=[...new Set(frames.flatMap(f=>f.nodes.map(n=>n.id)))];
@@ -195,7 +196,9 @@ export function renderConceptsNetwork(row,container,options = {}) {
   function closePopup(){popup.hidden=true;}
   function transform() {
     world.setAttribute('transform',`translate(${panX} ${panY}) translate(440 285) scale(${zoom}) translate(-440 -285)`);
-    accountLayout?.changed();
+    if (!pdfCapturing) {
+      accountLayout?.changed();
+}
   }
   function svgPoint(clientX,clientY,element=drawing) {
     const matrix=element.getScreenCTM(); if(!matrix) return null;
@@ -212,6 +215,125 @@ export function renderConceptsNetwork(row,container,options = {}) {
   function resetView(){closePopup();zoom=1;panX=0;panY=0;transform();}
   function showPopup(clientX,clientY) {
     closePopup();
+  }
+
+    function captureForPdf() {
+    if (destroyed) {
+      throw new Error('The network has been closed.');
+    }
+
+    if (root.inert && !options.exportMode) {
+      throw new Error(
+        'Wait for your account layout to finish loading, ' +
+        'then export again.'
+      );
+    }
+
+    const previousIndex = index;
+    const previousSelected = selected;
+
+    pdfCapturing = true;
+
+    try {
+      cancelGestures();
+      closePopup();
+
+      index = frames.length - 1;
+      selected = null;
+
+      draw();
+
+      const bounds = world.getBBox();
+      const padding = 32;
+
+      const clone = drawing.cloneNode(true);
+      const clonedWorld = clone.querySelector('g');
+
+      if (!clonedWorld) {
+        throw new Error('The network drawing was not found.');
+      }
+
+      // Fit all nodes while retaining their actual positions.
+      clonedWorld.removeAttribute('transform');
+
+      const x = bounds.width
+        ? bounds.x - padding
+        : 0;
+
+      const y = bounds.height
+        ? bounds.y - padding
+        : 0;
+
+      const width = bounds.width
+        ? bounds.width + padding * 2
+        : 880;
+
+      const height = bounds.height
+        ? bounds.height + padding * 2
+        : 570;
+
+      clone.setAttributeNS(
+        'http://www.w3.org/2000/xmlns/',
+        'xmlns',
+        SVG
+      );
+
+      clone.setAttribute(
+        'viewBox',
+        `${x} ${y} ${width} ${height}`
+      );
+
+      clone.setAttribute('width', String(width));
+      clone.setAttribute('height', String(height));
+
+      clone.setAttribute(
+        'preserveAspectRatio',
+        'xMidYMid meet'
+      );
+
+      const background = document.createElementNS(
+        SVG,
+        'rect'
+      );
+
+      for (const [key, value] of Object.entries({
+        x,
+        y,
+        width,
+        height,
+        fill: '#ffffff'
+      })) {
+        background.setAttribute(key, String(value));
+      }
+
+      clone.insertBefore(background, clone.firstChild);
+
+      clone.querySelectorAll('[tabindex]').forEach(
+        node => node.removeAttribute('tabindex')
+      );
+
+      clone.querySelectorAll(
+        '[paint-order="stroke"]'
+      ).forEach(node => {
+        node.setAttribute('stroke', '#ffffff');
+      });
+
+      return {
+        svg: new XMLSerializer().serializeToString(clone),
+        reportId: String(row.id),
+        revision: row.revision,
+        sourceFingerprint: row.source_fingerprint
+      };
+    } finally {
+      index = previousIndex;
+      selected = previousSelected;
+
+      try {
+        draw();
+      } finally {
+        pdfCapturing = false;
+      }
+    }
   }
   function downloadBlob(blob,name) {
     const url=URL.createObjectURL(blob), link=el('a');
@@ -350,7 +472,9 @@ export function renderConceptsNetwork(row,container,options = {}) {
     }
   }
   function draw() {
-    evolutionView?.setExchange(index);
+    if (!pdfCapturing) {
+      evolutionView?.setExchange(index);
+    }
     timeline.value=String(index);prev.disabled=index===0;next.disabled=index===frames.length-1;checkbox.disabled=index===0;
     turnLabel.textContent=`Exchange ${frames[index].sequence} · saved slice ${index+1} of ${frames.length}`;
     const f=frames[index], before=frames[index-1], oldNodes=new Map((before?.nodes||[]).map(n=>[n.id,n]));
