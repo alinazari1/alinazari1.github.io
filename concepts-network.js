@@ -159,7 +159,10 @@ export function renderConceptsNetwork(row,container) {
   const summary=el('p','',root); summary.className='cn-note'; summary.setAttribute('aria-live','polite');
   const stage=el('div',null,root); stage.className='cn-stage';
   const canvas=el('div',null,stage); canvas.className='cn-canvas'; canvas.tabIndex=0;
-  canvas.setAttribute('aria-label','Interactive network. Drag to pan, pinch to zoom, or tap empty space for tools.');
+  canvas.setAttribute(
+    'aria-label',
+    'Interactive network. Drag to pan, pinch to zoom, or use the corner toolbar.'
+  );
   const drawing=svg('svg',{viewBox:'0 0 880 570','font-family':'system-ui, sans-serif',
     role:'group','aria-label':'Concept relationship network. Equivalent data tables follow.'},canvas);
   const uid='cn-arrow-'+(++count), defs=svg('defs',{},drawing);
