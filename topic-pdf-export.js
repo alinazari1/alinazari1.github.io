@@ -1,6 +1,9 @@
 import {
   renderLatestDevelopment
 } from './latest-development.js?v=latest-1';
+import {
+  downloadReportPdf
+} from './pdf-download.js?v=direct-pdf-1';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
