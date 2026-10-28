@@ -196,10 +196,7 @@ export function renderConceptsNetwork(row,container) {
   }
   function resetView(){closePopup();zoom=1;panX=0;panY=0;transform();}
   function showPopup(clientX,clientY) {
-    const rect=canvas.getBoundingClientRect(); popup.hidden=false;
-    const x=clientX-rect.left-canvas.clientLeft, y=clientY-rect.top-canvas.clientTop;
-    popup.style.left=Math.max(6,Math.min(x,canvas.clientWidth-popup.offsetWidth-6))+'px';
-    popup.style.top=Math.max(6,Math.min(y,canvas.clientHeight-popup.offsetHeight-6))+'px';
+    closePopup();
   }
   function downloadBlob(blob,name) {
     const url=URL.createObjectURL(blob), link=el('a');
