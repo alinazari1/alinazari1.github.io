@@ -70,7 +70,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=role-black-text-1')
+    import('./concepts-network.js?v=network-tools-1')
       .then(module => {
         if (!stillCurrent()) return;
   
