@@ -423,3 +423,126 @@ body.signed-in .msg.assistant > .body {
   opacity: 0.45;
   cursor: default;
 }
+
+.source-review {
+  margin-top: 18px;
+  padding: 14px;
+
+  background: #ffffff;
+  color: #111111;
+
+  border: 1px solid #b9cebf;
+  border-radius: 8px;
+}
+
+.source-review > summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.source-review-note {
+  color: #526459;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.source-review label {
+  display: block;
+  margin-top: 14px;
+}
+
+.source-review .source-review-select {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  min-height: 40px;
+
+  margin-top: 6px;
+  padding: 8px;
+
+  background: #ffffff;
+  color: #111111;
+
+  border: 1px solid #b9cebf;
+  border-radius: 6px;
+
+  font: inherit;
+}
+
+.source-review-content {
+  margin-top: 16px;
+}
+
+.source-review-content h4 {
+  margin: 16px 0 8px;
+}
+
+.source-review-content dl {
+  display: grid;
+  grid-template-columns: minmax(130px, 180px) minmax(0, 1fr);
+  gap: 8px 12px;
+
+  margin: 14px 0;
+}
+
+.source-review-content dt {
+  font-weight: 600;
+}
+
+.source-review-content dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-review-evidence {
+  margin-top: 12px;
+  padding: 12px;
+
+  border: 1px solid #dbe6dd;
+  border-radius: 6px;
+
+  background: #f8fbf9;
+}
+
+.source-review-attribution {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.source-review-evidence blockquote {
+  margin: 10px 0;
+  padding-left: 12px;
+
+  border-left: 3px solid #80b491;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.source-review-match {
+  color: #285b40;
+  font-size: 0.85rem;
+}
+
+.source-review-warning {
+  color: #8b421e;
+  font-size: 0.85rem;
+}
+
+.source-review-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .source-review-content dl {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .source-review-content dd {
+    margin-bottom: 10px;
+  }
+}
