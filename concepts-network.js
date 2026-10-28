@@ -1,3 +1,6 @@
+import {
+  mountConceptEvolution
+} from './concept-evolution.js?v=evolution-1';
 
 import {
   attachAccountLayout
@@ -130,6 +133,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
   let index=frames.length-1, comparison=true, selected=null;
   let zoom=1, panX=0, panY=0, destroyed=false, exporting=false;
     let accountLayout = null;
+    let evolutionView = null;
   let drag=null, pinch=null, suppressTap=false;
   const pointers=new Map(), positions=new Map();
   const allIds=[...new Set(frames.flatMap(f=>f.nodes.map(n=>n.id)))];
@@ -346,6 +350,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
     }
   }
   function draw() {
+    evolutionView?.setExchange(index);
     timeline.value=String(index);prev.disabled=index===0;next.disabled=index===frames.length-1;checkbox.disabled=index===0;
     turnLabel.textContent=`Exchange ${frames[index].sequence} · saved slice ${index+1} of ${frames.length}`;
     const f=frames[index], before=frames[index-1], oldNodes=new Map((before?.nodes||[]).map(n=>[n.id,n]));
@@ -559,11 +564,29 @@ export function renderConceptsNetwork(row,container,options = {}) {
     }
   });
 
+    evolutionView = mountConceptEvolution({
+    frames,
+    container: root,
+    initialIndex: index,
+
+    onSelect({ frameIndex, conceptId }) {
+      if (destroyed) return;
+
+      // Show the corresponding exchange in the network.
+      goto(frameIndex);
+
+      // Open the selected concept's existing evidence drawer.
+      if (conceptId) {
+        inspect('node', conceptId);
+      }
+    }
+  });
   return {
     saveImage,
     resetView,
     destroy() {
       destroyed=true;
+      evolutionView?.destroy();
       accountLayout?.destroy();
       cancelGestures();
       document.removeEventListener('pointerdown',outsideDown);
