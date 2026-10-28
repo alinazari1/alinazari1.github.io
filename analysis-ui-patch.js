@@ -3,7 +3,7 @@ import {
   createTopicPdfWindow,
   fillTopicPdfWindow,
   showTopicPdfError
-} from './topic-pdf-export.js?v=topic-pdf-2';
+} from './topic-pdf-export.js?v=direct-pdf-1';
 
 const TYPES=['quick_summary','conversation_insights','concepts_network'];
 const LABELS={quick_summary:'Quick summary',conversation_insights:'Conversation insights',concepts_network:'Concepts network'};
@@ -458,8 +458,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
      assertCurrent();
 
      status.textContent =
-       'Report ready in the new window. ' +
-       'Choose Save as PDF in its print dialog.';
+       'PDF generated. The download has started.';
    } catch (error) {
      showTopicPdfError(
        reportWindow,
@@ -474,6 +473,8 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
    } finally {
      temporaryView?.destroy();
      temporaryHost?.remove();
+
+     reportWindow?.__forenturePdfFrame?.remove();
 
      pdfBusy = false;
 
