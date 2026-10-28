@@ -1,3 +1,8 @@
+
+import {
+  attachAccountLayout
+} from './network-layout-store.js?v=account-layout-1';
+
 const SVG = 'http://www.w3.org/2000/svg';
 const array = x => Array.isArray(x) ? x : [];
 const text = x => typeof x === 'string' ? x : '';
@@ -112,7 +117,8 @@ function makeIcon(name,parent) {
     svg('path',{d:'M12 3v12 M7 10l5 5 5-5 M4 16v5h16v-5'},icon);
   }
 }
-export function renderConceptsNetwork(row,container) {
+
+export function renderConceptsNetwork(row,container,options = {}) {
   styles(); container.replaceChildren();
   const frames=normalizeNetwork(row), root=el('section',null,container); root.className='cn';
   el('h3','Concepts network',root);
@@ -123,6 +129,7 @@ export function renderConceptsNetwork(row,container) {
   }
   let index=frames.length-1, comparison=true, selected=null;
   let zoom=1, panX=0, panY=0, destroyed=false, exporting=false;
+    let accountLayout = null;
   let drag=null, pinch=null, suppressTap=false;
   const pointers=new Map(), positions=new Map();
   const allIds=[...new Set(frames.flatMap(f=>f.nodes.map(n=>n.id)))];
@@ -184,6 +191,7 @@ export function renderConceptsNetwork(row,container) {
   function closePopup(){popup.hidden=true;}
   function transform() {
     world.setAttribute('transform',`translate(${panX} ${panY}) translate(440 285) scale(${zoom}) translate(-440 -285)`);
+    accountLayout?.changed();
   }
   function svgPoint(clientX,clientY,element=drawing) {
     const matrix=element.getScreenCTM(); if(!matrix) return null;
@@ -484,11 +492,75 @@ export function renderConceptsNetwork(row,container) {
   window.addEventListener('pointercancel',pointerEnd);
   window.addEventListener('blur',cancelGestures);
   draw();
+  accountLayout = attachAccountLayout({
+    root,
+    row,
+    options,
+
+    readState() {
+      return {
+        version: 1,
+
+        positions: [...positions].map(([id, point]) => ({
+          id,
+          x: point.x,
+          y: point.y
+        })),
+
+        view: {
+          zoom,
+          panX,
+          panY
+        },
+
+        selectedTurnId:
+          frames[index]?.turnId == null
+            ? null
+            : String(frames[index].turnId)
+      };
+    },
+
+    applyState(saved) {
+      cancelGestures();
+      closePopup();
+
+      // Restore only concepts present in this saved report.
+      for (const point of saved.positions) {
+        if (positions.has(point.id)) {
+          positions.set(point.id, {
+            x: point.x,
+            y: point.y
+          });
+        }
+      }
+
+      zoom = saved.view.zoom;
+      panX = saved.view.panX;
+      panY = saved.view.panY;
+
+      if (saved.selectedTurnId != null) {
+        const savedIndex = frames.findIndex(
+          frame =>
+            String(frame.turnId) === saved.selectedTurnId
+        );
+
+        if (savedIndex >= 0) {
+          index = savedIndex;
+        }
+      }
+
+      selected = null;
+      draw();
+    }
+  });
+
   return {
     saveImage,
     resetView,
     destroy() {
-      destroyed=true;cancelGestures();
+      destroyed=true;
+      accountLayout?.destroy();
+      cancelGestures();
       document.removeEventListener('pointerdown',outsideDown);
       root.removeEventListener('keydown',keyboard);
       drawing.removeEventListener('pointerdown',pointerDown);
