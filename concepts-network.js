@@ -625,7 +625,22 @@ export function renderConceptsNetwork(row,container,options = {}) {
   window.addEventListener('pointerup',pointerEnd);
   window.addEventListener('pointercancel',pointerEnd);
   window.addEventListener('blur',cancelGestures);
+    if (options.exportMode && options.initialLayout) {
+    for (const point of options.initialLayout.positions || []) {
+      if (
+        positions.has(point.id) &&
+        Number.isFinite(point.x) &&
+        Number.isFinite(point.y)
+      ) {
+        positions.set(point.id, {
+          x: point.x,
+          y: point.y
+        });
+      }
+    }
+  }
   draw();
+  if (!options.exportMode) {
   accountLayout = attachAccountLayout({
     root,
     row,
@@ -705,10 +720,21 @@ export function renderConceptsNetwork(row,container,options = {}) {
       }
     }
   });
-  return {
-    saveImage,
-    resetView,
-    destroy() {
+  }
+return {
+  saveImage,
+  resetView,
+  captureForPdf,
+
+  getReportIdentity() {
+    return {
+      id: row.id,
+      revision: row.revision,
+      sourceFingerprint: row.source_fingerprint
+    };
+  },
+
+  destroy() {
       destroyed=true;
       evolutionView?.destroy();
       accountLayout?.destroy();
