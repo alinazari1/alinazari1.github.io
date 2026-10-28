@@ -34,9 +34,45 @@ export function validateLayout(value) {
 export function attachAccountLayout({ root, row, options = {}, readState, applyState }) {
   const controls = element('div', null, root);
   controls.className = 'cn-controls';
-  const saveButton = element('button', 'Save layout', controls);
+  const saveButton = element('button', null, controls);
   saveButton.type = 'button';
   saveButton.disabled = true;
+  saveButton.className = 'cn-iconbutton';
+  saveButton.title = 'Save layout to your account';
+  saveButton.setAttribute(
+    'aria-label',
+    'Save layout to your account'
+  );
+  saveButton.setAttribute('aria-busy', 'false');
+
+  saveButton.innerHTML = `
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M4 3h13l4 4v14H3V3h1Z"/>
+      <path d="M7 3v6h10V3"/>
+      <path d="M7 21v-8h10v8"/>
+      <path d="M14 4v3"/>
+    </svg>
+  `;
+
+  // Place Save layout immediately before Download image.
+  const toolbar = root.querySelector('.cn-iconbar');
+
+  if (toolbar) {
+    toolbar.insertBefore(
+      saveButton,
+      toolbar.lastElementChild
+    );
+  }
   const retryButton = element('button', 'Retry loading layout', controls);
   retryButton.type = 'button';
   retryButton.hidden = true;
@@ -108,7 +144,8 @@ export function attachAccountLayout({ root, row, options = {}, readState, applyS
     if (!current() || !loaded || loading || saving) return;
     saving = true;
     saveButton.disabled = true;
-    saveButton.textContent = 'Saving…';
+    saveButton.setAttribute('aria-busy', 'true');
+    saveButton.title = 'Saving layout…';
     status.textContent = 'Saving layout to your account…';
     try {
       const state = validateLayout(readState());
@@ -130,14 +167,18 @@ export function attachAccountLayout({ root, row, options = {}, readState, applyS
       }
       saving = false;
       if (current()) {
-        saveButton.textContent = 'Save layout';
+        saveButton.setAttribute('aria-busy', 'false');
+        saveButton.title = 'Save layout to your account';
         saveButton.disabled = !loaded;
       }
       return;
     } finally {
       saving = false;
-      if (!dead) saveButton.textContent = 'Save layout';
-    }
+      if (!dead) {
+        saveButton.setAttribute('aria-busy', 'false');
+        saveButton.title = 'Save layout to your account';
+      }
+      }
     if (current()) update();
   }
 
