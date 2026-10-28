@@ -4,7 +4,7 @@ import { createAdvisorTopics } from './advisor-topics.js?v=direct-switch-1';
 
 import {
   mountAnalysisUI
-} from './analysis-ui-patch.js?v=topic-pdf-2';
+} from './analysis-ui-patch.js?v=direct-pdf-1';
 
 import { createTopicSharing } from './topic-sharing.js?v=2';
 
