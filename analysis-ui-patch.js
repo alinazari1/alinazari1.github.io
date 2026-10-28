@@ -5,6 +5,10 @@ import {
   showTopicPdfError
 } from './topic-pdf-export.js?v=direct-pdf-1';
 
+import {
+  renderSourceReview
+} from './concept-source-review.js?v=review-1';
+
 const TYPES=['quick_summary','conversation_insights','concepts_network'];
 const LABELS={quick_summary:'Quick summary',conversation_insights:'Conversation insights',concepts_network:'Concepts network'};
 const RULES=[
@@ -25,6 +29,8 @@ function completed(turns){return normalize(turns).filter(t=>t.status==='complete
 async function hashSource(source){const bytes=new TextEncoder().encode(JSON.stringify({title:source.title,turns:normalize(source.turns)}));const digest=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');}
 function quickReport(turns){const passages=turns.flatMap(t=>String(t.prompt).split(/\n+|(?<=[.!?])\s+/u).map(s=>s.trim()).filter(Boolean).map(quote=>({turn_id:t.id,quote})));const used=new Set();return {format_version:2,prompt_count:turns.length,groups:RULES.map(([label,re])=>({label,evidence:passages.filter((e,i)=>{if(re.test(e.quote)){used.add(i);return true;}return false;})})).filter(g=>g.evidence.length),unmatched:passages.filter((_,i)=>!used.has(i))};}
 export function mountAnalysisUI({getDb,getSession,isLocked}){
+ 
+  let sourceReviewHost = null;
  let pdfButton = null;
  let pdfBusy = false;
  let root,tabs={},panel,status,selector,context=null,key='',epoch=0,active='quick_summary',choice='current',rows=[],sourceHash='',currentSource=null,loading=false,message='',networkView=null;
