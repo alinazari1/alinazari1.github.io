@@ -32,11 +32,30 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
  const valid=(token,k)=>token===epoch&&k===key&&user()===context?.user_id;
  function disposeNetwork(){if(networkView){networkView.destroy();networkView=null;}}
  function mount(){if(root)return;const composer=document.getElementById('composer');if(!composer)throw new Error('Message composer not found');
-  root=el('section');root.id='conversationReports';root.hidden=true;el('h3','Your conversation reports',root);
- pdfButton = el(
-    'button',
-    'Export latest topic PDF',
-    root
+ 
+  root = el('section');
+  root.id = 'conversationReports';
+  root.hidden = true;
+
+  const reportHeading = el('div', undefined, root);
+  reportHeading.className = 'report-heading';
+
+  pdfButton = el('button', 'PDF', reportHeading);
+  pdfButton.type = 'button';
+  pdfButton.className = 'report-pdf-button';
+  pdfButton.title = 'Download the latest topic report as PDF';
+
+  pdfButton.setAttribute(
+    'aria-label',
+    'Download the latest topic report as PDF'
+  );
+
+  pdfButton.onclick = exportTopicPdf;
+
+  el(
+    'h3',
+    'Your conversation reports',
+    reportHeading
   );
 
   pdfButton.type = 'button';
