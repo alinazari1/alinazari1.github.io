@@ -2,7 +2,9 @@ import { CONFIG } from './config.js';
 
 import { createAdvisorTopics } from './advisor-topics.js?v=direct-switch-1';
 
-import { mountAnalysisUI } from './analysis-ui-patch.js?v=network-tools-1';
+import {
+  mountAnalysisUI
+} from './analysis-ui-patch.js?v=account-layout-1';
 
 import { createTopicSharing } from './topic-sharing.js?v=2';
 
