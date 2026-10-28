@@ -72,9 +72,31 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
    b.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const step=e.key==='ArrowLeft'?-1:1;const index=e.key==='Home'?0:e.key==='End'?TYPES.length-1:(TYPES.indexOf(type)+step+TYPES.length)%TYPES.length;tabs[TYPES[index]].focus();activate(TYPES[index],true);};}
   el('p','Quick summary and Conversation insights: select to view; select the active report tab again to refresh BOTH reports. A missing pair is generated from either report tab. Concepts network only views saved data and never starts generation.',root).className='report-help';
   const label=el('label','Report snapshot',root);label.htmlFor='reportSnapshotSelect';selector=el('select',undefined,root);selector.id='reportSnapshotSelect';selector.onchange=()=>{choice=selector.value;message='';render();};
-  status=el('p','',root);status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel=el('div',undefined,root);panel.id='paired-report-content';panel.setAttribute('role','tabpanel');panel.tabIndex=0;composer.before(root);
+  status=el('p','',root);status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  panel=el('div',undefined,root);
+  panel.id='paired-report-content';
+  panel.setAttribute('role','tabpanel');
+  panel.tabIndex=0;
+  sourceReviewHost = el(
+  'section',
+  undefined,
+  root
+  );
+  
+  sourceReviewHost.hidden = true;
+  
+  sourceReviewHost.setAttribute(
+    'aria-label',
+    'Concept and connection source review'
+  );
+  composer.before(root);
  }
- function clear(){epoch++;context=null;key='';rows=[];sourceHash='';currentSource=null;message='';loading=false;disposeNetwork();if(root){root.hidden=true;panel.replaceChildren();status.textContent='';}}
+ function clear(){epoch++;context=null;key='';rows=[];sourceHash='';currentSource=null;
+      message='';loading=false;disposeNetwork();if(root){root.hidden=true;panel.replaceChildren();status.textContent='';};
+      if (sourceReviewHost) {
+        sourceReviewHost.replaceChildren();
+        sourceReviewHost.hidden = true;
+      }}
  function sync() {
    if (context && user() !== context.user_id) {
      clear();
@@ -128,7 +150,12 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
   for(const t of TYPES){tabs[t].setAttribute('aria-selected',String(active===t));tabs[t].tabIndex=active===t?0:-1;tabs[t].textContent=LABELS[t]+(running.has(key)?' — Updating pair…':'');}panel.setAttribute('aria-labelledby','paired-tab-'+active);
   selector.replaceChildren();const now=el('option','Current conversation — latest completed exchange',selector);now.value='current';
   for(const r of rows){const n=r.source_state?.turns?.length;const option=el('option',`${new Date(r.requested_at).toLocaleString()} · through exchange ${n||'?'} · revision ${r.revision}`,selector);option.value=r.id;}selector.value=choice;
-  const row=selectedRow();status.textContent=message||(loading?'Loading saved report pairs…':row?`Saved pair: requested ${new Date(row.requested_at).toLocaleString()}, completed ${new Date(row.generation_completed_at).toLocaleString()}. All three tabs use the same captured source.`:rows.length?'No pair saved for the current conversation state. Select Quick summary or Conversation insights to generate both, or choose an earlier snapshot.':'No report pair yet. Select Quick summary or Conversation insights to generate both reports.');
+  const row=selectedRow();
+  renderSourceReview(
+    row,
+    sourceReviewHost
+    );              
+  status.textContent=message||(loading?'Loading saved report pairs…':row?`Saved pair: requested ${new Date(row.requested_at).toLocaleString()}, completed ${new Date(row.generation_completed_at).toLocaleString()}. All three tabs use the same captured source.`:rows.length?'No pair saved for the current conversation state. Select Quick summary or Conversation insights to generate both, or choose an earlier snapshot.':'No report pair yet. Select Quick summary or Conversation insights to generate both reports.');
   if(!row){if(active==='concepts_network')el('p','No saved network for this selection. Choose an earlier saved snapshot, or select Quick summary or Conversation insights to generate a report pair. This tab does not make AI requests.',panel);sync();return;}
   if (active === 'concepts_network') {
     const placeholder = el(
