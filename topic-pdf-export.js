@@ -627,14 +627,35 @@ function renderConversationInsights(doc, parent, row) {
 }
 
 export function createTopicPdfWindow() {
-  const reportWindow = window.open('', '_blank');
+  const frame = document.createElement('iframe');
+
+  frame.setAttribute('aria-hidden', 'true');
+  frame.tabIndex = -1;
+
+  Object.assign(frame.style, {
+    position: 'fixed',
+    left: '-20000px',
+    top: '0',
+    width: '1100px',
+    height: '800px',
+    visibility: 'hidden',
+    pointerEvents: 'none',
+    border: '0'
+  });
+
+  document.body.append(frame);
+
+  const reportWindow = frame.contentWindow;
 
   if (!reportWindow) {
+    frame.remove();
+
     throw new Error(
-      'The report window was blocked. Allow popups ' +
-      'for this site, then retry.'
+      'Could not initialize the PDF document.'
     );
   }
+
+  reportWindow.__forenturePdfFrame = frame;
 
   const doc = reportWindow.document;
 
@@ -643,11 +664,8 @@ export function createTopicPdfWindow() {
   doc.write(
     '<!doctype html><html lang="en"><head>' +
     '<meta charset="utf-8">' +
-    '<title>Preparing topic PDF</title>' +
-    '</head><body>' +
-    '<p>Preparing your topic report… ' +
-    'Close this window to cancel.</p>' +
-    '</body></html>'
+    '<title>Preparing PDF</title>' +
+    '</head><body></body></html>'
   );
 
   doc.close();
@@ -655,22 +673,24 @@ export function createTopicPdfWindow() {
   return reportWindow;
 }
 
-export function showTopicPdfError(reportWindow, message) {
-  if (!reportWindow || reportWindow.closed) return;
+export function showTopicPdfError(
+  reportWindow,
+  message
+) {
+  reportWindow?.__forenturePdfFrame?.remove();
 
-  const doc = reportWindow.document;
-
-  doc.body.replaceChildren();
-
-  element(
-    doc,
-    'h1',
-    'Could not prepare this report',
-    doc.body
-  );
-
-  paragraph(doc, doc.body, message);
+  console.error('Topic PDF export:', message);
 }
+
+
+
+
+
+
+
+
+
+
 
 export async function fillTopicPdfWindow({
   win,
@@ -855,32 +875,6 @@ export async function fillTopicPdfWindow({
     }
   `;
 
-  const controls = element(
-    doc,
-    'div',
-    null,
-    doc.body
-  );
-
-  controls.className = 'report-controls';
-
-  const printButton = element(
-    doc,
-    'button',
-    'Print / Save as PDF',
-    controls
-  );
-
-  printButton.type = 'button';
-  printButton.disabled = true;
-  printButton.onclick = () => win.print();
-
-  element(
-    doc,
-    'span',
-    'Choose “Save as PDF” in the print dialog.',
-    controls
-  );
 
   const main = element(doc, 'main', null, doc.body);
 
@@ -1335,6 +1329,7 @@ export async function fillTopicPdfWindow({
     'button,input,select,textarea,script,iframe'
   ).forEach(node => node.remove());
 
+  
   await Promise.all(images.map(waitForImage));
 
   if (doc.fonts?.ready) {
@@ -1344,20 +1339,29 @@ export async function fillTopicPdfWindow({
   assertCurrent();
 
   if (win.closed) {
-    throw new Error('The report window was closed.');
+    throw new Error('The report document was closed.');
   }
 
-  printButton.disabled = false;
-  win.focus();
+  const title =
+    row.source_state?.title ||
+    'Untitled conversation';
 
-  win.setTimeout(() => {
-    if (win.closed) return;
+  const safeTitle = title
+    .replace(/[^a-z0-9_-]+/gi, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80) || 'topic';
 
-    try {
-      assertCurrent();
-      win.print();
-    } catch (error) {
-      showTopicPdfError(win, error.message);
+  await downloadReportPdf(
+    doc,
+    {
+      title,
+
+      filename:
+        `${safeTitle}-Forenture-report.pdf`,
+
+      assertCurrent,
+
+      pageMargins: [40, 40, 40, 40]
     }
-  }, 100);
+  );
 }
