@@ -1,6 +1,5 @@
 import { renderLatestDevelopment } from './latest-development.js?v=latest-1';
 
-
 const TYPES=['quick_summary','conversation_insights','concepts_network'];
 const LABELS={quick_summary:'Quick summary',conversation_insights:'Conversation insights',concepts_network:'Concepts network'};
 const RULES=[
@@ -70,7 +69,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=toolbar-only-1')
+    import('./concepts-network.js?v=account-layout-1')
       .then(module => {
         if (!stillCurrent()) return;
   
@@ -81,7 +80,22 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
         }
   
         try {
-          networkView = module.renderConceptsNetwork(row, panel);
+          const networkEpoch = epoch;
+          const networkKey = key;
+          const networkUserId = user();
+
+          networkView = module.renderConceptsNetwork(
+            row,
+            panel,
+            {
+              getDb,
+              getSession,
+
+              isCurrent: () =>
+                valid(networkEpoch, networkKey) &&
+                user() === networkUserId
+            }
+          );
         } catch (error) {
           disposeNetwork();
           panel.replaceChildren();
