@@ -1,7 +1,7 @@
 
 import {
   attachAccountLayout
-} from './network-layout-store.js?v=account-layout-1';
+} from './network-layout-store.js?v=save-icon-1';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const array = x => Array.isArray(x) ? x : [];
