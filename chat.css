@@ -380,3 +380,46 @@ body.signed-in .msg.assistant {
 body.signed-in .msg.assistant > .body {
   background: transparent !important;
 }
+
+/* Report heading and compact PDF button. */
+.report-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.report-heading h3 {
+  margin: 0;
+}
+
+.report-heading .report-pdf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 32px;
+  padding: 5px 10px;
+
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #b9cebf;
+  border-radius: 6px;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+
+  cursor: pointer;
+}
+
+.report-heading .report-pdf-button:hover:not(:disabled) {
+  background: #e5f0e8;
+}
+
+.report-heading .report-pdf-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
