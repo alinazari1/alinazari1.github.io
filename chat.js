@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 
-import { createAdvisorTopics } from './advisor-topics.js?v=direct-switch-1';
+import { createAdvisorTopics } from './advisor-topics.js?v=advisor-tabs-1';
 
 import {
   mountAnalysisUI
