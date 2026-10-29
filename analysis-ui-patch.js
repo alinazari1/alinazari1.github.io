@@ -30,7 +30,7 @@ async function hashSource(source){const bytes=new TextEncoder().encode(JSON.stri
 function quickReport(turns){const passages=turns.flatMap(t=>String(t.prompt).split(/\n+|(?<=[.!?])\s+/u).map(s=>s.trim()).filter(Boolean).map(quote=>({turn_id:t.id,quote})));const used=new Set();return {format_version:2,prompt_count:turns.length,groups:RULES.map(([label,re])=>({label,evidence:passages.filter((e,i)=>{if(re.test(e.quote)){used.add(i);return true;}return false;})})).filter(g=>g.evidence.length),unmatched:passages.filter((_,i)=>!used.has(i))};}
 export function mountAnalysisUI({getDb,getSession,isLocked}){
  
-  let sourceReviewHost = null;
+ let sourceReviewHost = null;
  let pdfButton = null;
  let pdfBusy = false;
  let root,tabs={},panel,status,selector,context=null,key='',epoch=0,active='quick_summary',choice='current',rows=[],sourceHash='',currentSource=null,loading=false,message='',networkView=null;
@@ -168,7 +168,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=topic-pdf-2')
+    import('./concepts-network.js?v=comments-1')
       .then(module => {
         if (!stillCurrent()) return;
   
