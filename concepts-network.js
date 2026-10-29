@@ -1,4 +1,8 @@
 import {
+  createGraphDiscussion
+} from './graph-discussion.js?v=comments-1';
+
+import {
   mountConceptEvolution
 } from './concept-evolution.js?v=evolution-1';
 
@@ -135,6 +139,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
   let accountLayout = null;
   let evolutionView = null;
   let pdfCapturing = false;
+  let inspectedKey = null;
   let drag=null, pinch=null, suppressTap=false;
   const pointers=new Map(), positions=new Map();
   const allIds=[...new Set(frames.flatMap(f=>f.nodes.map(n=>n.id)))];
@@ -181,8 +186,25 @@ export function renderConceptsNetwork(row,container,options = {}) {
   const marker=svg('marker',{id:uid,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'},defs);
   svg('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#a3aaa6'},marker);
   const world=svg('g',{},drawing);
-  const drawer=el('aside',null,stage); drawer.className='cn-drawer';
-  drawer.setAttribute('aria-label','Selected concept or relationship'); drawer.setAttribute('aria-live','polite');
+  const drawer = el('aside', null, stage);
+
+  drawer.className = 'cn-drawer';
+
+  drawer.setAttribute(
+    'aria-label',
+    'Selected concept or relationship'
+  );
+
+  const review = options.exportMode
+    ? null
+    : createGraphDiscussion({
+        row,
+        options,
+
+        onCountsChanged() {
+          refreshCommentBadges();
+        }
+      });
   const toolbar=el('div',null,canvas); toolbar.className='cn-iconbar';
   toolbar.setAttribute('role','group'); toolbar.setAttribute('aria-label','Network tools');
   const popup=el('div',null,canvas); popup.className='cn-popup'; popup.hidden=true;
@@ -332,6 +354,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
         draw();
       } finally {
         pdfCapturing = false;
+        refreshCommentBadges();
       }
     }
   }
@@ -347,6 +370,9 @@ export function renderConceptsNetwork(row,container,options = {}) {
     let url=null;
     try {
       const frame=frames[index], clone=drawing.cloneNode(true);
+      clone.querySelectorAll(
+        '.cn-comment-badge'
+      ).forEach(badge => badge.remove());
             // Change label outlines only in the exported copy.
       clone.querySelectorAll('[paint-order="stroke"]')
         .forEach(label => {
@@ -427,8 +453,191 @@ export function renderConceptsNetwork(row,container,options = {}) {
       }
     }
   }
-  function inspect(kind,id) {
-    closePopup();selected={kind,id};drawer.replaceChildren();
+    function refreshCommentBadges() {
+    world.querySelectorAll(
+      '.cn-comment-badge'
+    ).forEach(badge => badge.remove());
+
+    if (
+      destroyed ||
+      pdfCapturing ||
+      options.exportMode ||
+      !review
+    ) {
+      return;
+    }
+
+    const currentNodes = new Map(
+      frames[index].nodes.map(node => [
+        String(node.id),
+        node
+      ])
+    );
+
+    for (const group of world.querySelectorAll(
+      '.cn-node'
+    )) {
+      const id = group.getAttribute(
+        'data-concept-id'
+      );
+
+      const node = currentNodes.get(id);
+
+      if (!node) continue;
+
+      const info = review.getCount(
+        'node',
+        id
+      );
+
+      if (!info.total) continue;
+
+      const unread = info.unread > 0;
+
+      const badge = svg(
+        'g',
+        {
+          class: 'cn-comment-badge',
+          transform:
+            `translate(${radius(node) * 0.7} ` +
+            `${-radius(node) * 0.7})`,
+
+          role: 'button',
+          tabindex: 0,
+
+          'aria-label':
+            `${node.label}: ${info.total} messages, ` +
+            `${info.unread} unread. Open discussion.`
+        },
+        group
+      );
+
+      const width = unread ? 42 : 29;
+
+      svg(
+        'rect',
+        {
+          x: -8,
+          y: -13,
+          width,
+          height: 27,
+          rx: 10,
+
+          fill: unread
+            ? '#17643b'
+            : '#ffffff',
+
+          stroke: '#52785e',
+          'stroke-width': 1.5
+        },
+        badge
+      );
+
+      svg(
+        'path',
+        {
+          d:
+            'M-1 -6 H12 V4 H5 L1 8 V4 H-1 Z',
+
+          fill: 'none',
+
+          stroke: unread
+            ? '#ffffff'
+            : '#183c2b',
+
+          'stroke-width': 1.5,
+          'stroke-linejoin': 'round'
+        },
+        badge
+      );
+
+      if (unread) {
+        svg(
+          'text',
+          {
+            x: 23,
+            y: 1,
+            'text-anchor': 'middle',
+            'dominant-baseline': 'central',
+            'font-size': 10,
+            'font-weight': 700,
+            fill: '#ffffff'
+          },
+          badge
+        ).textContent =
+          info.unread > 99
+            ? '99+'
+            : String(info.unread);
+      }
+
+      svg('title', {}, badge).textContent =
+        `${info.total} messages · ` +
+        `${info.unread} unread`;
+
+      function openDiscussion() {
+        inspect('node', id);
+
+        review.openDiscussion({
+          firstUnread: true
+        });
+      }
+
+      badge.addEventListener(
+        'pointerdown',
+        event => {
+          // Do not begin dragging the circle.
+          event.stopPropagation();
+        }
+      );
+
+      badge.addEventListener(
+        'click',
+        event => {
+          event.preventDefault();
+          event.stopPropagation();
+          openDiscussion();
+        }
+      );
+
+      badge.addEventListener(
+        'keydown',
+        event => {
+          if (
+            event.key === 'Enter' ||
+            event.key === ' '
+          ) {
+            event.preventDefault();
+            event.stopPropagation();
+            openDiscussion();
+          }
+        }
+      );
+    }
+  }
+
+
+  function inspect(kind, id) {
+    if (pdfCapturing) return;
+
+    closePopup();
+
+    selected = { kind, id };
+
+    const nextInspectionKey = JSON.stringify([
+      index,
+      kind,
+      id,
+      comparison
+    ]);
+
+    if (inspectedKey === nextInspectionKey) {
+      return;
+    }
+
+    inspectedKey = nextInspectionKey;
+
+    review?.detach();
+    drawer.replaceChildren();
     const f=frames[index],before=frames[index-1],item=(kind==='node'?f.nodes:f.edges).find(x=>x.id===id);
     if(!item){el('p','This item is not present in the selected turn.',drawer);return;}
     el('h4',kind==='node'?conceptName(item):(text(item.type)||'Relationship'),drawer);
@@ -457,6 +666,14 @@ export function renderConceptsNetwork(row,container,options = {}) {
     }
     if(kind==='node')for(const c of f.changes.filter(c=>c.concept_id===id))el('p',`${c.kind||'Change'}: ${c.description||''}`,drawer);
     showEvidence(item);
+    review?.mount(
+      drawer,
+      {
+        frame: f,
+        kind,
+        item
+      }
+    );
   }
   function addTable(title,headers,items,kind) {
     el('h4',title,tables);const table=el('table',null,tables),head=el('tr',null,el('thead',null,table));
@@ -474,6 +691,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
   function draw() {
     if (!pdfCapturing) {
       evolutionView?.setExchange(index);
+      review?.setFrame(frames[index]);
     }
     timeline.value=String(index);prev.disabled=index===0;next.disabled=index===frames.length-1;checkbox.disabled=index===0;
     turnLabel.textContent=`Exchange ${frames[index].sequence} · saved slice ${index+1} of ${frames.length}`;
@@ -523,11 +741,53 @@ export function renderConceptsNetwork(row,container,options = {}) {
       svg('title',{},g).textContent=conceptName(n);
       g.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();inspect('node',n.id);}};
     }
-    transform();tables.replaceChildren();
-    addTable('Concepts',['Concept','Role','Weight','First recorded'],f.nodes,'node');
-    addTable('Relationships',['Connection','Weight','Relationship'],f.edges,'edge');
-    if(selected)inspect(selected.kind,selected.id);
-    else {drawer.replaceChildren();el('h4','Explore the topic',drawer);el('p','Select a concept or connection to see its role, weight, changes, and saved evidence. Use the timeline to move between turns.',drawer);}
+    refreshCommentBadges();
+
+    transform();
+
+    tables.replaceChildren();
+
+    addTable(
+      'Concepts',
+      ['Concept', 'Role', 'Weight', 'First recorded'],
+      f.nodes,
+      'node'
+    );
+
+    addTable(
+      'Relationships',
+      ['Connection', 'Weight', 'Relationship'],
+      f.edges,
+      'edge'
+    );
+
+    if (!pdfCapturing) {
+      if (selected) {
+        inspect(
+          selected.kind,
+          selected.id
+        );
+      } else {
+        inspectedKey = null;
+
+        review?.detach();
+        drawer.replaceChildren();
+
+        el(
+          'h4',
+          'Explore the topic',
+          drawer
+        );
+
+        el(
+          'p',
+          'Click a concept or connection to inspect it ' +
+          'or start a discussion. Click a comment badge ' +
+          'to open its messages.',
+          drawer
+        );
+      }
+    }
   }
   function cancelGestures() {
     const ids=[...pointers.keys()];pointers.clear();drag=null;pinch=null;suppressTap=false;
@@ -736,6 +996,7 @@ return {
 
   destroy() {
       destroyed=true;
+      review?.destroy();
       evolutionView?.destroy();
       accountLayout?.destroy();
       cancelGestures();
