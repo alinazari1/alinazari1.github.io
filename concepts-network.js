@@ -1,6 +1,6 @@
 import {
   createGraphDiscussion
-} from './graph-discussion.js?v=comments-1';
+} from './graph-discussion.js?v=comments-2';
 
 import {
   mountConceptEvolution
@@ -453,7 +453,8 @@ export function renderConceptsNetwork(row,container,options = {}) {
       }
     }
   }
-    function refreshCommentBadges() {
+  
+  function refreshCommentBadges() {
     world.querySelectorAll(
       '.cn-comment-badge'
     ).forEach(badge => badge.remove());
@@ -490,14 +491,15 @@ export function renderConceptsNetwork(row,container,options = {}) {
         id
       );
 
+      // Only unread messages from another person
+      // produce an icon on the circle.
       if (!info.unread) continue;
-
-      const unread = info.unread > 0;
 
       const badge = svg(
         'g',
         {
           class: 'cn-comment-badge',
+
           transform:
             `translate(${radius(node) * 0.7} ` +
             `${-radius(node) * 0.7})`,
@@ -506,27 +508,22 @@ export function renderConceptsNetwork(row,container,options = {}) {
           tabindex: 0,
 
           'aria-label':
-            `${node.label}: ${info.total} messages, ` +
-            `${info.unread} unread. Open discussion.`
+            `${node.label}: ${info.unread} unread messages. ` +
+            'Open discussion.'
         },
         group
       );
-
-      const width = unread ? 42 : 29;
 
       svg(
         'rect',
         {
           x: -8,
           y: -13,
-          width,
+          width: 42,
           height: 27,
           rx: 10,
 
-          fill: unread
-            ? '#17643b'
-            : '#ffffff',
-
+          fill: '#17643b',
           stroke: '#52785e',
           'stroke-width': 1.5
         },
@@ -540,39 +537,35 @@ export function renderConceptsNetwork(row,container,options = {}) {
             'M-1 -6 H12 V4 H5 L1 8 V4 H-1 Z',
 
           fill: 'none',
-
-          stroke: unread
-            ? '#ffffff'
-            : '#183c2b',
-
+          stroke: '#ffffff',
           'stroke-width': 1.5,
           'stroke-linejoin': 'round'
         },
         badge
       );
 
-      if (unread) {
-        svg(
-          'text',
-          {
-            x: 23,
-            y: 1,
-            'text-anchor': 'middle',
-            'dominant-baseline': 'central',
-            'font-size': 10,
-            'font-weight': 700,
-            fill: '#ffffff'
-          },
-          badge
-        ).textContent =
-          info.unread > 99
-            ? '99+'
-            : String(info.unread);
-      }
+      svg(
+        'text',
+        {
+          x: 23,
+          y: 1,
+
+          'text-anchor': 'middle',
+          'dominant-baseline': 'central',
+
+          'font-size': 10,
+          'font-weight': 700,
+
+          fill: '#ffffff'
+        },
+        badge
+      ).textContent =
+        info.unread > 99
+          ? '99+'
+          : String(info.unread);
 
       svg('title', {}, badge).textContent =
-        `${info.total} messages · ` +
-        `${info.unread} unread`;
+        `${info.unread} unread messages`;
 
       function openDiscussion() {
         inspect('node', id);
@@ -585,7 +578,6 @@ export function renderConceptsNetwork(row,container,options = {}) {
       badge.addEventListener(
         'pointerdown',
         event => {
-          // Do not begin dragging the circle.
           event.stopPropagation();
         }
       );
@@ -595,6 +587,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
         event => {
           event.preventDefault();
           event.stopPropagation();
+
           openDiscussion();
         }
       );
@@ -608,6 +601,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
           ) {
             event.preventDefault();
             event.stopPropagation();
+
             openDiscussion();
           }
         }
@@ -901,33 +895,34 @@ export function renderConceptsNetwork(row,container,options = {}) {
   }
   draw();
   if (!options.exportMode) {
-  accountLayout = attachAccountLayout({
-    root,
-    row,
-    options,
-
-    readState() {
-      return {
-        version: 1,
-
-        positions: [...positions].map(([id, point]) => ({
-          id,
-          x: point.x,
-          y: point.y
-        })),
-
-        view: {
-          zoom,
-          panX,
-          panY
-        },
-
-        selectedTurnId:
-          frames[index]?.turnId == null
-            ? null
-            : String(frames[index].turnId)
-      };
-    },
+    if (!options.reviewMode) {
+      accountLayout = attachAccountLayout({
+      root,
+      row,
+      options,
+  
+      readState() {
+        return {
+          version: 1,
+  
+          positions: [...positions].map(([id, point]) => ({
+            id,
+            x: point.x,
+            y: point.y
+          })),
+  
+          view: {
+            zoom,
+            panX,
+            panY
+          },
+  
+          selectedTurnId:
+            frames[index]?.turnId == null
+              ? null
+              : String(frames[index].turnId)
+        };
+      },
 
     applyState(saved) {
       cancelGestures();
@@ -962,8 +957,8 @@ export function renderConceptsNetwork(row,container,options = {}) {
       draw();
     }
   });
-
-    evolutionView = mountConceptEvolution({
+  }
+  evolutionView = mountConceptEvolution({
     frames,
     container: root,
     initialIndex: index,
