@@ -1015,12 +1015,31 @@ return {
   };
 }
 /** Mount beside a shared report panel. */
-export function mountConceptsNetwork({tabBar,existingPanel,getRow}) {
+export function mountConceptsNetwork({
+  tabBar,
+  existingPanel,
+  getRow,
+  getDb,
+  getSession,
+  isCurrent
+}) {
   if(!(tabBar instanceof Element)||!(existingPanel instanceof Element)||typeof getRow!=='function')throw new Error('Supply tabBar, existingPanel, and getRow().');
   styles();const existingTabs=[...tabBar.querySelectorAll('button')];
   const button=el('button','Concepts network',tabBar);button.type='button';button.className='cn-tab';button.setAttribute('aria-selected','false');
   const panel=el('section');panel.hidden=true;existingPanel.after(panel);let view=null,active=false;
-  const render=row=>{view?.destroy();view=renderConceptsNetwork(row,panel);};
+  const render = row => {
+    view?.destroy();
+
+    view = renderConceptsNetwork(
+      row,
+      panel,
+      {
+        getDb,
+        getSession,
+        isCurrent
+      }
+    );
+  };
   const onExisting=()=>{active=false;panel.hidden=true;existingPanel.hidden=false;button.setAttribute('aria-selected','false');};
   existingTabs.forEach(t=>t.addEventListener('click',onExisting));
   button.onclick=()=>{
