@@ -490,7 +490,7 @@ export function renderConceptsNetwork(row,container,options = {}) {
         id
       );
 
-      if (!info.total) continue;
+      if (!info.unread) continue;
 
       const unread = info.unread > 0;
 
