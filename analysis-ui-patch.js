@@ -1,3 +1,7 @@
+import {
+  mountAdvisorTopicReviews
+} from './advisor-topic-reviews.js?v=comments-2';
+
 import { renderLatestDevelopment } from './latest-development.js?v=latest-1';
 import {
   createTopicPdfWindow,
@@ -34,6 +38,33 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
  let pdfButton = null;
  let pdfBusy = false;
  let root,tabs={},panel,status,selector,context=null,key='',epoch=0,active='quick_summary',choice='current',rows=[],sourceHash='',currentSource=null,loading=false,message='',networkView=null;
+ let advisorReviews = null;
+let advisorReviewHost = null;
+
+function ensureAdvisorReviews() {
+  const composer = document.getElementById(
+    'composer'
+  );
+
+  if (!composer) return;
+
+  if (!advisorReviews) {
+    advisorReviewHost = document.createElement(
+      'section'
+    );
+
+    composer.before(advisorReviewHost);
+
+    advisorReviews = mountAdvisorTopicReviews({
+      container: advisorReviewHost,
+      getDb,
+      getSession
+    });
+  }
+
+  advisorReviews.sync();
+}
+  
  const running=new Set();const user=()=>getSession()?.user?.id||null;
  const valid=(token,k)=>token===epoch&&k===key&&user()===context?.user_id;
  function disposeNetwork(){if(networkView){networkView.destroy();networkView=null;}}
@@ -98,6 +129,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
         sourceReviewHost.hidden = true;
       }}
  function sync() {
+   ensureAdvisorReviews();
    if (context && user() !== context.user_id) {
      clear();
      return;
@@ -168,7 +200,7 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=comments-1')
+    import('./concepts-network.js?v=comments-2')
       .then(module => {
         if (!stillCurrent()) return;
   
@@ -519,5 +551,6 @@ export function mountAnalysisUI({getDb,getSession,isLocked}){
    }
  }
  function analyze(id){if(!context||context.id!==String(id))throw new Error('Open this topic first');root.scrollIntoView({behavior:'smooth',block:'start'});}
+  ensureAdvisorReviews();
  return {setContext:(topic,turns)=>{setContext(topic,turns).catch(e=>{if(root){message='Report setup failed: '+e.message;loading=false;render();}});},sync,analyze,close:clear};
 }
