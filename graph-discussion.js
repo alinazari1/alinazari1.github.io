@@ -1,911 +1,259 @@
+function ensureStyles() {
+  if (document.getElementById('graph-discussion-styles-2')) return;
+  const style = document.createElement('style');
+  style.id = 'graph-discussion-styles-2';
+  style.textContent = `
+.cn-stage{grid-template-columns:minmax(0,1fr) 330px}
+.cn-comment-badge{cursor:pointer}
+.cn-comment-badge:focus>rect{stroke:#b66a00;stroke-width:3}
+.cn-review-header{display:flex;justify-content:flex-end;margin-bottom:10px}
+.cn-review-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cn-review-tabs button[aria-pressed=true]{background:#17643b;color:#fff}
+.cn-review-messages{max-height:270px;overflow-y:auto;overscroll-behavior:contain;padding:2px}
+.cn-review-message{margin:0 0 10px;padding:10px;border:1px solid #dbe6dd;border-radius:8px;background:#f6faf7}
+.cn-review-message.is-own{background:#eaf4ed}
+.cn-review-message.is-reply{margin-left:12px;border-left:3px solid #80b491}
+.cn-review-message .cn-review-author{margin-top:0;font-size:11px;font-weight:600}
+.cn-review-body{white-space:pre-wrap;overflow-wrap:anywhere}
+.cn-review-form{margin-top:14px;padding-top:12px;border-top:1px solid #dbe6dd}
+.cn-review-form label{display:block;margin:8px 0}
+.cn-review-form textarea{box-sizing:border-box;display:block;width:100%;min-height:95px;margin-top:5px;padding:9px;border:1px solid #a8bdb0;border-radius:6px;background:#fff;color:#111;font:inherit;resize:vertical;user-select:text;-webkit-user-select:text}
+.cn-review-form button[type=submit]{background:#17643b;color:#fff}
+@media(max-width:800px){.cn-stage{grid-template-columns:1fr}.cn-drawer{max-height:600px}}
+`;
+  document.head.append(style);
+}
 function el(tag, value, parent) {
-  const node = document.createElement(tag);
-
-  if (value != null) {
-    node.textContent = String(value);
-  }
-
-  if (parent) parent.append(node);
-
-  return node;
+  const n = document.createElement(tag);
+  if (value != null) n.textContent = String(value);
+  if (parent) parent.append(n);
+  return n;
 }
-
-function when(value) {
-  const date = new Date(value);
-
-  return Number.isNaN(date.getTime())
-    ? ''
-    : date.toLocaleString();
+function who(m) {
+  if (m.is_own) return 'You';
+  const role = m.author_role === 'business_owner' ? 'Business user' : 'Advisor';
+  return `${role} · ${String(m.author_id || '').slice(0, 8)}`;
 }
-
-function author(message) {
-  if (message.is_own) return 'You';
-
-  const role =
-    message.author_role === 'business_owner'
-      ? 'Business user'
-      : 'Advisor';
-
-  const identifier = String(
-    message.author_id || ''
-  ).slice(0, 8);
-
-  return identifier
-    ? `${role} · ${identifier}`
-    : role;
+function time(value) {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString();
 }
-
-export function createGraphDiscussion({
-  row,
-  options,
-  onCountsChanged
-}) {
+export function createGraphDiscussion({ row, options, onCountsChanged }) {
+  ensureStyles();
   const actor = options.getSession?.()?.user?.id;
-
-  const enabled = Boolean(
-    actor &&
-    typeof options.getDb === 'function' &&
-    typeof options.getSession === 'function'
-  );
-
-  let destroyed = false;
-  let frame = null;
-  let counts = new Map();
-  let countsRequest = 0;
-  let countsBusy = false;
-  let active = null;
-  let readTimer = null;
-
-  const drafts = new Map();
-  const pendingReads = new Set();
-
-  function current() {
-    return (
-      !destroyed &&
-      enabled &&
-      options.getSession?.()?.user?.id === actor &&
-      (
-        typeof options.isCurrent !== 'function' ||
-        options.isCurrent()
-      )
-    );
-  }
-
-  function base() {
-    return {
-      p_snapshot_id: String(row.id),
-      p_revision: row.revision
-    };
-  }
-
-  function targetKey(kind, id) {
-    return JSON.stringify([kind, String(id)]);
-  }
-
-  function draftKey(state) {
-    return JSON.stringify([
-      state.turnId,
-      state.kind,
-      state.id
-    ]);
-  }
-
-  function targetParams(state) {
-    return {
-      ...base(),
-      p_turn_id: state.turnId,
-      p_target_kind: state.kind,
-      p_target_id: state.id
-    };
-  }
-
-  async function rpc(name, parameters) {
-    if (!current()) {
-      throw new Error(
-        'Review access is unavailable. Reopen the topic.'
-      );
-    }
-
-    const result = await options.getDb().rpc(
-      name,
-      parameters
-    );
-
+  const enabled = !!actor && typeof options.getDb === 'function';
+  let dead = false, frame = null, active = null, reading = false;
+  let countBusy = false, countSerial = 0, counts = new Map();
+  const drafts = new Map(), pendingReads = new Set();
+  const current = () => !dead && enabled &&
+    options.getSession?.()?.user?.id === actor && options.isCurrent?.() !== false;
+  const base = () => ({ p_snapshot_id: String(row.id), p_revision: row.revision });
+  const key = (kind, id) => JSON.stringify([kind, String(id)]);
+  const draftKey = s => JSON.stringify([s.turnId, s.kind, s.id]);
+  const params = s => ({ ...base(), p_turn_id: s.turnId,
+    p_target_kind: s.kind, p_target_id: s.id });
+  const notify = () => { if (!dead) onCountsChanged?.(); };
+  async function rpc(name, args) {
+    if (!current()) throw new Error('The account or topic changed. Reopen this review.');
+    const result = await options.getDb().rpc(name, args);
     if (result.error) throw result.error;
-
-    if (!current()) {
-      throw new Error(
-        'The account or topic changed.'
-      );
-    }
-
+    if (!current()) throw new Error('The account or topic changed.');
     return result.data;
   }
-
-  function notifyCounts() {
-    if (!destroyed) {
-      onCountsChanged?.();
+  function updateForm(s) {
+    if (active !== s) return;
+    s.input.disabled = s.posting || !current() || s.denied;
+    s.send.disabled = s.input.disabled || s.loading;
+    s.send.textContent = s.posting ? 'Posting…' : s.replyTo ? 'Send reply' : 'Post comment';
+    s.replyLabel.textContent = s.replyTo ? `Replying to ${s.replyTo.label}` : 'New comment';
+    s.cancel.hidden = !s.replyTo;
+  }
+  function failure(s, error) {
+    if (active !== s) return;
+    s.status.textContent = error.message || String(error);
+    if (error.code === '42501' || !current()) {
+      s.denied = true;
+      s.observer?.disconnect();
+      s.list.replaceChildren();
+      updateForm(s);
     }
   }
-
-  function updateComposer(state) {
-    if (active !== state) return;
-
-    state.send.disabled =
-      state.posting ||
-      !current();
-
-    state.input.disabled =
-      state.posting ||
-      !current();
-
-    state.send.textContent = state.posting
-      ? 'Posting…'
-      : state.replyTo
-        ? 'Send reply'
-        : 'Post comment';
-
-    state.replyLabel.textContent = state.replyTo
-      ? `Replying to ${state.replyTo.label}`
-      : 'New comment';
-
-    state.cancelReply.hidden = !state.replyTo;
-  }
-
   async function refreshCounts() {
-    if (!frame || destroyed || countsBusy) return;
-
-    if (!current()) {
-      counts = new Map();
-      notifyCounts();
-
-      if (active) {
-        active.status.textContent =
-          'Review access is unavailable. Reopen the topic.';
-
-        updateComposer(active);
-      }
-
-      return;
-    }
-
-    const capturedTurn = String(frame.turnId);
-    const request = ++countsRequest;
-
-    countsBusy = true;
-
+    if (!frame || dead || countBusy) return;
+    if (!current()) { counts.clear(); notify(); if (active) failure(active, new Error('Review session ended.')); return; }
+    const turn = String(frame.turnId), serial = ++countSerial;
+    countBusy = true;
     try {
-      const data = await rpc(
-        'graph_review_counts',
-        {
-          ...base(),
-          p_turn_id: capturedTurn
-        }
-      );
-
-      if (
-        destroyed ||
-        request !== countsRequest ||
-        String(frame?.turnId) !== capturedTurn
-      ) {
-        return;
-      }
-
-      counts = new Map(
-        (data || []).map(item => [
-          targetKey(
-            item.target_kind,
-            item.target_id
-          ),
-          {
-            total: Number(item.total_count) || 0,
-            unread: Number(item.unread_count) || 0
-          }
-        ])
-      );
-
-      notifyCounts();
-    } catch (error) {
-      if (
-        !destroyed &&
-        request === countsRequest &&
-        String(frame?.turnId) === capturedTurn
-      ) {
-        counts = new Map();
-        notifyCounts();
-
-        if (active) {
-          active.status.textContent =
-            'Could not refresh notifications: ' +
-            error.message;
-        }
+      const data = await rpc('graph_review_counts', { ...base(), p_turn_id: turn });
+      if (dead || serial !== countSerial || String(frame?.turnId) !== turn) return;
+      counts = new Map((data || []).map(x => [key(x.target_kind, x.target_id),
+        { total: Number(x.total_count) || 0, unread: Number(x.unread_count) || 0 }]));
+      notify();
+    } catch (e) {
+      if (!dead && serial === countSerial) {
+        counts.clear(); notify(); if (active) failure(active, e);
       }
     } finally {
-      countsBusy = false;
-
-      if (
-        !destroyed &&
-        String(frame?.turnId) !== capturedTurn
-      ) {
-        void refreshCounts();
-      }
+      countBusy = false;
+      if (!dead && String(frame?.turnId) !== turn) void refreshCounts();
     }
   }
-
   async function flushReads() {
-    readTimer = null;
-
-    if (!current() || !pendingReads.size) return;
-
+    if (reading || !pendingReads.size || !current()) return;
+    reading = true;
     const ids = [...pendingReads].slice(0, 200);
-
     ids.forEach(id => pendingReads.delete(id));
-
     try {
-      await rpc(
-        'graph_review_mark_read',
-        {
-          ...base(),
-          p_comment_ids: ids
-        }
-      );
-
-      if (active) {
-        for (const message of active.messages) {
-          if (ids.includes(message.id)) {
-            message.is_unread = false;
-          }
-        }
-      }
-
+      await rpc('graph_review_mark_read', { ...base(), p_comment_ids: ids });
+      if (active) for (const m of active.messages) if (ids.includes(m.id)) m.is_unread = false;
       void refreshCounts();
-    } catch (error) {
-      if (active) {
-        active.status.textContent =
-          'Could not update read status: ' +
-          error.message;
+    } catch (e) { if (active) failure(active, e); }
+    finally { reading = false; }
+  }
+  function observe(s) {
+    s.observer?.disconnect();
+    if (active !== s || !s.open || s.denied || document.visibilityState !== 'visible' || !current()) return;
+    if (typeof IntersectionObserver !== 'function') return;
+    s.observer = new IntersectionObserver(entries => {
+      if (active !== s || !s.open || document.visibilityState !== 'visible' || !current()) return;
+      for (const entry of entries) {
+        if (entry.intersectionRatio < 1) continue;
+        pendingReads.add(entry.target.dataset.messageId);
+        s.observer.unobserve(entry.target);
       }
-    }
-
-    if (pendingReads.size && current()) {
-      readTimer = setTimeout(flushReads, 250);
-    }
+    }, { root: null, threshold: 1 });
+    for (const m of s.messages) if (m.is_unread && s.headings.has(m.id)) s.observer.observe(s.headings.get(m.id));
   }
-
-  function queueRead(id) {
-    pendingReads.add(id);
-
-    if (!readTimer) {
-      readTimer = setTimeout(flushReads, 250);
+  function append(s, m) {
+    const card = el('article', null, s.list);
+    card.className = 'cn-review-message' + (m.is_own ? ' is-own' : '') + (m.parent_id ? ' is-reply' : '');
+    const h = el('p', `${who(m)} · ${time(m.created_at)}`, card);
+    h.className = 'cn-review-author'; h.dataset.messageId = m.id; s.headings.set(m.id, h);
+    if (m.parent_id) {
+      const parent = s.messages.find(x => x.id === m.parent_id);
+      el('p', parent ? `Reply to ${who(parent)}` : 'Reply to an earlier message', card).className = 'cn-note';
     }
+    el('p', m.body, card).className = 'cn-review-body';
+    const reply = el('button', 'Reply', card); reply.type = 'button';
+    reply.onclick = () => { s.replyTo = { id: m.id, label: who(m) }; updateForm(s); s.input.focus(); };
   }
-
-  function observeMessages(state) {
-    state.observer?.disconnect();
-
-    if (
-      active !== state ||
-      !state.open ||
-      document.visibilityState !== 'visible' ||
-      !current()
-    ) {
-      return;
-    }
-
-    if (typeof IntersectionObserver !== 'function') {
-      // Leave unread flags intact when visibility cannot
-      // be checked reliably.
-      return;
-    }
-
-    state.observer = new IntersectionObserver(
-      entries => {
-        if (
-          active !== state ||
-          !state.open ||
-          document.visibilityState !== 'visible' ||
-          !current()
-        ) {
-          return;
-        }
-
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-
-          const id = entry.target.dataset.messageId;
-
-          if (id) queueRead(id);
-
-          state.observer.unobserve(entry.target);
-        }
-      },
-      {
-        root: state.list,
-        threshold: 1
-      }
-    );
-
-    for (const message of state.messages) {
-      if (!message.is_unread) continue;
-
-      const heading = state.headings.get(message.id);
-
-      if (heading) {
-        state.observer.observe(heading);
-      }
-    }
-  }
-
-  function appendMessage(state, message) {
-    const card = el('article', null, state.list);
-
-    card.className =
-      'cn-review-message' +
-      (message.is_own ? ' is-own' : '');
-
-    const heading = el(
-      'p',
-      `${author(message)} · ${when(message.created_at)}`,
-      card
-    );
-
-    heading.className = 'cn-review-author';
-    heading.dataset.messageId = message.id;
-
-    state.headings.set(message.id, heading);
-
-    if (message.parent_id) {
-      const parent = state.messages.find(
-        item => item.id === message.parent_id
-      );
-
-      el(
-        'p',
-        parent
-          ? `Reply to ${author(parent)}`
-          : 'Reply to an earlier message',
-        card
-      ).className = 'cn-note';
-
-      card.classList.add('is-reply');
-    }
-
-    el(
-      'p',
-      message.body,
-      card
-    ).className = 'cn-review-body';
-
-    const reply = el(
-      'button',
-      'Reply',
-      card
-    );
-
-    reply.type = 'button';
-
-    reply.onclick = () => {
-      state.replyTo = {
-        id: message.id,
-        label: author(message)
-      };
-
-      updateComposer(state);
-      state.input.focus();
-    };
-
-    return card;
-  }
-
-  async function loadMessages(
-    state,
-    { seekUnread = false } = {}
-  ) {
-    if (
-      active !== state ||
-      state.loading ||
-      !current()
-    ) {
-      return;
-    }
-
-    state.loading = true;
-    state.status.textContent = 'Loading discussion…';
-
+  async function load(s, { seekUnread = false, drain = false } = {}) {
+    if (active !== s || s.loading || s.denied || !current()) return false;
+    s.loading = true; updateForm(s); s.status.textContent = 'Loading discussion…';
     try {
       let batch;
-
       do {
-        batch = await rpc(
-          'graph_review_messages',
-          {
-            ...targetParams(state),
-            p_after_sequence: state.cursor
-          }
-        );
-
-        if (active !== state) return;
-
-        batch = batch || [];
-
-        for (const message of batch) {
-          const sequence = Number(
-            message.sequence_no
-          );
-
-          if (!Number.isSafeInteger(sequence)) {
-            throw new Error(
-              'The message sequence is outside the supported range.'
-            );
-          }
-
-          state.cursor = Math.max(
-            state.cursor,
-            sequence
-          );
-
-          if (
-            state.messages.some(
-              saved => saved.id === message.id
-            )
-          ) {
-            continue;
-          }
-
-          state.messages.push(message);
-
-          appendMessage(state, message);
+        batch = await rpc('graph_review_messages', { ...params(s), p_after_sequence: s.cursor }) || [];
+        if (active !== s) return false;
+        for (const m of batch) {
+          const sequence = Number(m.sequence_no);
+          if (!Number.isSafeInteger(sequence)) throw new Error('Unsupported message sequence.');
+          s.cursor = Math.max(s.cursor, sequence);
+          if (!s.messages.some(x => x.id === m.id)) { s.messages.push(m); append(s, m); }
         }
-
-        state.more.hidden = batch.length < 200;
-
-        // When opening a notification, continue through
-        // earlier pages until the first unread message.
-      } while (
-        seekUnread &&
-        batch.length === 200 &&
-        !state.messages.some(
-          message => message.is_unread
-        )
-      );
-
-      state.status.textContent =
-        state.messages.length
-          ? ''
-          : 'No comments yet. Start the discussion below.';
-
+        s.more.hidden = batch.length < 200;
+      } while (batch.length === 200 && (drain || (seekUnread && !s.messages.some(m => m.is_unread))));
+      s.status.textContent = s.messages.length ? '' : 'No comments yet. Start the discussion below.';
       if (seekUnread) {
-        const firstUnread = state.messages.find(
-          message => message.is_unread
-        );
-
-        const heading = firstUnread
-          ? state.headings.get(firstUnread.id)
-          : null;
-
-        if (heading) {
-          const listRect =
-            state.list.getBoundingClientRect();
-
-          const headingRect =
-            heading.getBoundingClientRect();
-
-          state.list.scrollTop +=
-            headingRect.top - listRect.top - 8;
-        }
+        const m = s.messages.find(x => x.is_unread), h = m && s.headings.get(m.id);
+        if (h) s.list.scrollTop += h.getBoundingClientRect().top - s.list.getBoundingClientRect().top - 8;
       }
-
-      observeMessages(state);
-    } catch (error) {
-      if (active === state) {
-        state.status.textContent =
-          'Could not load discussion: ' +
-          error.message;
-      }
-    } finally {
-      state.loading = false;
-    }
+      observe(s); return true;
+    } catch (e) { failure(s, e); return false; }
+    finally { s.loading = false; updateForm(s); }
   }
-
   function detach() {
     if (!active) return;
-
-    drafts.set(
-      draftKey(active),
-      {
-        body: active.input?.value || '',
-        replyTo: active.replyTo
-      }
-    );
-
-    active.observer?.disconnect();
-    active = null;
+    drafts.set(draftKey(active), { body: active.input.value, replyTo: active.replyTo });
+    active.observer?.disconnect(); active = null;
   }
-
   function mount(drawer, { frame: slice, kind, item }) {
     detach();
-
-    const originalContent = [
-      ...drawer.childNodes
-    ];
-
-    const header = el('div', null);
-
-    header.className = 'cn-review-header';
-
-    const newComment = el(
-      'button',
-      'New comment',
-      header
-    );
-
-    newComment.type = 'button';
-
-    const tabs = el('div', null);
-    tabs.className = 'cn-review-tabs';
-
-    const detailsButton = el(
-      'button',
-      'Details & sources',
-      tabs
-    );
-
-    const discussionButton = el(
-      'button',
-      'Discussion',
-      tabs
-    );
-
-    detailsButton.type = 'button';
-    discussionButton.type = 'button';
-
-    const overview = el('div', null);
-
-    originalContent.forEach(node => {
-      overview.append(node);
-    });
-
-    const discussion = el('div', null);
-    discussion.hidden = true;
-
-    drawer.replaceChildren(
-      header,
-      tabs,
-      overview,
-      discussion
-    );
-
+    const overview = el('div'); overview.append(...drawer.childNodes);
+    const header = el('div'); header.className = 'cn-review-header';
+    const start = el('button', 'New comment', header); start.type = 'button';
+    const tabs = el('div'); tabs.className = 'cn-review-tabs';
+    const details = el('button', 'Details & sources', tabs), discussion = el('button', 'Discussion', tabs);
+    details.type = discussion.type = 'button';
+    const pane = el('div'); pane.hidden = true;
+    drawer.replaceChildren(header, tabs, overview, pane);
     if (!enabled) {
-      el(
-        'p',
-        'This graph has not been connected to the signed-in ' +
-        'review session. Commenting is unavailable.',
-        discussion
-      ).className = 'cn-note';
-
-      newComment.disabled = true;
-
-      const switchView = showDiscussion => {
-        overview.hidden = showDiscussion;
-        discussion.hidden = !showDiscussion;
-      };
-
-      detailsButton.onclick = () => switchView(false);
-
-      discussionButton.onclick = () => {
-        switchView(true);
-      };
-
+      start.disabled = true;
+      el('p', 'Sign-in/database connection is required for this graph’s discussion.', pane);
+      details.onclick = () => { overview.hidden = false; pane.hidden = true; };
+      discussion.onclick = () => { overview.hidden = true; pane.hidden = false; };
       return;
     }
-
-    const state = {
-      turnId: String(slice.turnId),
-      kind,
-      id: String(item.id),
-
-      messages: [],
-      headings: new Map(),
-
-      cursor: 0,
-      loading: false,
-      posting: false,
-      open: false,
-      observer: null,
-      replyTo: null
-    };
-
-    state.status = el('p', '', discussion);
-
-    state.status.className = 'cn-note';
-    state.status.setAttribute('role', 'status');
-
-    state.list = el('div', null, discussion);
-
-    state.list.className = 'cn-review-messages';
-
-    state.more = el(
-      'button',
-      'Load more messages',
-      discussion
-    );
-
-    state.more.type = 'button';
-    state.more.hidden = true;
-
-    state.more.onclick = () => {
-      void loadMessages(state);
-    };
-
-    const form = el('form', null, discussion);
-
-    form.className = 'cn-review-form';
-
-    state.replyLabel = el(
-      'p',
-      'New comment',
-      form
-    );
-
-    state.cancelReply = el(
-      'button',
-      'Cancel reply',
-      form
-    );
-
-    state.cancelReply.type = 'button';
-    state.cancelReply.hidden = true;
-
-    state.cancelReply.onclick = () => {
-      state.replyTo = null;
-      updateComposer(state);
-      state.input.focus();
-    };
-
-    const label = el(
-      'label',
-      'Your message',
-      form
-    );
-
-    state.input = el('textarea', null, label);
-
-    state.input.rows = 4;
-    state.input.maxLength = 8000;
-
-    state.input.placeholder =
-      'Ask a question, add evidence, or leave feedback…';
-
-    state.send = el(
-      'button',
-      'Post comment',
-      form
-    );
-
-    state.send.type = 'submit';
-
-    const savedDraft = drafts.get(
-      draftKey(state)
-    );
-
-    if (savedDraft) {
-      state.input.value = savedDraft.body;
-      state.replyTo = savedDraft.replyTo;
+    const s = { turnId: String(slice.turnId), kind, id: String(item.id), messages: [],
+      headings: new Map(), cursor: 0, loading: false, posting: false, denied: false,
+      open: false, observer: null, replyTo: null };
+    s.status = el('p', '', pane); s.status.className = 'cn-note'; s.status.setAttribute('role', 'status');
+    s.list = el('div', null, pane); s.list.className = 'cn-review-messages';
+    s.more = el('button', 'Load more messages', pane); s.more.type = 'button'; s.more.hidden = true;
+    s.more.onclick = () => void load(s);
+    const form = el('form', null, pane); form.className = 'cn-review-form';
+    s.replyLabel = el('p', 'New comment', form);
+    s.cancel = el('button', 'Cancel reply', form); s.cancel.type = 'button';
+    const label = el('label', 'Your message', form);
+    s.input = el('textarea', null, label); s.input.rows = 4; s.input.maxLength = 8000;
+    s.input.placeholder = 'Ask a question, add evidence, or leave feedback…';
+    s.send = el('button', 'Post comment', form); s.send.type = 'submit';
+    const draft = drafts.get(draftKey(s));
+    if (draft) { s.input.value = draft.body; s.replyTo = draft.replyTo; }
+    active = s;
+    function switchView(open) {
+      if (active !== s) return;
+      s.open = open; pane.hidden = !open; overview.hidden = open;
+      details.setAttribute('aria-pressed', String(!open)); discussion.setAttribute('aria-pressed', String(open));
+      if (!open) s.observer?.disconnect();
     }
-
-    active = state;
-
-    function switchView(showDiscussion) {
-      if (active !== state) return;
-
-      state.open = showDiscussion;
-
-      overview.hidden = showDiscussion;
-      discussion.hidden = !showDiscussion;
-
-      detailsButton.setAttribute(
-        'aria-pressed',
-        String(!showDiscussion)
-      );
-
-      discussionButton.setAttribute(
-        'aria-pressed',
-        String(showDiscussion)
-      );
-
-      if (!showDiscussion) {
-        state.observer?.disconnect();
-      } else {
-        observeMessages(state);
-      }
-    }
-
-    state.openDiscussion = ({
-      firstUnread = false,
-      focus = false
-    } = {}) => {
-      switchView(true);
-
-      void loadMessages(
-        state,
-        { seekUnread: firstUnread }
-      );
-
-      if (focus) {
-        state.input.focus();
-      }
+    s.openDiscussion = ({ firstUnread = false, focus = false } = {}) => {
+      switchView(true); void load(s, { seekUnread: firstUnread }); if (focus) s.input.focus();
     };
-
-    detailsButton.onclick = () => {
-      switchView(false);
-    };
-
-    discussionButton.onclick = () => {
-      state.openDiscussion({
-        firstUnread: true
-      });
-    };
-
-    newComment.onclick = () => {
-      state.replyTo = null;
-      updateComposer(state);
-
-      state.openDiscussion({
-        focus: true
-      });
-    };
-
+    details.onclick = () => switchView(false);
+    discussion.onclick = () => s.openDiscussion({ firstUnread: true });
+    start.onclick = () => { s.replyTo = null; updateForm(s); s.openDiscussion({ focus: true }); };
+    s.cancel.onclick = () => { s.replyTo = null; updateForm(s); s.input.focus(); };
     form.onsubmit = async event => {
       event.preventDefault();
-
-      if (
-        active !== state ||
-        state.posting ||
-        !current()
-      ) {
-        return;
-      }
-
-      const body = state.input.value.trim();
-
-      if (!body) {
-        state.status.textContent =
-          'Write a message first.';
-
-        state.input.focus();
-        return;
-      }
-
-      state.posting = true;
-      updateComposer(state);
-
-      state.status.textContent = 'Posting message…';
-
+      if (active !== s || s.posting || s.loading || !current() || s.denied) return;
+      const body = s.input.value.trim();
+      if (!body) { s.status.textContent = 'Write a message first.'; s.input.focus(); return; }
+      s.posting = true; updateForm(s); s.status.textContent = 'Posting message…';
       try {
-        await rpc(
-          'graph_review_post',
-          {
-            ...targetParams(state),
-            p_body: body,
-            p_parent_id: state.replyTo?.id || null
-          }
-        );
-
-        // The message may finish saving after the user
-        // selects another node. Do not change that panel.
-        drafts.delete(draftKey(state));
-
-        if (active !== state) {
-          void refreshCounts();
-          return;
+        await rpc('graph_review_post', { ...params(s), p_body: body, p_parent_id: s.replyTo?.id || null });
+        // Preserve a newer draft written after switching away from this target.
+        const saved = drafts.get(draftKey(s));
+        if (saved?.body === body) drafts.delete(draftKey(s));
+        if (active === s) {
+          s.input.value = ''; s.replyTo = null;
+          await load(s, { drain: true });
         }
-
-        state.input.value = '';
-        state.replyTo = null;
-
-        await loadMessages(state);
-
         void refreshCounts();
-
-        state.status.textContent = 'Message posted.';
-      } catch (error) {
-        if (active === state) {
-          state.status.textContent =
-            'Could not confirm posting: ' +
-            error.message +
-            '. Refresh the discussion before retrying ' +
-            'to avoid posting the same message twice.';
-        }
-      } finally {
-        state.posting = false;
-
-        if (active === state) {
-          updateComposer(state);
-        }
-      }
+      } catch (e) {
+        failure(s, { ...e, message: `Could not confirm posting: ${e.message}. Refresh the discussion before retrying to avoid duplicates.` });
+      } finally { s.posting = false; updateForm(s); }
     };
-
-    switchView(false);
-    updateComposer(state);
+    switchView(false); updateForm(s);
   }
-
-  function visibilityChanged() {
-    if (
-      document.visibilityState === 'visible' &&
-      active?.open
-    ) {
-      observeMessages(active);
-      void loadMessages(active);
-    }
-  }
-
-  document.addEventListener(
-    'visibilitychange',
-    visibilityChanged
-  );
-
+  function visibility() { if (active?.open && document.visibilityState === 'visible') { observe(active); void load(active); } }
+  document.addEventListener('visibilitychange', visibility);
+  const readsTimer = setInterval(() => void flushReads(), 750);
   const poll = setInterval(() => {
-    if (
-      destroyed ||
-      document.visibilityState !== 'visible'
-    ) {
-      return;
-    }
-
-    void refreshCounts();
-
-    if (active?.open) {
-      void loadMessages(active);
-    }
+    if (document.visibilityState !== 'visible' || dead) return;
+    void refreshCounts(); if (active?.open) void load(active);
   }, 15000);
-
   return {
     setFrame(slice) {
-      const changed =
-        String(frame?.turnId) !==
-        String(slice?.turnId);
-
-      frame = slice;
-
-      if (changed) {
-        counts = new Map();
-        countsRequest++;
-        notifyCounts();
-        void refreshCounts();
-      }
+      const changed = String(frame?.turnId) !== String(slice?.turnId); frame = slice;
+      if (changed) { counts.clear(); countSerial++; notify(); void refreshCounts(); }
     },
-
-    getCount(kind, id) {
-      return counts.get(
-        targetKey(kind, id)
-      ) || {
-        total: 0,
-        unread: 0
-      };
-    },
-
-    mount,
-
-    openDiscussion(settings) {
-      active?.openDiscussion?.(settings);
-    },
-
-    detach,
-
+    getCount(kind, id) { return counts.get(key(kind, id)) || { total: 0, unread: 0 }; },
+    mount, detach,
+    openDiscussion(settings) { active?.openDiscussion?.(settings); },
     destroy() {
-      detach();
-      destroyed = true;
-
-      clearInterval(poll);
-      clearTimeout(readTimer);
-
-      pendingReads.clear();
-      drafts.clear();
-
-      document.removeEventListener(
-        'visibilitychange',
-        visibilityChanged
-      );
+      detach(); dead = true; clearInterval(poll); clearInterval(readsTimer);
+      pendingReads.clear(); drafts.clear(); document.removeEventListener('visibilitychange', visibility);
     }
   };
 }
