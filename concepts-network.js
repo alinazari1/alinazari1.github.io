@@ -1,4 +1,8 @@
 import {
+  resolveGraphReviewOptions
+} from './graph-review-connection.js?v=connection-1';
+
+import {
   createGraphDiscussion
 } from './graph-discussion.js?v=comments-2';
 
@@ -126,6 +130,7 @@ function makeIcon(name,parent) {
 }
 
 export function renderConceptsNetwork(row,container,options = {}) {
+    options = resolveGraphReviewOptions(options);
   styles(); container.replaceChildren();
   const frames=normalizeNetwork(row), root=el('section',null,container); root.className='cn';
   el('h3','Concepts network',root);
