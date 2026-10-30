@@ -1,4 +1,7 @@
 import { CONFIG } from './config.js';
+import {
+  configureGraphReviewConnection
+} from './graph-review-connection.js?v=connection-1';
 
 import { createAdvisorTopics } from './advisor-topics.js?v=advisor-tabs-1';
 
@@ -55,6 +58,10 @@ let voiceActive = false;
 let voiceCancelled = false;
 let voiceBaseText = '';
 let voiceUserId = null;
+configureGraphReviewConnection({
+  getDb: () => db,
+  getSession: () => session
+});
 const advisorTopics = createAdvisorTopics({
   getDb: () => db,
   getSession: () => session,
