@@ -200,7 +200,7 @@ function ensureAdvisorReviews() {
       active === 'concepts_network' &&
       panel.contains(placeholder);
   
-    import('./concepts-network.js?v=comments-2')
+    import('./concepts-network.js?v=connection-1')
       .then(module => {
         if (!stillCurrent()) return;
   
