@@ -1,5 +1,8 @@
 import { renderLatestDevelopment } from './latest-development.js?v=latest-1';
-import { renderConceptsNetwork, normalizeNetwork } from './concepts-network.js?v=advisor-tabs-1';
+import {
+  renderConceptsNetwork,
+  normalizeNetwork
+} from './concepts-network.js?v=connection-1';
 import { createTopicPdfWindow, fillTopicPdfWindow, showTopicPdfError } from './topic-pdf-export.js?v=direct-pdf-1';
 
 const list = v => Array.isArray(v) ? v : [];
