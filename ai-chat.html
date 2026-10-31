@@ -1132,6 +1132,36 @@
   src="./workspace-resize.js?v=1">
 </script>
 
+<script type="module">
+  function placeComposerButtonsInside() {
+    const composer = document.getElementById('composer');
+    const prompt = document.getElementById('prompt');
+    const voice = document.getElementById('voice');
+    const send = document.getElementById('send');
 
+    if (!composer || !prompt || !voice || !send) return;
+    if (composer.querySelector('.composer-input-wrap')) return;
+
+    const labels = Array.from(prompt.labels || []);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'composer-input-wrap';
+
+    const buttons = document.createElement('div');
+    buttons.className = 'composer-inside-buttons';
+
+    composer.prepend(wrap);
+    wrap.append(prompt, buttons);
+    buttons.append(voice, send);
+
+    for (const label of labels) {
+      label.htmlFor = prompt.id;
+      label.classList.add('composer-label-hidden');
+    }
+  }
+
+  placeComposerButtonsInside();
+</script>
+  
 </body>
 </html>
