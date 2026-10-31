@@ -1103,8 +1103,28 @@ $('new').onclick = () => {
 
   history();
   conversation();
+  controls();
 
-  say('New conversation. Existing database records remain saved.');
+  if (!session) {
+    say('Please sign in to start a conversation.');
+    return;
+  }
+
+  if (!$('consent').checked) {
+    say('Please confirm the privacy notice before chatting.');
+    return;
+  }
+
+  if (uncertain) {
+    say(
+      'A previous request is unresolved. ' +
+      'Use the existing request-check button before sending again.'
+    );
+    return;
+  }
+
+  say('New conversation. Type your message or use voice input.');
+  $('prompt').focus();
 };
 
 $('refresh').onclick = async () => {
