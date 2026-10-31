@@ -1162,6 +1162,51 @@
   placeComposerButtonsInside();
 </script>
 
+<style>
+  /* Hide the label visually, preserving accessibility. */
+  #composer .composer-label-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  /* Make this wrapper the positioning reference. */
+  #composer .composer-input-wrap {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Reserve space inside the input for its controls. */
+  #composer .composer-input-wrap #prompt {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 76px !important;
+  }
+
+  /* Move the existing controls to the bottom-right. */
+  #composer .composer-inside-buttons {
+    position: absolute !important;
+    inset: auto 12px 12px auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    z-index: 2;
+  }
+
+  #composer .composer-inside-buttons > button {
+    margin: 0 !important;
+  }
+</style>
   
 </body>
 </html>
